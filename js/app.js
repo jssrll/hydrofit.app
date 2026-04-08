@@ -3,24 +3,14 @@
 // Global variables
 let currentUser = null;
 let timerInterval = null;
-let activeChart = null;
+let slideInterval = null;
+let currentSlide = 0;
 
-// Default user data structure
+// Default user data structure (no points system)
 let userData = {
-  points: 0,
-  level: 1,
-  badges: [],
   assessments: [],
-  movementScores: {},
   attendance: [],
-  habitStreak: 0,
-  lastWorkoutDate: null,
-  calorieLogs: [],
-  bmiHistory: [],
-  heartLogs: [],
-  goals: [],
-  bodyTypeResult: null,
-  attendanceRecords: []
+  goals: []
 };
 
 // DOM Elements
@@ -43,7 +33,6 @@ function showToast(msg, isError = false) {
   toast.style.zIndex = '9999';
   toast.style.fontWeight = 'bold';
   toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-  toast.style.animation = 'slideInRight 0.3s ease';
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
@@ -53,42 +42,19 @@ function playBeep() {
   if(audio) audio.play().catch(e=>console.log);
 }
 
-function updateUIStats() {
-  document.getElementById('pointsDisplay').innerText = userData.points;
-  let lvl = Math.floor(userData.points / 500) + 1;
-  if(lvl < 1) lvl = 1;
-  userData.level = lvl;
-  document.getElementById('levelDisplay').innerText = userData.level;
+function playLoudBell() {
+  let bell = document.getElementById('loudBell');
+  if(bell) {
+    bell.currentTime = 0;
+    bell.play().catch(e=>console.log);
+    // Play multiple times for 3 seconds
+    setTimeout(() => bell.pause(), 3000);
+  }
 }
 
 function saveUserData() {
   if (currentUser) {
     localStorage.setItem(`hydrofit_${currentUser.schoolId}`, JSON.stringify(userData));
-    // Also update points in accounts list
-    const users = JSON.parse(localStorage.getItem('hydrofit_accounts') || '[]');
-    const userIndex = users.findIndex(u => u.schoolId === currentUser.schoolId);
-    if (userIndex !== -1) {
-      users[userIndex].points = userData.points;
-      users[userIndex].level = userData.level;
-      localStorage.setItem('hydrofit_accounts', JSON.stringify(users));
-    }
-  }
-  updateUIStats();
-}
-
-function awardPoints(pts, reason) {
-  userData.points += pts;
-  saveUserData();
-  showToast(`+${pts} pts! ${reason || ''}`);
-  checkLevelUp();
-}
-
-function checkLevelUp() {
-  let newLvl = Math.floor(userData.points / 500) + 1;
-  if(newLvl > userData.level) {
-    userData.level = newLvl;
-    showToast(`🎉 LEVEL UP! You are now level ${newLvl}!`);
-    saveUserData();
   }
 }
 
@@ -100,104 +66,53 @@ async function login(schoolId, password) {
     return false;
   }
   
-  // First try API if configured
-  if (typeof CONFIG !== 'undefined' && CONFIG.API_URL && CONFIG.API_URL.includes('script.google.com')) {
-    try {
-      const result = await loginUser(schoolId, password);
-      if (result && result.success) {
-        currentUser = {
-          schoolId: result.schoolId,
-          fullName: result.fullName,
-          program: result.program,
-          subject: result.subject,
-          points: result.points || 0,
-          level: result.level || 1
-        };
-        
-        localStorage.setItem('hydrofit_current_user', JSON.stringify(currentUser));
-        
-        const stored = localStorage.getItem(`hydrofit_${currentUser.schoolId}`);
-        if (stored) {
-          userData = JSON.parse(stored);
-        } else {
-          userData = {
-            points: currentUser.points || 0,
-            level: currentUser.level || 1,
-            badges: [],
-            assessments: [],
-            attendance: [],
-            habitStreak: 0,
-            calorieLogs: [],
-            bmiHistory: [],
-            heartLogs: [],
-            goals: [],
-            attendanceRecords: []
-          };
-        }
-        
-        updateUIStats();
-        loginModal.style.display = 'none';
-        showToast(`✅ Welcome ${result.fullName}!`);
-        switchTab('dashboard');
-        return true;
-      } else {
-        showToast(result?.message || 'Invalid School ID or Password', true);
-        return false;
-      }
-    } catch (error) {
-      console.error('API login error:', error);
-      // Fall back to localStorage
-    }
-  }
+  const btn = document.getElementById('loginBtn');
+  const inputs = document.querySelectorAll('#loginModal input');
   
-  // Fallback to localStorage
-  const users = JSON.parse(localStorage.getItem('hydrofit_accounts') || '[]');
-  const user = users.find(u => u.schoolId === schoolId && u.password === password);
+  btn.disabled = true;
+  inputs.forEach(input => input.disabled = true);
+  btn.textContent = 'Logging in...';
   
-  if (user) {
-    currentUser = {
-      schoolId: user.schoolId,
-      fullName: user.fullName,
-      program: user.program,
-      subject: user.subject,
-      points: user.points || 0,
-      level: user.level || 1
-    };
+  // Use localStorage for demo
+  setTimeout(() => {
+    const users = JSON.parse(localStorage.getItem('hydrofit_accounts') || '[]');
+    const user = users.find(u => u.schoolId === schoolId && u.password === password);
     
-    localStorage.setItem('hydrofit_current_user', JSON.stringify(currentUser));
-    
-    const stored = localStorage.getItem(`hydrofit_${currentUser.schoolId}`);
-    if (stored) {
-      userData = JSON.parse(stored);
-    } else {
-      userData = {
-        points: currentUser.points || 0,
-        level: currentUser.level || 1,
-        badges: [],
-        assessments: [],
-        attendance: [],
-        habitStreak: 0,
-        calorieLogs: [],
-        bmiHistory: [],
-        heartLogs: [],
-        goals: [],
-        attendanceRecords: []
+    if (user) {
+      currentUser = {
+        schoolId: user.schoolId,
+        fullName: user.fullName,
+        program: user.program,
+        subject: user.subject,
+        yearLevel: user.yearLevel,
+        section: user.section
       };
+      
+      localStorage.setItem('hydrofit_current_user', JSON.stringify(currentUser));
+      
+      const stored = localStorage.getItem(`hydrofit_${currentUser.schoolId}`);
+      if (stored) {
+        userData = JSON.parse(stored);
+      } else {
+        userData = { assessments: [], attendance: [], goals: [] };
+      }
+      
+      loginModal.style.display = 'none';
+      showToast(`✅ Welcome ${user.fullName}!`);
+      switchTab('dashboard');
+    } else {
+      showToast('Invalid School ID or Password', true);
     }
     
-    updateUIStats();
-    loginModal.style.display = 'none';
-    showToast(`✅ Welcome ${user.fullName}!`);
-    switchTab('dashboard');
-    return true;
-  }
+    btn.disabled = false;
+    inputs.forEach(input => input.disabled = false);
+    btn.textContent = 'Login';
+  }, 500);
   
-  showToast('Invalid School ID or Password', true);
-  return false;
+  return true;
 }
 
 async function register(registrationData) {
-  // Validate
   if (!registrationData.fullName) {
     showToast('Please enter your full name', true);
     return false;
@@ -210,6 +125,14 @@ async function register(registrationData) {
     showToast('Please select your program', true);
     return false;
   }
+  if (!registrationData.yearLevel) {
+    showToast('Please select your year level', true);
+    return false;
+  }
+  if (!registrationData.section) {
+    showToast('Please enter your section', true);
+    return false;
+  }
   if (!registrationData.password) {
     showToast('Please enter a password', true);
     return false;
@@ -219,70 +142,61 @@ async function register(registrationData) {
     return false;
   }
   
-  // Try API first
-  if (typeof CONFIG !== 'undefined' && CONFIG.API_URL && CONFIG.API_URL.includes('script.google.com')) {
-    try {
-      const result = await registerUser(registrationData);
-      if (result && result.success) {
-        showToast('✅ Registration successful! Please login.');
-        registerModal.style.display = 'none';
-        loginModal.style.display = 'flex';
-        
-        // Clear form
-        document.getElementById('regFullName').value = '';
-        document.getElementById('regSchoolId').value = '';
-        document.getElementById('regSubject').value = '';
-        document.getElementById('regProgram').value = '';
-        document.getElementById('regPassword').value = '';
-        document.getElementById('regConfirmPassword').value = '';
-        return true;
-      } else {
-        showToast(result?.message || 'Registration failed', true);
-        return false;
-      }
-    } catch (error) {
-      console.error('API register error:', error);
+  const btn = document.getElementById('registerBtn');
+  const inputs = document.querySelectorAll('#registerModal input, #registerModal select');
+  
+  btn.disabled = true;
+  inputs.forEach(input => input.disabled = true);
+  btn.textContent = 'Registering...';
+  
+  setTimeout(() => {
+    const users = JSON.parse(localStorage.getItem('hydrofit_accounts') || '[]');
+    
+    if (users.some(u => u.schoolId === registrationData.schoolId)) {
+      showToast('School ID already exists', true);
+      btn.disabled = false;
+      inputs.forEach(input => input.disabled = false);
+      btn.textContent = 'Register';
+      return;
     }
-  }
-  
-  // Fallback to localStorage
-  const users = JSON.parse(localStorage.getItem('hydrofit_accounts') || '[]');
-  
-  if (users.some(u => u.schoolId === registrationData.schoolId)) {
-    showToast('School ID already exists', true);
-    return false;
-  }
-  
-  const newUser = {
-    schoolId: registrationData.schoolId,
-    password: registrationData.password,
-    fullName: registrationData.fullName,
-    program: registrationData.program,
-    subject: registrationData.subject || 'Pathfit',
-    points: 0,
-    level: 1,
-    registeredAt: new Date().toISOString()
-  };
-  
-  users.push(newUser);
-  localStorage.setItem('hydrofit_accounts', JSON.stringify(users));
-  
-  showToast('✅ Registration successful! Please login.');
-  registerModal.style.display = 'none';
-  loginModal.style.display = 'flex';
-  
-  // Clear form
-  document.getElementById('regFullName').value = '';
-  document.getElementById('regSchoolId').value = '';
-  document.getElementById('regSubject').value = '';
-  document.getElementById('regProgram').value = '';
-  document.getElementById('regPassword').value = '';
-  document.getElementById('regConfirmPassword').value = '';
+    
+    const newUser = {
+      schoolId: registrationData.schoolId,
+      password: registrationData.password,
+      fullName: registrationData.fullName,
+      program: registrationData.program,
+      subject: registrationData.subject || 'Pathfit',
+      yearLevel: registrationData.yearLevel,
+      section: registrationData.section,
+      registeredAt: new Date().toISOString()
+    };
+    
+    users.push(newUser);
+    localStorage.setItem('hydrofit_accounts', JSON.stringify(users));
+    
+    showToast('✅ Registration successful! Please login.');
+    registerModal.style.display = 'none';
+    loginModal.style.display = 'flex';
+    
+    document.getElementById('regFullName').value = '';
+    document.getElementById('regSchoolId').value = '';
+    document.getElementById('regSubject').value = '';
+    document.getElementById('regProgram').value = '';
+    document.getElementById('regYearLevel').value = '';
+    document.getElementById('regSection').value = '';
+    document.getElementById('regPassword').value = '';
+    document.getElementById('regConfirmPassword').value = '';
+    
+    btn.disabled = false;
+    inputs.forEach(input => input.disabled = false);
+    btn.textContent = 'Register';
+  }, 500);
   
   return true;
 }
 
 function logout() {
+  if (slideInterval) clearInterval(slideInterval);
   currentUser = null;
   localStorage.removeItem('hydrofit_current_user');
   loginModal.style.display = 'flex';
@@ -299,7 +213,6 @@ function checkAuth() {
     if (stored) {
       userData = JSON.parse(stored);
     }
-    updateUIStats();
     loginModal.style.display = 'none';
     switchTab('dashboard');
   } else {
@@ -334,131 +247,310 @@ function showQRCode() {
   profileModal.style.display = 'flex';
 }
 
+// Slideshow function
+function initSlideshow() {
+  const slides = [
+    'https://ik.imagekit.io/0sf7uub8b/HydroFit/slides_1.jpg',
+    'https://ik.imagekit.io/0sf7uub8b/HydroFit/slides_2.jpg',
+    'https://ik.imagekit.io/0sf7uub8b/HydroFit/slides_3.jpg'
+  ];
+  
+  if (slideInterval) clearInterval(slideInterval);
+  
+  let slideIndex = 0;
+  const container = document.getElementById('slideshowContainer');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  slides.forEach((slide, idx) => {
+    const div = document.createElement('div');
+    div.className = `slide ${idx === 0 ? 'active' : ''}`;
+    div.style.backgroundImage = `url('${slide}')`;
+    div.style.backgroundSize = 'cover';
+    div.style.backgroundPosition = 'center';
+    div.onerror = function() {
+      this.style.backgroundImage = 'none';
+      this.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
+      this.innerHTML = '<i class="fas fa-water" style="font-size: 80px;"></i>';
+      this.style.display = 'flex';
+      this.style.alignItems = 'center';
+      this.style.justifyContent = 'center';
+    };
+    container.appendChild(div);
+  });
+  
+  const dotsContainer = document.createElement('div');
+  dotsContainer.className = 'slide-dots';
+  slides.forEach((_, idx) => {
+    const dot = document.createElement('div');
+    dot.className = `dot ${idx === 0 ? 'active' : ''}`;
+    dot.onclick = () => showSlide(idx);
+    dotsContainer.appendChild(dot);
+  });
+  container.appendChild(dotsContainer);
+  
+  function showSlide(n) {
+    const slideElements = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    slideElements.forEach(slide => slide.classList.remove('active'));
+    dots.forEach(dot => dot.classList.remove('active'));
+    slideIndex = n;
+    if (slideElements[slideIndex]) slideElements[slideIndex].classList.add('active');
+    if (dots[slideIndex]) dots[slideIndex].classList.add('active');
+  }
+  
+  slideInterval = setInterval(() => {
+    slideIndex = (slideIndex + 1) % slides.length;
+    showSlide(slideIndex);
+  }, 5000);
+  
+  window.showSlide = showSlide;
+}
+
 // ============ RENDER FUNCTIONS ============
 
 function renderDashboard() {
   if (!contentDiv) return;
   
-  const attendanceCount = userData.attendanceRecords?.length || 0;
-  const attendanceRate = Math.min(100, (attendanceCount / 30) * 100);
+  const firstName = currentUser?.fullName?.split(',')[0] || 'User';
   
   contentDiv.innerHTML = `
-    <div class="card-grid">
-      <div class="card">
-        <h3><i class="fas fa-user-circle"></i> Welcome, ${currentUser?.fullName?.split(',')[0] || 'User'}!</h3>
-        <p>Program: ${currentUser?.program || 'N/A'}</p>
-        <p>School ID: ${currentUser?.schoolId || 'N/A'}</p>
-        <button class="btn btn-sm" id="showQRBtn"><i class="fas fa-qrcode"></i> Show QR Code</button>
-      </div>
-      <div class="card">
-        <h3><i class="fas fa-fire"></i> Habit Streak</h3>
-        <p>🔥 ${userData.habitStreak} day streak</p>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, (userData.habitStreak / 30) * 100)}%"></div></div>
-      </div>
-      <div class="card">
-        <h3><i class="fas fa-trophy"></i> Level ${userData.level}</h3>
-        <p>${userData.points} total points</p>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(userData.points % 500) / 5}%"></div></div>
-        <p>Next level: ${500 - (userData.points % 500)} pts</p>
-      </div>
-      <div class="card">
-        <h3><i class="fas fa-clipboard-check"></i> Today's Challenge</h3>
-        <p>Complete 20 pushups → +50 pts</p>
-        <button class="btn btn-sm" id="completeDaily">✅ Complete</button>
-      </div>
-      <div class="card">
-        <h3><i class="fas fa-calendar-check"></i> Class Attendance Record</h3>
-        <p>Total Attendances: ${attendanceCount}</p>
-        <div class="progress-bar"><div class="progress-fill" style="width:${attendanceRate}%"></div></div>
-        <button class="btn btn-sm" id="markAttendanceBtn"><i class="fas fa-check-circle"></i> Mark Today Present</button>
+    <div class="slideshow-container" id="slideshowContainer"></div>
+    <div class="card">
+      <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div style="background: var(--primary); border-radius: 60px; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-user" style="font-size: 35px; color: white;"></i>
+        </div>
+        <div style="flex: 1;">
+          <h2>Welcome, ${firstName}!</h2>
+          <p><strong>Program:</strong> ${currentUser?.program || 'N/A'}</p>
+          <p><strong>School ID:</strong> ${currentUser?.schoolId || 'N/A'}</p>
+          <p><strong>Year & Section:</strong> ${currentUser?.yearLevel || 'N/A'} - ${currentUser?.section || 'N/A'}</p>
+        </div>
+        <button class="btn" id="dashboardQRBtn"><i class="fas fa-qrcode"></i> Show QR Code</button>
       </div>
     </div>
   `;
   
-  document.getElementById('showQRBtn')?.addEventListener('click', showQRCode);
-  document.getElementById('completeDaily')?.addEventListener('click', () => {
-    awardPoints(50, 'Daily challenge completed!');
-  });
-  document.getElementById('markAttendanceBtn')?.addEventListener('click', () => {
-    const today = new Date().toDateString();
-    if (!userData.attendanceRecords?.includes(today)) {
-      if (!userData.attendanceRecords) userData.attendanceRecords = [];
-      userData.attendanceRecords.push(today);
-      saveUserData();
-      awardPoints(10, 'Attendance marked!');
-      showToast('Attendance recorded!');
-      renderDashboard();
-    } else {
-      showToast('Already marked today!');
-    }
-  });
+  initSlideshow();
+  document.getElementById('dashboardQRBtn')?.addEventListener('click', showQRCode);
 }
 
 function renderProfile() {
   if (!contentDiv) return;
+  
   contentDiv.innerHTML = `
-    <div class="card">
-      <h3><i class="fas fa-user-circle"></i> My Profile</h3>
-      <div style="text-align: center; padding: 20px;">
-        <i class="fas fa-user" style="font-size: 80px; color: var(--primary);"></i>
-        <h2>${currentUser?.fullName}</h2>
-        <p><strong>School ID:</strong> ${currentUser?.schoolId}</p>
-        <p><strong>Program:</strong> ${currentUser?.program}</p>
-        <p><strong>Subject:</strong> ${currentUser?.subject || 'Pathfit'}</p>
-        <p><strong>Total Points:</strong> ${userData.points}</p>
-        <p><strong>Level:</strong> ${userData.level}</p>
-        <button class="btn" id="profileQRBtn"><i class="fas fa-qrcode"></i> View QR Code</button>
+    <div class="profile-card">
+      <div class="profile-avatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <h2>${currentUser?.fullName}</h2>
+      <p>${currentUser?.program} Student</p>
+      <div class="profile-info-grid">
+        <div class="info-item">
+          <label>School ID</label>
+          <p>${currentUser?.schoolId}</p>
+        </div>
+        <div class="info-item">
+          <label>Program</label>
+          <p>${currentUser?.program}</p>
+        </div>
+        <div class="info-item">
+          <label>Year Level</label>
+          <p>${currentUser?.yearLevel || 'N/A'}</p>
+        </div>
+        <div class="info-item">
+          <label>Section</label>
+          <p>${currentUser?.section || 'N/A'}</p>
+        </div>
+        <div class="info-item">
+          <label>Subject</label>
+          <p>${currentUser?.subject || 'Pathfit'}</p>
+        </div>
+        <div class="info-item">
+          <label>Member Since</label>
+          <p>${new Date().toLocaleDateString()}</p>
+        </div>
       </div>
     </div>
+    <div class="card">
+      <h3><i class="fas fa-chart-line"></i> Recent Activity</h3>
+      <p>Total Assessments: ${userData.assessments?.length || 0}</p>
+      <p>Total Attendances: ${userData.attendance?.length || 0}</p>
+    </div>
   `;
-  document.getElementById('profileQRBtn')?.addEventListener('click', showQRCode);
 }
 
-function renderGamified() {
-  let badgesHtml = userData.badges.map(b => `<span class="badge">🏅 ${b}</span>`).join('');
-  if (!badgesHtml) badgesHtml = '<span class="badge">⭐ Newbie</span>';
+function renderRanking() {
+  // Mock data for rankings
+  const campusData = [
+    { name: "Custodio, Jessrell M.", program: "BSIT", grade: 98.5 },
+    { name: "Forger, Yor M.", program: "BSIT", grade: 98.5 },
+    { name: "Rayos, Zyntx M.", program: "BSHM", grade: 97.0 },
+    { name: "Santos, Maria R.", program: "BSED", grade: 96.5 },
+    { name: "Reyes, John L.", program: "BSCRIM", grade: 95.0 }
+  ];
+  
+  const programData = [
+    { name: "Custodio, Jessrell M.", grade: 98.5 },
+    { name: "Forger, Yor M.", grade: 98.5 },
+    { name: "Santos, Juan D.", grade: 94.0 }
+  ];
+  
+  const classData = [
+    { name: "Custodio, Jessrell M.", grade: 98.5 },
+    { name: "Forger, Yor M.", grade: 98.5 },
+    { name: "Ramos, Ana C.", grade: 92.0 }
+  ];
+  
+  function renderRankTable(data, title, isTieSupport = true) {
+    let html = `<div class="ranking-section"><h3>${title}</h3><table class="ranking-table"><thead><tr><th>Rank</th><th>Name</th><th>Grade</th></tr></thead><tbody>`;
+    
+    let currentRank = 1;
+    let prevGrade = null;
+    let skipCount = 0;
+    
+    for (let i = 0; i < data.length; i++) {
+      if (prevGrade !== null && data[i].grade < prevGrade) {
+        currentRank += skipCount + 1;
+        skipCount = 0;
+      }
+      
+      const isTie = prevGrade !== null && data[i].grade === prevGrade;
+      if (isTie) {
+        skipCount++;
+      }
+      
+      html += `<tr ${isTie ? 'class="tied-rank"' : ''}>
+        <td>${currentRank}</td>
+        <td>${data[i].name}</td>
+        <td>${data[i].grade}</td>
+      </tr>`;
+      
+      prevGrade = data[i].grade;
+      if (!isTie) skipCount = 0;
+    }
+    
+    html += `</tbody></table></div>`;
+    return html;
+  }
+  
   contentDiv.innerHTML = `
-    <div class="card"><h3><i class="fas fa-medal"></i> Your Badges</h3><div class="badge-list">${badgesHtml}</div><button class="btn btn-sm" id="unlockDemoBadge">Earn Demo Badge</button></div>
-    <div class="card"><h3><i class="fas fa-ranking-star"></i> Class Ranking</h3><div class="leaderboard-item"><span>1. AthleteX</span><span>2450 pts</span></div><div class="leaderboard-item"><span>2. You</span><span>${userData.points} pts</span></div><div class="leaderboard-item"><span>3. FitPilot</span><span>1890 pts</span></div></div>
+    ${renderRankTable(campusData, "🏆 Campus Ranking (Top 15)", true)}
+    ${renderRankTable(programData, "📚 Program Ranking - ${currentUser?.program} (Top 10)", true)}
+    ${renderRankTable(classData, "👥 Class Ranking (Top 10)", true)}
   `;
-  document.getElementById('unlockDemoBadge')?.addEventListener('click', () => {
-    if (!userData.badges.includes('Consistency Badge')) userData.badges.push('Consistency Badge');
-    saveUserData();
-    renderGamified();
-    awardPoints(30, 'Badge earned!');
+}
+
+function renderActivity() {
+  contentDiv.innerHTML = `
+    <div class="card">
+      <h3><i class="fas fa-clipboard-list"></i> Fitness Activity Log</h3>
+      <p>Track your fitness activities here.</p>
+      <button class="btn" onclick="showToast('Activity logged!')">Log New Activity</button>
+    </div>
+  `;
+}
+
+function renderMovementLib() { contentDiv.innerHTML = `<div class="card"><h3>Movement Library</h3><p>Exercise videos and instructions coming soon!</p></div>`; }
+function renderAIAssist() { contentDiv.innerHTML = `<div class="card"><h3>AI Exercise Guide</h3><p>Get personalized workout recommendations.</p><button class="btn" onclick="showToast('AI Coach: Try 10 pushups!')">Ask AI</button></div>`; }
+function renderScheduler() { contentDiv.innerHTML = `<div class="card"><h3>Workout Scheduler</h3><p>Plan your weekly workouts.</p><button class="btn">Set Schedule</button></div>`; }
+
+function renderTimerSystem() {
+  contentDiv.innerHTML = `
+    <div class="card">
+      <h3><i class="fas fa-hourglass-half"></i> Exercise Timer</h3>
+      <div class="timer-inputs">
+        <div class="timer-input-group">
+          <label>Hours</label>
+          <input type="number" id="hoursInput" min="0" max="23" value="0">
+        </div>
+        <div class="timer-input-group">
+          <label>Minutes</label>
+          <input type="number" id="minutesInput" min="0" max="59" value="0">
+        </div>
+        <div class="timer-input-group">
+          <label>Seconds</label>
+          <input type="number" id="secondsInput" min="0" max="59" value="30">
+        </div>
+      </div>
+      <div class="timer-display" id="timerDisp">00:00:00</div>
+      <button class="btn" id="startTimerBtn">Start Timer</button>
+      <button class="btn btn-secondary" id="stopTimerBtn">Stop</button>
+    </div>
+  `;
+  
+  let timerInterval = null;
+  
+  document.getElementById('startTimerBtn')?.addEventListener('click', () => {
+    let hours = parseInt(document.getElementById('hoursInput').value) || 0;
+    let minutes = parseInt(document.getElementById('minutesInput').value) || 0;
+    let seconds = parseInt(document.getElementById('secondsInput').value) || 0;
+    let totalSeconds = hours * 3600 + minutes * 60 + seconds;
+    
+    if (totalSeconds <= 0) {
+      showToast('Please set a time greater than 0', true);
+      return;
+    }
+    
+    if (timerInterval) clearInterval(timerInterval);
+    
+    const display = document.getElementById('timerDisp');
+    
+    function updateDisplay() {
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      display.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      
+      if (totalSeconds <= 0) {
+        clearInterval(timerInterval);
+        playLoudBell();
+        showToast('Time is up! Great work!');
+        display.innerText = '00:00:00';
+      }
+      totalSeconds--;
+    }
+    
+    updateDisplay();
+    timerInterval = setInterval(updateDisplay, 1000);
+  });
+  
+  document.getElementById('stopTimerBtn')?.addEventListener('click', () => {
+    if (timerInterval) clearInterval(timerInterval);
+    showToast('Timer stopped');
   });
 }
 
-// Simplified versions of other render functions (you can expand these)
-function renderAssessment() { contentDiv.innerHTML = `<div class="card"><h3>Fitness Assessment</h3><p>Track your fitness progress here.</p><button class="btn" onclick="awardPoints(20, 'Assessment')">Log Assessment</button></div>`; }
-function renderMovementLib() { contentDiv.innerHTML = `<div class="card"><h3>Movement Library</h3><p>Exercise videos and instructions coming soon!</p></div>`; }
-function renderAIAssist() { contentDiv.innerHTML = `<div class="card"><h3>AI Exercise Guide</h3><p>Get personalized workout recommendations.</p><button class="btn" onclick="showToast('AI Coach: Try 10 pushups!')">Ask AI</button></div>`; }
-function renderCompetency() { contentDiv.innerHTML = `<div class="card"><h3>Competency Tracker</h3><p>Track your exercise competency over time.</p><canvas id="compChart"></canvas></div>`; }
-function renderScheduler() { contentDiv.innerHTML = `<div class="card"><h3>Workout Scheduler</h3><p>Plan your weekly workouts.</p><button class="btn">Set Schedule</button></div>`; }
-function renderTimerSystem() { contentDiv.innerHTML = `<div class="card"><h3>Exercise Timer</h3><div class="timer-display" id="timerDisp">00:00</div><button class="btn" id="startTimer">Start 30s Timer</button></div>`; 
-  document.getElementById('startTimer')?.addEventListener('click', () => { let t = 30, d = document.getElementById('timerDisp'), i = setInterval(() => { d.innerText = `${Math.floor(t/60)}:${(t%60).toString().padStart(2,'0')}`; if(t--<=0){clearInterval(i); playBeep(); awardPoints(10);} },1000); });
-}
 function renderWarmupGen() { contentDiv.innerHTML = `<div class="card"><h3>Warm-up Generator</h3><button class="btn" onclick="showToast('Arm circles, leg swings, light jog')">Generate Warmup</button></div>`; }
 function renderInjuryGuide() { contentDiv.innerHTML = `<div class="card"><h3>Injury Prevention Guide</h3><p>✅ Proper form tips and safety guidelines.</p></div>`; }
-function renderAttendance() { contentDiv.innerHTML = `<div class="card"><h3>Class Attendance</h3><p>Total attendances: ${userData.attendanceRecords?.length || 0}</p><button class="btn" id="markClassAttend">Mark Present</button></div>`;
-  document.getElementById('markClassAttend')?.addEventListener('click', () => { const today = new Date().toDateString(); if(!userData.attendanceRecords?.includes(today)){ userData.attendanceRecords = userData.attendanceRecords || []; userData.attendanceRecords.push(today); saveUserData(); awardPoints(10); showToast('Attendance marked!'); renderAttendance(); } else { showToast('Already marked!'); } });
-}
-function renderHabitBuilder() { contentDiv.innerHTML = `<div class="card"><h3>Habit Builder</h3><p>🔥 Streak: ${userData.habitStreak} days</p><button class="btn" id="logHabit">Log Today's Workout</button></div>`;
-  document.getElementById('logHabit')?.addEventListener('click', () => { userData.habitStreak++; saveUserData(); awardPoints(15); renderHabitBuilder(); });
+function renderAttendance() { contentDiv.innerHTML = `<div class="card"><h3>Class Attendance</h3><p>Total attendances: ${userData.attendance?.length || 0}</p><button class="btn" id="markClassAttend">Mark Present</button></div>`;
+  document.getElementById('markClassAttend')?.addEventListener('click', () => { 
+    const today = new Date().toDateString(); 
+    if(!userData.attendance?.includes(today)){ 
+      userData.attendance = userData.attendance || []; 
+      userData.attendance.push(today); 
+      saveUserData(); 
+      showToast('Attendance marked!'); 
+      renderAttendance(); 
+    } else { 
+      showToast('Already marked!'); 
+    } 
+  });
 }
 function renderGoalPlanner() { contentDiv.innerHTML = `<div class="card"><h3>Goal Planner</h3><input id="goalInput" placeholder="Enter your fitness goal"><button id="setGoal" class="btn">Set Goal</button><div id="goalsList"></div></div>`;
   document.getElementById('setGoal')?.addEventListener('click', () => { let g = document.getElementById('goalInput').value; if(g){ userData.goals.push(g); saveUserData(); renderGoalPlanner(); } });
-  document.getElementById('goalsList').innerHTML = userData.goals.map(g => `<div>🎯 ${g}</div>`).join('');
+  document.getElementById('goalsList').innerHTML = (userData.goals || []).map(g => `<div>🎯 ${g}</div>`).join('');
 }
 function renderBodyFocus() { contentDiv.innerHTML = `<div class="card"><h3>Body Focus Trainer</h3><select><option>Legs</option><option>Core</option><option>Arms</option></select><button class="btn">Start Workout</button></div>`; }
 function renderCalorieTracker() { contentDiv.innerHTML = `<div class="card"><h3>Calorie Tracker</h3><input id="calMin" placeholder="Minutes"><button class="btn" id="calcCal">Calculate</button><div id="calRes"></div></div>`;
-  document.getElementById('calcCal')?.addEventListener('click', () => { let min = parseInt(document.getElementById('calMin').value)||0; let cal = min*7; document.getElementById('calRes').innerHTML = `🔥 ${cal} kcal burned`; awardPoints(5); });
+  document.getElementById('calcCal')?.addEventListener('click', () => { let min = parseInt(document.getElementById('calMin').value)||0; let cal = min*7; document.getElementById('calRes').innerHTML = `🔥 ${cal} kcal burned`; });
 }
 function renderBMITracker() { contentDiv.innerHTML = `<div class="card"><h3>BMI Tracker</h3><input id="bmiHeight" placeholder="Height (cm)"><input id="bmiWeight" placeholder="Weight (kg)"><button class="btn" id="calcBMI">Compute BMI</button><div id="bmiResult"></div></div>`;
-  document.getElementById('calcBMI')?.addEventListener('click', () => { let h = parseFloat(document.getElementById('bmiHeight').value)/100; let w = parseFloat(document.getElementById('bmiWeight').value); let bmi = (w/(h*h)).toFixed(1); document.getElementById('bmiResult').innerHTML = `BMI: ${bmi} - ${bmi<18.5?'Underweight':bmi<25?'Normal':'Overweight'}`; userData.bmiHistory.push(bmi); saveUserData(); });
+  document.getElementById('calcBMI')?.addEventListener('click', () => { let h = parseFloat(document.getElementById('bmiHeight').value)/100; let w = parseFloat(document.getElementById('bmiWeight').value); let bmi = (w/(h*h)).toFixed(1); document.getElementById('bmiResult').innerHTML = `BMI: ${bmi} - ${bmi<18.5?'Underweight':bmi<25?'Normal':'Overweight'}`; });
 }
 function renderRecovery() { contentDiv.innerHTML = `<div class="card"><h3>Recovery Tracker</h3><p>Track your rest and recovery days.</p><button class="btn">Log Rest Day</button></div>`; }
-function renderHeartLogger() { contentDiv.innerHTML = `<div class="card"><h3>Heart Rate Logger</h3><input placeholder="Before workout"><input placeholder="After workout"><button class="btn">Log Heart Rate</button></div>`; }
 function renderBodyType() { contentDiv.innerHTML = `<div class="card"><h3>Body Type Identifier</h3><select><option>Ectomorph (slim)</option><option>Mesomorph (athletic)</option><option>Endomorph (curvy)</option></select><button class="btn">Identify</button></div>`; }
 
 // Tab switching
@@ -466,23 +558,20 @@ function renderTab(tabId) {
   switch(tabId) {
     case 'dashboard': renderDashboard(); break;
     case 'profile': renderProfile(); break;
-    case 'gamified': renderGamified(); break;
-    case 'assessment': renderAssessment(); break;
+    case 'ranking': renderRanking(); break;
+    case 'activity': renderActivity(); break;
     case 'movement': renderMovementLib(); break;
     case 'ai-assist': renderAIAssist(); break;
-    case 'tracker': renderCompetency(); break;
     case 'scheduler': renderScheduler(); break;
     case 'timer': renderTimerSystem(); break;
     case 'warmup': renderWarmupGen(); break;
     case 'injury': renderInjuryGuide(); break;
     case 'attendance': renderAttendance(); break;
-    case 'habit': renderHabitBuilder(); break;
     case 'goals': renderGoalPlanner(); break;
     case 'bodyparts': renderBodyFocus(); break;
     case 'calorie': renderCalorieTracker(); break;
     case 'bmi': renderBMITracker(); break;
     case 'recovery': renderRecovery(); break;
-    case 'heartrate': renderHeartLogger(); break;
     case 'bodytype': renderBodyType(); break;
     default: renderDashboard();
   }
@@ -495,7 +584,6 @@ function switchTab(tabId) {
   const titleElement = document.getElementById('active-title');
   if (titleElement) titleElement.innerText = activeBtn?.innerText?.trim() || 'HYDROFIT';
   renderTab(tabId);
-  // Close mobile sidebar
   document.querySelector('.sidebar')?.classList.remove('open');
 }
 
@@ -526,84 +614,53 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 });
 
 document.getElementById('logoutBtn')?.addEventListener('click', logout);
-
 document.getElementById('showRegister')?.addEventListener('click', (e) => {
   e.preventDefault();
   loginModal.style.display = 'none';
   registerModal.style.display = 'flex';
 });
-
 document.getElementById('showLogin')?.addEventListener('click', (e) => {
   e.preventDefault();
   registerModal.style.display = 'none';
   loginModal.style.display = 'flex';
 });
-
 document.getElementById('closeProfileModal')?.addEventListener('click', () => {
   profileModal.style.display = 'none';
 });
-
 document.getElementById('loginBtn')?.addEventListener('click', async () => {
   const schoolId = document.getElementById('loginSchoolId').value;
   const password = document.getElementById('loginPassword').value;
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = true;
-  btn.textContent = 'Logging in...';
   await login(schoolId, password);
-  btn.disabled = false;
-  btn.textContent = 'Login';
 });
-
 document.getElementById('registerBtn')?.addEventListener('click', async () => {
   const registrationData = {
     fullName: document.getElementById('regFullName').value,
     schoolId: document.getElementById('regSchoolId').value,
     subject: document.getElementById('regSubject').value,
     program: document.getElementById('regProgram').value,
+    yearLevel: document.getElementById('regYearLevel').value,
+    section: document.getElementById('regSection').value,
     password: document.getElementById('regPassword').value,
     confirmPassword: document.getElementById('regConfirmPassword').value
   };
-  
-  const btn = document.getElementById('registerBtn');
-  btn.disabled = true;
-  btn.textContent = 'Registering...';
-  
   await register(registrationData);
-  
-  btn.disabled = false;
-  btn.textContent = 'Register';
 });
 
-// Close modals when clicking outside
 window.addEventListener('click', (e) => {
   if (e.target === loginModal) loginModal.style.display = 'none';
   if (e.target === registerModal) registerModal.style.display = 'none';
   if (e.target === profileModal) profileModal.style.display = 'none';
 });
 
-// Enter key support
 document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') document.getElementById('loginBtn').click();
-});
-document.getElementById('regConfirmPassword')?.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') document.getElementById('registerBtn').click();
 });
 
 // ============ INITIALIZATION ============
 
 async function init() {
   initMobileMenu();
-  
-  // Initialize Google Sheets API if configured
-  if (typeof CONFIG !== 'undefined' && CONFIG.API_URL) {
-    initSheetDB(CONFIG.API_URL);
-    console.log('✅ API initialized with URL:', CONFIG.API_URL);
-  } else {
-    console.warn('⚠️ API URL not configured. Using local storage only.');
-  }
-  
   checkAuth();
 }
 
-// Start the app
 init();
