@@ -16,8 +16,19 @@
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/N%20(2).png" alt="HydroFit Logo">
       <span>Hydro<span class="light">Fit</span></span>
     </div>
-    <nav class="nav-menu" id="navMenu">
-      <!-- Menu will be populated by JavaScript based on role -->
+    <nav class="nav-menu">
+      <button class="nav-btn active" data-tab="dashboard">
+        <i class="fas fa-chalkboard-user"></i> Dashboard
+      </button>
+      <button class="nav-btn" data-tab="profile">
+        <i class="fas fa-user-circle"></i> My Profile
+      </button>
+      <button class="nav-btn" data-tab="assignment">
+        <i class="fas fa-pen-ruler"></i> Assignment
+      </button>
+      <button class="nav-btn" data-tab="ranking">
+        <i class="fas fa-trophy"></i> Ranking
+      </button>
     </nav>
     <button class="logout-btn" id="logoutBtn">
       <i class="fas fa-sign-out-alt"></i> Logout
@@ -32,7 +43,6 @@
       </button>
       <h2 id="pageTitle">Dashboard</h2>
       <div class="user-stats">
-        <span id="userRoleBadge"></span>
         <span id="userNameDisplay"><i class="fas fa-user"></i> Student</span>
       </div>
     </div>
@@ -43,24 +53,6 @@
       </div>
     </div>
   </main>
-</div>
-
-<!-- QR SCANNER MODAL -->
-<div id="qrScannerModal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 500px;">
-    <div class="modal-header">
-      <i class="fas fa-qrcode" style="font-size: 2.5rem; margin-bottom: 8px;"></i>
-      <h2>Scan Student QR</h2>
-      <p>Point camera at student's QR code</p>
-    </div>
-    <div class="modal-body">
-      <div id="qr-reader" style="width: 100%; border-radius: 16px; overflow: hidden;"></div>
-      <div id="qr-result" style="margin-top: 16px; text-align: center;"></div>
-      <button class="modal-btn" id="closeScannerBtn" style="margin-top: 16px; background: #64748b;">
-        <i class="fas fa-times"></i> Close Scanner
-      </button>
-    </div>
-  </div>
 </div>
 
 <!-- LOGIN MODAL -->
@@ -74,32 +66,13 @@
     <div class="modal-body" id="authFormContainer">
       <!-- Login Form -->
       <div id="loginForm">
-        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-          <button type="button" class="role-toggle active" id="studentRoleBtn" style="flex: 1; padding: 10px; border: 2px solid #00b4d8; background: #00b4d8; color: white; border-radius: 10px; font-weight: 600; cursor: pointer;">
-            <i class="fas fa-user-graduate"></i> Student
-          </button>
-          <button type="button" class="role-toggle" id="teacherRoleBtn" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; background: white; color: #64748b; border-radius: 10px; font-weight: 600; cursor: pointer;">
-            <i class="fas fa-chalkboard-user"></i> Teacher
-          </button>
-        </div>
         <input type="text" id="loginSchoolId" class="modal-input" placeholder="School ID (e.g., MCC2025-00001)" autocomplete="off">
         <input type="password" id="loginPassword" class="modal-input" placeholder="Password">
         <button class="modal-btn" id="loginBtn">Login</button>
         <div class="modal-link">No account? <span id="showRegister">Register here</span></div>
-        <div class="modal-link" style="margin-top: 12px; font-size: 0.8rem;">
-          <span id="showTestCredentials">Show test credentials</span>
-        </div>
       </div>
       <!-- Register Form -->
       <div id="registerForm" style="display: none;">
-        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-          <button type="button" class="reg-role-toggle active" id="regStudentBtn" style="flex: 1; padding: 10px; border: 2px solid #00b4d8; background: #00b4d8; color: white; border-radius: 10px; font-weight: 600; cursor: pointer;">
-            <i class="fas fa-user-graduate"></i> Student
-          </button>
-          <button type="button" class="reg-role-toggle" id="regTeacherBtn" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; background: white; color: #64748b; border-radius: 10px; font-weight: 600; cursor: pointer;">
-            <i class="fas fa-chalkboard-user"></i> Teacher
-          </button>
-        </div>
         <input type="text" id="regFullName" class="modal-input" placeholder="Full name (e.g., Dela Cruz, Juan M.)">
         <input type="text" id="regSchoolId" class="modal-input" placeholder="School ID (e.g., MCC2025-00001)">
         <input type="email" id="regEmail" class="modal-input" placeholder="Email address">
@@ -114,7 +87,7 @@
           <option value="BTLED">BTLED</option>
           <option value="BTVTED">BTVTED</option>
         </select>
-        <select id="regYearLevel" class="modal-input" id="regYearLevelSelect">
+        <select id="regYearLevel" class="modal-input">
           <option value="">Select Year Level</option>
           <option value="1">1st Year</option>
           <option value="2">2nd Year</option>
@@ -124,7 +97,6 @@
         <input type="text" id="regSection" class="modal-input" placeholder="Section (e.g., F1)">
         <input type="password" id="regPassword" class="modal-input" placeholder="Password">
         <input type="password" id="regConfirmPassword" class="modal-input" placeholder="Confirm Password">
-        <input type="hidden" id="regRole" value="student">
         <button class="modal-btn" id="registerBtn">Register</button>
         <div class="modal-link">Already have an account? <span id="showLogin">Login here</span></div>
       </div>
@@ -135,8 +107,6 @@
 <!-- TOAST NOTIFICATION -->
 <div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
 
-<!-- HTML5 QR Code Library -->
-<script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/app.js"></script>
 </body>
