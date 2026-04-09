@@ -646,3 +646,34 @@ label {
     padding: 24px 20px;
   }
 }
+
+/* QR Code Card - Additional Styles */
+.card img[alt="Attendance QR Code"] {
+  max-width: 100%;
+  height: auto;
+  image-rendering: crisp-edges;
+}
+
+/* Ensure QR code is visible on all backgrounds */
+.card .btn-outline {
+  background: white;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.card .btn-outline:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Fix for profile loading */
+.loading-placeholder i {
+  color: var(--primary);
+}
+
+/* Mobile sidebar overlay fix */
+#sidebarOverlay {
+  -webkit-tap-highlight-color: transparent;
+}

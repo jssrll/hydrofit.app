@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - MOBILE OPTIMIZED
+// HYDROFIT - MOBILE OPTIMIZED WITH QR FIX
 // ========================================
 
 let currentTab = "dashboard";
@@ -26,6 +26,14 @@ function updateUserStats() {
     const lastName = currentUser.fullName.split(',')[0];
     document.getElementById("userNameDisplay").innerHTML = `<i class="fas fa-user"></i> ${lastName}`;
   }
+}
+
+// Close sidebar function
+function closeSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  sidebar.classList.remove("open");
+  if (overlay) overlay.remove();
 }
 
 // ========================================
@@ -56,13 +64,46 @@ function generateQRCode(userData) {
     name: userData.fullName,
     schoolId: userData.schoolId,
     email: userData.email,
-    timestamp: new Date().toISOString()
+    program: userData.program,
+    yearLevel: userData.yearLevel,
+    section: userData.section
   });
   
-  // Use Google Charts API for QR code (lightweight, no external libraries)
-  const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(qrData)}&choe=UTF-8&chld=L|0`;
+  // Use Google Charts API for QR code
+  const qrUrl = `https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=${encodeURIComponent(qrData)}&choe=UTF-8&chld=L|2`;
   
   return qrUrl;
+}
+
+// Download QR Code function
+function downloadQRCode() {
+  if (window.currentQRCodeUrl && currentUser) {
+    // Create a canvas to convert QR to downloadable image
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = window.currentQRCodeUrl;
+    
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      const link = document.createElement('a');
+      link.download = `HydroFit_QR_${currentUser.schoolId}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      showToast('QR Code downloaded!', false);
+    };
+    
+    img.onerror = function() {
+      // Fallback - open in new tab
+      window.open(window.currentQRCodeUrl, '_blank');
+      showToast('Right-click the QR code to save it', false);
+    };
+  }
 }
 
 // ========================================
@@ -172,10 +213,21 @@ async function renderProfile() {
   const container = document.getElementById("tabContent");
   container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading profile...</div>`;
   
-  const result = await callAPI("getProfile", { schoolId: currentUser.schoolId });
-  if (result.success) {
-    currentUser = result.user;
-    localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
+  // If we already have currentUser, use it, otherwise fetch
+  let userData = currentUser;
+  if (!userData || !userData.schoolId) {
+    const result = await callAPI("getProfile", { schoolId: currentUser?.schoolId });
+    if (result.success) {
+      userData = result.user;
+      currentUser = userData;
+      localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
+    }
+  }
+  
+  if (!userData) {
+    container.innerHTML = `<div class="card"><p style="color: #d63031;">Error loading profile. Please try again.</p></div>`;
+    isLoading = false;
+    return;
   }
   
   const programColors = {
@@ -184,40 +236,45 @@ async function renderProfile() {
   };
   
   // Generate QR code
-  const qrCodeUrl = generateQRCode(currentUser);
+  const qrCodeUrl = generateQRCode(userData);
+  window.currentQRCodeUrl = qrCodeUrl;
   
   container.innerHTML = `
     <div class="profile-card">
       <div class="profile-avatar"><i class="fas fa-user-graduate"></i></div>
-      <h2>${escapeHtml(currentUser.fullName)}</h2>
+      <h2>${escapeHtml(userData.fullName)}</h2>
       <p>PathFit Student</p>
-      <span class="program-badge" style="background: ${programColors[currentUser.program] || '#00b4d8'}; color: white;">${currentUser.program}</span>
+      <span class="program-badge" style="background: ${programColors[userData.program] || '#00b4d8'}; color: white;">${userData.program}</span>
       <div class="profile-info-grid">
-        <div class="info-item"><label>School ID</label><p>${currentUser.schoolId}</p></div>
-        <div class="info-item"><label>Email</label><p>${currentUser.email}</p></div>
-        <div class="info-item"><label>Year Level</label><p>${currentUser.yearLevel}${getYearSuffix(currentUser.yearLevel)} Year</p></div>
-        <div class="info-item"><label>Section</label><p>${currentUser.section}</p></div>
+        <div class="info-item"><label>School ID</label><p>${userData.schoolId}</p></div>
+        <div class="info-item"><label>Email</label><p>${userData.email}</p></div>
+        <div class="info-item"><label>Year Level</label><p>${userData.yearLevel}${getYearSuffix(userData.yearLevel)} Year</p></div>
+        <div class="info-item"><label>Section</label><p>${userData.section}</p></div>
       </div>
     </div>
     
     <div class="card">
       <h3><i class="fas fa-qrcode"></i> Attendance QR Code</h3>
       <p style="color: #64748b; margin-bottom: 20px; font-size: 0.9rem;">Scan this QR code for attendance tracking</p>
-      <div style="text-align: center; padding: 20px; background: white; border-radius: 16px;">
-        <img src="${qrCodeUrl}" alt="Attendance QR Code" style="width: 200px; height: 200px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <p style="margin-top: 16px; color: #64748b; font-size: 0.85rem;">
-          <i class="fas fa-user"></i> ${escapeHtml(currentUser.fullName)}<br>
-          <i class="fas fa-id-card"></i> ${currentUser.schoolId}
+      <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 16px;">
+        <div style="background: white; padding: 20px; border-radius: 12px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+          <img src="${qrCodeUrl}" alt="Attendance QR Code" style="width: 200px; height: 200px; border-radius: 8px; display: block;">
+        </div>
+        <p style="margin-top: 16px; color: #1a1a1a; font-weight: 600;">
+          <i class="fas fa-user"></i> ${escapeHtml(userData.fullName)}
         </p>
-        <button class="btn btn-outline" onclick="downloadQRCode()" style="margin-top: 16px; width: 100%;">
+        <p style="color: #64748b; font-size: 0.85rem;">
+          <i class="fas fa-id-card"></i> ${userData.schoolId}
+        </p>
+        <button class="btn btn-outline" onclick="window.downloadQRCode()" style="margin-top: 16px; width: 100%;">
           <i class="fas fa-download"></i> Download QR Code
         </button>
+        <p style="margin-top: 12px; font-size: 0.75rem; color: #94a3b8;">
+          <i class="fas fa-info-circle"></i> Present this QR code for attendance
+        </p>
       </div>
     </div>
   `;
-  
-  // Store QR code URL for download
-  window.currentQRCodeUrl = qrCodeUrl;
 }
 
 function escapeHtml(str) {
@@ -232,19 +289,6 @@ function getYearSuffix(year) {
   if (year == 2) return 'nd';
   if (year == 3) return 'rd';
   return 'th';
-}
-
-// Download QR Code function
-function downloadQRCode() {
-  if (window.currentQRCodeUrl) {
-    const link = document.createElement('a');
-    link.href = window.currentQRCodeUrl;
-    link.download = `HydroFit_QR_${currentUser.schoolId}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('QR Code downloaded!', false);
-  }
 }
 
 // ========================================
@@ -278,7 +322,7 @@ function renderRanking() {
 }
 
 // ========================================
-// TAB SWITCHING - SIMPLE & FAST
+// TAB SWITCHING - WITH AUTO CLOSE SIDEBAR
 // ========================================
 
 function switchTab(tab) {
@@ -294,10 +338,14 @@ function switchTab(tab) {
     }
   });
   
-  // Simple content update without heavy animations
+  // Close sidebar on mobile
+  closeSidebar();
+  
+  // Update content
   if (tab === 'dashboard') { 
     updatePageTitle('Dashboard'); 
     renderDashboard(); 
+    isLoading = false;
   }
   else if (tab === 'profile') { 
     updatePageTitle('My Profile'); 
@@ -307,20 +355,12 @@ function switchTab(tab) {
   else if (tab === 'assignment') { 
     updatePageTitle('Assignments'); 
     renderAssignment(); 
+    isLoading = false;
   }
   else if (tab === 'ranking') { 
     updatePageTitle('Ranking'); 
     renderRanking(); 
-  }
-  
-  isLoading = false;
-  
-  // Close sidebar on mobile after tab switch
-  if (window.innerWidth <= 768) {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebarOverlay");
-    sidebar.classList.remove("open");
-    if (overlay) overlay.remove();
+    isLoading = false;
   }
 }
 
@@ -424,6 +464,7 @@ document.getElementById("logoutBtn")?.addEventListener("click", () => {
   document.getElementById("registerForm").style.display = "none";
   document.getElementById("loginSchoolId").value = "";
   document.getElementById("loginPassword").value = "";
+  closeSidebar();
   showToast("Logged out successfully", false);
 });
 
@@ -438,7 +479,7 @@ document.getElementById("showLogin")?.addEventListener("click", () => {
   document.getElementById("loginForm").style.display = "block";
 });
 
-// Mobile menu - simple and fast
+// Mobile menu
 document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
   const sidebar = document.getElementById("sidebar");
   sidebar.classList.toggle("open");
@@ -456,10 +497,7 @@ document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
         background: rgba(0,0,0,0.5);
         z-index: 199;
       `;
-      overlay.addEventListener('click', () => {
-        sidebar.classList.remove("open");
-        overlay.remove();
-      });
+      overlay.addEventListener('click', closeSidebar);
       document.body.appendChild(overlay);
     } else {
       const overlay = document.getElementById("sidebarOverlay");
@@ -468,16 +506,41 @@ document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
   }
 });
 
-// Nav button listeners
+// Nav button listeners - ALL close sidebar
 document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    switchTab(btn.getAttribute('data-tab'));
+  btn.addEventListener('click', (e) => {
+    const tab = btn.getAttribute('data-tab');
+    switchTab(tab);
+    // Close sidebar immediately
+    closeSidebar();
   });
+});
+
+// Close sidebar when clicking outside
+document.addEventListener('click', (e) => {
+  if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById("sidebar");
+    const menuBtn = document.getElementById("mobileMenuBtn");
+    
+    if (sidebar.classList.contains("open") && 
+        !sidebar.contains(e.target) && 
+        !menuBtn.contains(e.target)) {
+      closeSidebar();
+    }
+  }
+});
+
+// Escape key closes sidebar
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeSidebar();
+  }
 });
 
 // Initialize
 window.switchTab = switchTab;
 window.downloadQRCode = downloadQRCode;
+window.closeSidebar = closeSidebar;
 initAuth();
 
-console.log("✅ HydroFit Loaded - Mobile Optimized");
+console.log("✅ HydroFit Loaded - Mobile Optimized with QR");
