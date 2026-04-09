@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - COMPLETE WITHOUT AI
+// HYDROFIT - COMPLETE WITH ADVANCED RANKINGS
 // ========================================
 
 let currentTab = "dashboard";
@@ -90,6 +90,7 @@ function showCustomConfirm(message, onConfirm) {
   };
 }
 
+// Toast notification function
 function showToast(message, isError = false) {
   const toast = document.getElementById("toast");
   toast.style.display = "block";
@@ -538,6 +539,23 @@ function getGradeColor(grade) {
   return colors[grade] || '#64748b';
 }
 
+// Calculate normalized value based on unit
+function normalizeValue(value, unit) {
+  // Convert everything to a comparable base (seconds equivalent)
+  if (unit === 'reps') {
+    return value * 2; // 1 rep ≈ 2 seconds effort
+  } else if (unit === 'seconds') {
+    return value;
+  } else if (unit === 'minutes') {
+    return value * 60;
+  } else if (unit === 'meters') {
+    return value / 10; // 10 meters ≈ 1 second
+  } else if (unit === 'laps') {
+    return value * 120; // 1 lap ≈ 2 minutes
+  }
+  return value;
+}
+
 function calculateRating(exercise, value, unit, intensity) {
   let baseScore = 0;
   
@@ -563,6 +581,32 @@ function calculateRating(exercise, value, unit, intensity) {
   else grade = 'Needs Improvement';
   
   return { rating, grade };
+}
+
+// Calculate advanced score for rankings (includes duration and intensity)
+function calculateAdvancedScore(value, unit, intensity, rating) {
+  const normalizedValue = normalizeValue(value, unit);
+  
+  // Weight factors:
+  // - Duration/Volume: 40%
+  // - Intensity: 30%
+  // - Rating (form/quality): 30%
+  
+  let volumeScore = 0;
+  if (normalizedValue >= 600) volumeScore = 100; // 10+ minutes
+  else if (normalizedValue >= 300) volumeScore = 85; // 5+ minutes
+  else if (normalizedValue >= 180) volumeScore = 70; // 3+ minutes
+  else if (normalizedValue >= 120) volumeScore = 55; // 2+ minutes
+  else if (normalizedValue >= 60) volumeScore = 40; // 1+ minute
+  else volumeScore = 25; // < 1 minute
+  
+  const intensityScore = intensity * 10; // 1-10 becomes 10-100
+  const ratingScore = parseFloat(rating) * 10; // 0-10 becomes 0-100
+  
+  // Calculate weighted total
+  const totalScore = (volumeScore * 0.4) + (intensityScore * 0.3) + (ratingScore * 0.3);
+  
+  return Math.round(totalScore);
 }
 
 async function addAssessment() {
@@ -621,9 +665,7 @@ async function addAssessment() {
     document.getElementById('repetitions').value = '';
     document.getElementById('notes').value = '';
     document.getElementById('intensity').value = 5;
-    if (document.getElementById('intensityValue')) {
-      document.getElementById('intensityValue').innerText = 5;
-    }
+    document.getElementById('intensityValue').innerText = 5;
     
     showToast('Assessment saved!', false);
   } else {
@@ -950,7 +992,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE
+// RANKING PAGE - WITH DURATION & INTENSITY
 // ========================================
 
 function renderRanking() {
@@ -960,6 +1002,32 @@ function renderRanking() {
     <div class="ranking-banner">
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png" alt="Exercise Rankings Banner" style="width: 100%; border-radius: 20px; margin-bottom: 20px;">
     </div>
+    
+    <!-- Scoring System Info -->
+    <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #023e8a, #00b4d8); color: white;">
+      <h3 style="color: white; margin-bottom: 12px;"><i class="fas fa-calculator"></i> Ranking Score Formula</h3>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
+        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+          <i class="fas fa-clock" style="font-size: 1.5rem; margin-bottom: 6px;"></i>
+          <p style="font-weight: 600;">Duration/Volume</p>
+          <p style="font-size: 0.85rem; opacity: 0.9;">40% of score</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+          <i class="fas fa-fire" style="font-size: 1.5rem; margin-bottom: 6px;"></i>
+          <p style="font-weight: 600;">Intensity</p>
+          <p style="font-size: 0.85rem; opacity: 0.9;">30% of score</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+          <i class="fas fa-star" style="font-size: 1.5rem; margin-bottom: 6px;"></i>
+          <p style="font-weight: 600;">Form/Rating</p>
+          <p style="font-size: 0.85rem; opacity: 0.9;">30% of score</p>
+        </div>
+      </div>
+      <p style="margin-top: 12px; font-size: 0.8rem; opacity: 0.8; text-align: center;">
+        <i class="fas fa-info-circle"></i> Higher duration and intensity = Better ranking
+      </p>
+    </div>
+    
     <div id="rankingsContainer">
       <div class="loading-placeholder">
         <i class="fas fa-spinner fa-spin"></i> Loading rankings...
@@ -992,6 +1060,7 @@ async function loadRankings() {
   
   const exerciseRankings = {};
   
+  // Group and calculate advanced scores
   result.assessments.forEach(a => {
     if (!exerciseRankings[a.exercise]) {
       exerciseRankings[a.exercise] = [];
@@ -1001,6 +1070,13 @@ async function loadRankings() {
       e => e.schoolId === a.schoolId
     );
     
+    const advancedScore = calculateAdvancedScore(
+      parseFloat(a.value),
+      a.unit,
+      parseInt(a.intensity),
+      parseFloat(a.rating)
+    );
+    
     const entry = {
       schoolId: a.schoolId,
       studentName: a.studentName || 'Student',
@@ -1008,33 +1084,34 @@ async function loadRankings() {
       grade: a.grade,
       value: parseFloat(a.value),
       unit: a.unit,
-      intensity: parseInt(a.intensity) || 5,
-      date: a.date
+      intensity: parseInt(a.intensity),
+      date: a.date,
+      advancedScore: advancedScore
     };
     
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
-      const existing = exerciseRankings[a.exercise][existingIndex];
-      if (parseFloat(a.rating) > existing.rating ||
-          (parseFloat(a.rating) === existing.rating && parseFloat(a.value) > existing.value) ||
-          (parseFloat(a.rating) === existing.rating && parseFloat(a.value) === existing.value && parseInt(a.intensity) > existing.intensity)) {
+      // Keep the best advanced score
+      if (advancedScore > exerciseRankings[a.exercise][existingIndex].advancedScore) {
         exerciseRankings[a.exercise][existingIndex] = entry;
       }
     }
   });
   
+  // Sort by advanced score (descending)
   for (const exercise in exerciseRankings) {
-    exerciseRankings[exercise].sort((a, b) => {
-      if (b.rating !== a.rating) return b.rating - a.rating;
-      if (b.value !== a.value) return b.value - a.value;
-      return b.intensity - a.intensity;
-    });
+    exerciseRankings[exercise].sort((a, b) => b.advancedScore - a.advancedScore);
   }
+  
+  // Sort exercises alphabetically
+  const sortedExercises = Object.keys(exerciseRankings).sort();
   
   let html = '';
   
-  for (const [exercise, rankings] of Object.entries(exerciseRankings)) {
+  for (const exercise of sortedExercises) {
+    const rankings = exerciseRankings[exercise];
+    
     html += `
       <div class="card ranking-card" style="margin-bottom: 24px;">
         <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
@@ -1050,10 +1127,10 @@ async function loadRankings() {
             <tr>
               <th>Rank</th>
               <th>Student</th>
-              <th>Rating</th>
-              <th>Grade</th>
+              <th>Score</th>
               <th>Performance</th>
               <th>Intensity</th>
+              <th>Rating</th>
             </tr>
           </thead>
           <tbody>
@@ -1068,12 +1145,8 @@ async function loadRankings() {
       
       const isCurrentUser = r.schoolId === currentUser.schoolId;
       
-      let unitDisplay = r.unit;
-      if (r.unit === 'reps') unitDisplay = 'reps';
-      else if (r.unit === 'seconds') unitDisplay = 'sec';
-      else if (r.unit === 'minutes') unitDisplay = 'min';
-      else if (r.unit === 'meters') unitDisplay = 'm';
-      else if (r.unit === 'laps') unitDisplay = 'laps';
+      // Format value display
+      let valueDisplay = `${r.value} ${r.unit}`;
       
       html += `
         <tr style="${isCurrentUser ? 'background: #e0f2fe; font-weight: 600;' : ''}">
@@ -1084,17 +1157,19 @@ async function loadRankings() {
             ${escapeHtml(r.studentName)}
             ${isCurrentUser ? ' <span style="color: var(--primary); font-size: 0.75rem;">(You)</span>' : ''}
           </td>
-          <td style="font-weight: 700; color: ${getGradeColor(r.grade)};">${r.rating}</td>
-          <td style="color: ${getGradeColor(r.grade)};">${r.grade}</td>
-          <td style="color: #1a1a1a; font-weight: 500;">${r.value} ${unitDisplay}</td>
+          <td style="font-weight: 700; color: ${r.advancedScore >= 70 ? '#00b894' : r.advancedScore >= 50 ? '#fdcb6e' : '#64748b'};">
+            ${r.advancedScore}
+          </td>
+          <td style="color: #64748b;">${valueDisplay}</td>
           <td style="color: #64748b;">
             <div style="display: flex; align-items: center; gap: 4px;">
               <div style="width: 40px; height: 6px; background: #e0e7ff; border-radius: 3px; overflow: hidden;">
-                <div style="width: ${r.intensity * 10}%; height: 100%; background: ${getIntensityColor(r.intensity)}; border-radius: 3px;"></div>
+                <div style="width: ${r.intensity * 10}%; height: 100%; background: ${r.intensity >= 7 ? '#00b894' : r.intensity >= 4 ? '#fdcb6e' : '#e17055'}; border-radius: 3px;"></div>
               </div>
-              <span style="font-size: 0.8rem;">${r.intensity}/10</span>
+              ${r.intensity}/10
             </div>
           </td>
+          <td style="font-weight: 600; color: ${getGradeColor(r.grade)};">${r.rating} (${r.grade})</td>
         </tr>
       `;
     });
@@ -1117,95 +1192,6 @@ async function loadRankings() {
   }
   
   container.innerHTML = html;
-}
-
-function getIntensityColor(intensity) {
-  if (intensity >= 8) return '#00b894';
-  if (intensity >= 6) return '#00b4d8';
-  if (intensity >= 4) return '#fdcb6e';
-  return '#e17055';
-}
-
-// ========================================
-// EXERCISE GUIDE PAGE (SIMPLE - NO AI)
-// ========================================
-
-function renderExerciseGuide() {
-  const container = document.getElementById("tabContent");
-  
-  container.innerHTML = `
-    <div class="ai-guide-container">
-      <div class="ai-guide-header">
-        <h2><i class="fas fa-dumbbell"></i> Exercise Guide</h2>
-        <p>Browse workout routines and exercise instructions</p>
-      </div>
-      
-      <div class="card">
-        <h3><i class="fas fa-person-walking"></i> Flexibility Training</h3>
-        <p><strong>Warm-up (5 min):</strong> Arm circles, neck rolls, torso twists</p>
-        <p><strong>Main Stretches (hold each 30 sec):</strong></p>
-        <ul style="margin-left: 20px; margin-bottom: 16px;">
-          <li>Hamstring Stretch - Sit with one leg straight, reach for toes</li>
-          <li>Quad Stretch - Stand, pull heel to glute</li>
-          <li>Cat-Cow - On hands and knees, arch and round spine</li>
-          <li>Child's Pose - Kneel, stretch arms forward</li>
-          <li>Butterfly Stretch - Soles together, knees out</li>
-        </ul>
-        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Never bounce while stretching - hold steady!</p>
-      </div>
-      
-      <div class="card">
-        <h3><i class="fas fa-dumbbell"></i> Strength Training</h3>
-        <p><strong>Bodyweight Routine (3 rounds, 60 sec rest):</strong></p>
-        <ul style="margin-left: 20px; margin-bottom: 16px;">
-          <li>Push-ups - 10-15 reps</li>
-          <li>Squats - 15-20 reps</li>
-          <li>Lunges - 10 each leg</li>
-          <li>Plank - Hold 30-60 sec</li>
-          <li>Glute Bridges - 15 reps</li>
-        </ul>
-        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Keep core tight during all exercises!</p>
-      </div>
-      
-      <div class="card">
-        <h3><i class="fas fa-heart-pulse"></i> Cardio Workout</h3>
-        <p><strong>Home Cardio (45 sec work, 15 sec rest - 3 rounds):</strong></p>
-        <ul style="margin-left: 20px; margin-bottom: 16px;">
-          <li>High Knees - Run in place</li>
-          <li>Burpees - Full body move</li>
-          <li>Mountain Climbers - Core + cardio</li>
-          <li>Jump Squats - Explosive legs</li>
-          <li>Butt Kicks - Hamstring activation</li>
-        </ul>
-        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Aim to be breathless but able to speak a few words!</p>
-      </div>
-      
-      <div class="card">
-        <h3><i class="fas fa-person"></i> Push-Up Form Guide</h3>
-        <p><strong>Setup:</strong> Hands shoulder-width, body straight, core tight</p>
-        <p><strong>Movement:</strong> Lower chest to elbow height, elbows at 45°</p>
-        <p><strong>Sets & Reps:</strong></p>
-        <ul style="margin-left: 20px; margin-bottom: 16px;">
-          <li>Beginners: 3 sets of 5-10 reps</li>
-          <li>Intermediate: 3 sets of 15-20 reps</li>
-          <li>Advanced: 4 sets of 20-30 reps</li>
-        </ul>
-        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Don't let hips sag!</p>
-      </div>
-      
-      <div class="card ai-tip-card">
-        <h3><i class="fas fa-clipboard-list"></i> General Fitness Tips</h3>
-        <ul class="feature-list">
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Aim for 30 min of activity daily</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Mix cardio, strength, and flexibility</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Quality over quantity - proper form always</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Increase gradually (10% per week)</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Sleep 7-9 hours for recovery</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Rest 48 hours between same muscle groups</li>
-        </ul>
-      </div>
-    </div>
-  `;
 }
 
 // ========================================
@@ -1244,11 +1230,6 @@ function switchTab(tab) {
   else if (tab === 'ranking') { 
     updatePageTitle('Rankings'); 
     renderRanking(); 
-    isLoading = false;
-  }
-  else if (tab === 'guide') { 
-    updatePageTitle('Exercise Guide'); 
-    renderExerciseGuide(); 
     isLoading = false;
   }
 }
@@ -1427,4 +1408,4 @@ window.refreshAssessments = refreshAssessments;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete");
+console.log("✅ HydroFit Loaded - Complete with Advanced Rankings");

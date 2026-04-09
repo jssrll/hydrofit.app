@@ -912,3 +912,57 @@ input[type="range"] {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Ranking Info Card */
+.ranking-banner {
+  margin-bottom: 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.ranking-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Ranking Table Enhancements */
+.ranking-table td {
+  vertical-align: middle;
+}
+
+/* Intensity bar */
+.intensity-bar {
+  width: 40px;
+  height: 6px;
+  background: #e0e7ff;
+  border-radius: 3px;
+  overflow: hidden;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.intensity-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* Mobile responsive for ranking table */
+@media (max-width: 768px) {
+  .ranking-table {
+    font-size: 0.75rem;
+  }
+  
+  .ranking-table th,
+  .ranking-table td {
+    padding: 8px 6px;
+  }
+  
+  .rank-badge {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 0.75rem;
+  }
+}
