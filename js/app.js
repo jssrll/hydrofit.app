@@ -1130,12 +1130,16 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// AI EXERCISE GUIDE PAGE - WORKING GEMINI API
+// AI EXERCISE GUIDE PAGE - FIXED GEMINI API
 // ========================================
 
 // Gemini API Configuration - GET YOUR FREE KEY AT: https://aistudio.google.com/app/apikey
 const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI'; // ⚠️ REPLACE WITH YOUR ACTUAL API KEY
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+// Updated model name - Gemini 2.0 Flash is the current free model
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+// Alternative models if the above doesn't work:
+// 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent'
+// 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
 
 function renderAIGuide() {
   const container = document.getElementById("tabContent");
@@ -1237,7 +1241,7 @@ async function sendMessage() {
   if (!message) return;
   
   // Check if API key is set
-  if (GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+  if (GEMINI_API_KEY === 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI') {
     addMessageToChat('bot', '⚠️ Please set your Gemini API key in the code. Get a free key at: https://aistudio.google.com/app/apikey');
     input.value = '';
     return;
@@ -1268,48 +1272,59 @@ async function sendMessage() {
     
     const fullPrompt = `${fitnessContext}\n\nUser question: ${message}\n\nProvide a helpful fitness response:`;
     
-    // Call Gemini API
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: fullPrompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 800,
-        },
-        safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-        ]
-      })
-    });
+    // Try multiple model endpoints in case one fails
+    const modelUrls = [
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+    ];
     
-    const data = await response.json();
+    let response = null;
+    let data = null;
+    let success = false;
+    
+    for (const modelUrl of modelUrls) {
+      try {
+        response = await fetch(`${modelUrl}?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: fullPrompt
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 800,
+            }
+          })
+        });
+        
+        if (response.ok) {
+          data = await response.json();
+          success = true;
+          console.log('Success with model:', modelUrl);
+          break;
+        }
+      } catch (e) {
+        console.log('Failed with model:', modelUrl, e);
+      }
+    }
     
     // Remove typing indicator
     removeTypingIndicator();
     
-    console.log('Gemini Response:', data); // For debugging
-    
-    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+    if (success && data && data.candidates && data.candidates[0] && data.candidates[0].content) {
       const aiResponse = data.candidates[0].content.parts[0].text;
       addMessageToChat('bot', aiResponse);
-    } else if (data.error) {
+    } else if (data && data.error) {
       console.error('API Error:', data.error);
       addMessageToChat('bot', `❌ API Error: ${data.error.message || 'Unknown error'}. Please check your API key.`);
-    } else if (data.promptFeedback && data.promptFeedback.blockReason) {
-      addMessageToChat('bot', `❌ Message blocked: ${data.promptFeedback.blockReason}. Please rephrase your question.`);
     } else {
-      addMessageToChat('bot', '❌ Sorry, I couldn\'t process that request. Please try again.');
+      addMessageToChat('bot', '❌ Sorry, the AI service is currently unavailable. Please try again later.');
     }
     
   } catch (error) {
