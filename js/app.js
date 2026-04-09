@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH QR GENERATOR
+// HYDROFIT - COMPLETE WITH SHEETS SYNC
 // ========================================
 
 let currentTab = "dashboard";
@@ -32,7 +32,7 @@ function updateUserStats() {
 function closeSidebar() {
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
-  sidebar.classList.remove("open");
+  if (sidebar) sidebar.classList.remove("open");
   if (overlay) overlay.remove();
 }
 
@@ -190,6 +190,20 @@ function printQRCode() {
   setTimeout(() => {
     printWindow.print();
   }, 500);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;';
+  });
+}
+
+function getYearSuffix(year) {
+  if (year == 1) return 'st';
+  if (year == 2) return 'nd';
+  if (year == 3) return 'rd';
+  return 'th';
 }
 
 // ========================================
@@ -371,36 +385,459 @@ async function renderProfile() {
   }, 100);
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;';
+// ========================================
+// FITNESS ASSESSMENT SYSTEM WITH SHEETS SYNC
+// ========================================
+
+let assessments = [];
+
+async function loadAssessments() {
+  if (!currentUser) return;
+  
+  const result = await callAPI('getAssessments', { schoolId: currentUser.schoolId });
+  
+  if (result.success && result.assessments) {
+    assessments = result.assessments.map(a => ({
+      id: a.id,
+      exercise: a.exercise,
+      date: a.date,
+      value: parseFloat(a.value),
+      unit: a.unit,
+      intensity: parseInt(a.intensity),
+      notes: a.notes,
+      rating: parseFloat(a.rating),
+      grade: a.grade,
+      color: getGradeColor(a.grade)
+    }));
+    
+    assessments.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    updateAssessmentHistory();
+    updateProgressComparison();
+    
+    if (assessments.length > 0) {
+      updateRatingDisplay(assessments[0]);
+    }
+  }
+}
+
+function getGradeColor(grade) {
+  const colors = {
+    'Excellent': '#00b894',
+    'Very Good': '#00b4d8',
+    'Good': '#fdcb6e',
+    'Fair': '#e17055',
+    'Needs Improvement': '#d63031'
+  };
+  return colors[grade] || '#64748b';
+}
+
+function calculateRating(exercise, value, unit, intensity) {
+  let baseScore = 0;
+  
+  if (unit === 'reps') {
+    baseScore = Math.min(value / 10, 10);
+  } else if (unit === 'seconds') {
+    baseScore = Math.min(value / 30, 10);
+  } else if (unit === 'minutes') {
+    baseScore = Math.min(value * 2, 10);
+  } else if (unit === 'meters') {
+    baseScore = Math.min(value / 100, 10);
+  } else if (unit === 'laps') {
+    baseScore = Math.min(value * 2, 10);
+  }
+  
+  const rating = (baseScore * 0.6 + intensity * 0.4).toFixed(1);
+  
+  let grade = '';
+  if (rating >= 8.5) grade = 'Excellent';
+  else if (rating >= 7.0) grade = 'Very Good';
+  else if (rating >= 5.5) grade = 'Good';
+  else if (rating >= 4.0) grade = 'Fair';
+  else grade = 'Needs Improvement';
+  
+  return { rating, grade };
+}
+
+async function addAssessment() {
+  const exercise = document.getElementById('exerciseType')?.value;
+  const date = document.getElementById('assessmentDate')?.value;
+  const repetitions = parseInt(document.getElementById('repetitions')?.value);
+  const unit = document.getElementById('unit')?.value;
+  const intensity = parseInt(document.getElementById('intensity')?.value);
+  const notes = document.getElementById('notes')?.value || '';
+  
+  if (!exercise || !date || !repetitions) {
+    showToast('Please fill in all required fields', true);
+    return;
+  }
+  
+  const ratingData = calculateRating(exercise, repetitions, unit, intensity);
+  
+  const btn = document.querySelector('button[onclick="window.addAssessment()"]');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  
+  const result = await callAPI('saveAssessment', {
+    schoolId: currentUser.schoolId,
+    exercise,
+    date,
+    value: repetitions,
+    unit,
+    intensity,
+    rating: ratingData.rating,
+    grade: ratingData.grade,
+    notes
   });
+  
+  btn.disabled = false;
+  btn.innerHTML = originalText;
+  
+  if (result.success) {
+    const assessment = {
+      id: result.assessmentId,
+      exercise,
+      date,
+      value: repetitions,
+      unit,
+      intensity,
+      notes,
+      rating: ratingData.rating,
+      grade: ratingData.grade,
+      color: getGradeColor(ratingData.grade)
+    };
+    
+    assessments.unshift(assessment);
+    
+    updateRatingDisplay(assessment);
+    updateAssessmentHistory();
+    updateProgressComparison();
+    
+    document.getElementById('exerciseType').value = '';
+    document.getElementById('repetitions').value = '';
+    document.getElementById('notes').value = '';
+    document.getElementById('intensity').value = 5;
+    document.getElementById('intensityValue').innerText = 5;
+    
+    showToast('Assessment saved to Sheets!', false);
+  } else {
+    showToast(result.error || 'Failed to save assessment', true);
+  }
 }
 
-function getYearSuffix(year) {
-  if (year == 1) return 'st';
-  if (year == 2) return 'nd';
-  if (year == 3) return 'rd';
-  return 'th';
+async function deleteAssessment(assessmentId) {
+  if (!confirm('Delete this assessment?')) return;
+  
+  const result = await callAPI('deleteAssessment', { assessmentId });
+  
+  if (result.success) {
+    assessments = assessments.filter(a => a.id !== assessmentId);
+    updateAssessmentHistory();
+    updateProgressComparison();
+    
+    if (assessments.length > 0) {
+      updateRatingDisplay(assessments[0]);
+    } else {
+      document.getElementById('ratingDisplay').innerHTML = `
+        <div style="text-align: center; padding: 20px; color: #64748b;">
+          <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 12px;"></i>
+          <p>Complete an assessment to see your rating</p>
+        </div>
+      `;
+    }
+    
+    showToast('Assessment deleted', false);
+  } else {
+    showToast(result.error || 'Failed to delete', true);
+  }
 }
 
-// ========================================
-// ASSIGNMENT & RANKING
-// ========================================
-
-function renderAssignment() {
-  const container = document.getElementById("tabContent");
-  container.innerHTML = `
-    <div class="card">
-      <div style="text-align: center; padding: 40px 20px;">
-        <i class="fas fa-pen-ruler" style="font-size: 3.5rem; color: #00b4d8; margin-bottom: 16px;"></i>
-        <h3 style="color: #1a1a1a; margin-bottom: 8px;">Assignments Coming Soon</h3>
-        <p style="color: #64748b;">Track your PathFit assignments and written outputs here.</p>
+async function clearAllAssessments() {
+  if (!confirm('Are you sure you want to clear ALL assessment history? This cannot be undone.')) return;
+  
+  const result = await callAPI('clearAllAssessments', { schoolId: currentUser.schoolId });
+  
+  if (result.success) {
+    assessments = [];
+    
+    document.getElementById('ratingDisplay').innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #64748b;">
+        <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 12px;"></i>
+        <p>Complete an assessment to see your rating</p>
       </div>
+    `;
+    
+    updateAssessmentHistory();
+    updateProgressComparison();
+    
+    showToast('All assessments cleared from Sheets', false);
+  } else {
+    showToast(result.error || 'Failed to clear assessments', true);
+  }
+}
+
+function updateRatingDisplay(assessment) {
+  const display = document.getElementById('ratingDisplay');
+  if (!display) return;
+  
+  display.innerHTML = `
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 3.5rem; font-weight: 800; color: ${assessment.color};">${assessment.rating}</div>
+      <div style="font-size: 1.3rem; font-weight: 600; color: ${assessment.color}; margin-bottom: 8px;">${assessment.grade}</div>
+      <p style="color: #1a1a1a; font-weight: 600;">${escapeHtml(assessment.exercise)}</p>
+      <p style="color: #64748b;">${assessment.value} ${assessment.unit}</p>
+      <p style="color: #64748b; font-size: 0.85rem;">Intensity: ${assessment.intensity}/10</p>
+      <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 12px;">
+        <i class="fas fa-calendar"></i> ${new Date(assessment.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+      </div>
+      <p style="margin-top: 12px; font-size: 0.75rem; color: #94a3b8;">
+        <i class="fas fa-cloud-check"></i> Synced to Google Sheets
+      </p>
     </div>
   `;
 }
+
+function updateAssessmentHistory() {
+  const historyDiv = document.getElementById('assessmentHistory');
+  if (!historyDiv) return;
+  
+  if (assessments.length === 0) {
+    historyDiv.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #64748b;">
+        <i class="fas fa-calendar-alt" style="font-size: 2rem; margin-bottom: 12px;"></i>
+        <p>No assessments recorded yet</p>
+        <p style="font-size: 0.85rem; margin-top: 8px;">Data syncs with Google Sheets</p>
+      </div>
+    `;
+    return;
+  }
+  
+  let html = '<div class="history-list">';
+  assessments.slice(0, 15).forEach(a => {
+    html += `
+      <div class="history-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #e0e7ff;">
+        <div style="flex: 1;">
+          <strong>${escapeHtml(a.exercise)}</strong>
+          <div style="font-size: 0.8rem; color: #64748b;">
+            ${a.value} ${a.unit} | Intensity: ${a.intensity}/10
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8;">
+            ${new Date(a.date).toLocaleDateString()}
+            <i class="fas fa-cloud" style="margin-left: 8px; color: #00b894;" title="Synced to Sheets"></i>
+          </div>
+        </div>
+        <div style="text-align: right; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 1.2rem; font-weight: 700; color: ${a.color};">${a.rating}</span>
+          <span style="font-size: 0.7rem; color: ${a.color};">${a.grade}</span>
+          <button onclick="window.deleteAssessment('${a.id}')" style="background: none; border: none; color: #d63031; cursor: pointer; padding: 4px 8px;">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  
+  if (assessments.length > 15) {
+    html += `<p style="text-align: center; margin-top: 12px; color: #64748b; font-size: 0.85rem;">Showing last 15 of ${assessments.length} assessments</p>`;
+  }
+  
+  html += `
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button class="btn btn-outline" onclick="window.clearAllAssessments()" style="flex: 1;">
+        <i class="fas fa-trash"></i> Clear All
+      </button>
+      <button class="btn btn-outline" onclick="window.loadAssessments()" style="flex: 1;">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+  `;
+  
+  historyDiv.innerHTML = html;
+}
+
+function updateProgressComparison() {
+  const progressDiv = document.getElementById('progressComparison');
+  if (!progressDiv) return;
+  
+  if (assessments.length < 2) {
+    progressDiv.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #64748b;">
+        <i class="fas fa-chart-simple" style="font-size: 2rem; margin-bottom: 12px;"></i>
+        <p>Complete at least 2 assessments to compare progress</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const exerciseGroups = {};
+  assessments.forEach(a => {
+    if (!exerciseGroups[a.exercise]) {
+      exerciseGroups[a.exercise] = [];
+    }
+    exerciseGroups[a.exercise].push(a);
+  });
+  
+  let html = '<div style="margin-bottom: 16px;">';
+  let hasComparison = false;
+  
+  for (const [exercise, items] of Object.entries(exerciseGroups)) {
+    if (items.length >= 2) {
+      hasComparison = true;
+      const sorted = items.sort((a, b) => new Date(a.date) - new Date(b.date));
+      const first = sorted[0];
+      const last = sorted[sorted.length - 1];
+      const improvement = (last.rating - first.rating).toFixed(1);
+      const improved = improvement > 0;
+      
+      html += `
+        <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>${escapeHtml(exercise)}</strong>
+            <span style="color: ${improved ? '#00b894' : '#d63031'};">
+              ${improved ? '↑' : '↓'} ${Math.abs(improvement)} points
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem;">
+            <span>First: ${first.rating} (${first.grade})</span>
+            <span>→</span>
+            <span>Latest: ${last.rating} (${last.grade})</span>
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+            ${items.length} assessment${items.length > 1 ? 's' : ''}
+          </div>
+        </div>
+      `;
+    }
+  }
+  
+  html += '</div>';
+  
+  if (!hasComparison) {
+    html = `
+      <div style="text-align: center; padding: 20px; color: #64748b;">
+        <i class="fas fa-chart-simple" style="font-size: 2rem; margin-bottom: 12px;"></i>
+        <p>Complete multiple assessments of the same exercise to see progress</p>
+      </div>
+    `;
+  }
+  
+  progressDiv.innerHTML = html;
+}
+
+function renderAssignment() {
+  const container = document.getElementById("tabContent");
+  
+  const exerciseTypes = [
+    "Jumping Jacks", "Arm Circles", "High Knees", "Butt Kicks", "Neck Rotation",
+    "Torso Twists", "Push-Ups", "Sit-Ups", "Crunches", "Squats",
+    "Lunges", "Plank", "Wall Sit", "Burpees", "Deadlift",
+    "Bench Press", "Bicep Curl", "Tricep Dip", "Running", "Jogging",
+    "Walking", "Skipping Rope", "Cycling", "Mountain Climbers", "Stair Climbing",
+    "Stretching", "Toe Touch", "Side Stretch", "Cobra Stretch", "Hamstring Stretch",
+    "Quadriceps Stretch", "Shoulder Stretch", "One-Leg Stand", "Heel-to-Toe Walk", "Balance Walk",
+    "Single-Leg Squat", "Bending", "Twisting", "Swaying", "Swinging",
+    "Pushing", "Pulling", "Swimming", "Water Walking", "Water Jogging",
+    "Aqua Jumping Jacks", "Flutter Kicks", "Arm Pushes in Water"
+  ];
+  
+  container.innerHTML = `
+    <div class="fitness-header">
+      <h2><i class="fas fa-clipboard-list"></i> Fitness Assessment System</h2>
+      <p>Tracks physical performance and compares results over time</p>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-plus-circle"></i> New Assessment</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Exercise Type</label>
+          <select id="exerciseType" class="form-control">
+            <option value="">Select Exercise</option>
+            ${exerciseTypes.map(ex => `<option value="${ex}">${ex}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="assessmentDate" class="form-control" value="${new Date().toISOString().split('T')[0]}">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Repetitions / Duration</label>
+          <input type="number" id="repetitions" class="form-control" placeholder="e.g., 20 reps or 60 seconds" min="0">
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <select id="unit" class="form-control">
+            <option value="reps">Repetitions</option>
+            <option value="seconds">Seconds</option>
+            <option value="minutes">Minutes</option>
+            <option value="meters">Meters</option>
+            <option value="laps">Laps</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Intensity Level (1-10)</label>
+          <input type="range" id="intensity" class="form-control" min="1" max="10" value="5" step="1" oninput="document.getElementById('intensityValue').innerText = this.value">
+          <span id="intensityValue" style="font-weight: 600; color: var(--primary);">5</span>/10
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Notes (Optional)</label>
+          <textarea id="notes" class="form-control" rows="2" placeholder="Any additional notes..."></textarea>
+        </div>
+      </div>
+      
+      <button class="btn" onclick="window.addAssessment()" style="width: 100%; margin-top: 16px;">
+        <i class="fas fa-save"></i> Save Assessment
+      </button>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-star"></i> Performance Rating</h3>
+      <div id="ratingDisplay">
+        <div style="text-align: center; padding: 20px; color: #64748b;">
+          <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 12px;"></i>
+          <p>Complete an assessment to see your rating</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-history"></i> Assessment History</h3>
+      <div id="assessmentHistory">
+        <div style="text-align: center; padding: 20px; color: #64748b;">
+          <i class="fas fa-calendar-alt" style="font-size: 2rem; margin-bottom: 12px;"></i>
+          <p>No assessments recorded yet</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-chart-line"></i> Progress Comparison</h3>
+      <div id="progressComparison">
+        <div style="text-align: center; padding: 20px; color: #64748b;">
+          <i class="fas fa-chart-simple" style="font-size: 2rem; margin-bottom: 12px;"></i>
+          <p>Track multiple assessments to see progress</p>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  loadAssessments();
+}
+
+// ========================================
+// RANKING
+// ========================================
 
 function renderRanking() {
   const container = document.getElementById("tabContent");
@@ -444,7 +881,7 @@ function switchTab(tab) {
     return;
   }
   else if (tab === 'assignment') { 
-    updatePageTitle('Assignments'); 
+    updatePageTitle('Fitness Assessment'); 
     renderAssignment(); 
     isLoading = false;
   }
@@ -603,9 +1040,9 @@ document.addEventListener('click', (e) => {
     const sidebar = document.getElementById("sidebar");
     const menuBtn = document.getElementById("mobileMenuBtn");
     
-    if (sidebar.classList.contains("open") && 
+    if (sidebar && sidebar.classList.contains("open") && 
         !sidebar.contains(e.target) && 
-        !menuBtn.contains(e.target)) {
+        menuBtn && !menuBtn.contains(e.target)) {
       closeSidebar();
     }
   }
@@ -621,6 +1058,11 @@ window.downloadQRCode = downloadQRCode;
 window.printQRCode = printQRCode;
 window.closeSidebar = closeSidebar;
 window.generateQRCodeCanvas = generateQRCodeCanvas;
+window.addAssessment = addAssessment;
+window.clearAllAssessments = clearAllAssessments;
+window.deleteAssessment = deleteAssessment;
+window.loadAssessments = loadAssessments;
+
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete");
+console.log("✅ HydroFit Loaded - Complete with Sheets Sync");
