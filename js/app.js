@@ -1,16 +1,11 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH GEMINI AI GUIDE
+// HYDROFIT - COMPLETE WITH AI GUIDE & ENHANCED RANKINGS
 // ========================================
-
-// Gemini API Configuration
-const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 let currentTab = "dashboard";
 let currentUser = null;
 let isLoading = false;
 let assessments = [];
-let chatHistory = [];
 
 // Custom Confirm Dialog
 function showCustomConfirm(message, onConfirm) {
@@ -163,114 +158,6 @@ async function callAPI(action, data = {}) {
     console.error("Error:", error);
     return { success: false, error: error.message };
   }
-}
-
-// ========================================
-// GEMINI AI API
-// ========================================
-
-async function askGemini(prompt, context = '') {
-  try {
-    const systemPrompt = `You are HydroFit AI, a knowledgeable and friendly fitness assistant for the PathFit program at Mindoro State University. 
-    
-Your role is to provide:
-- Step-by-step exercise routines with proper form instructions
-- Suggested sets, reps, and rest times based on fitness level
-- Modifications and alternatives for exercises
-- Safety tips and injury prevention advice
-- Motivation and encouragement
-
-When responding:
-- Be specific and actionable
-- Include warm-up and cool-down suggestions
-- Mention proper breathing techniques
-- Provide clear form cues
-
-Format your responses with clear sections. Keep responses concise but informative.`;
-
-    const fullPrompt = context ? `${context}\n\nUser question: ${prompt}` : prompt;
-    
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `${systemPrompt}\n\n${fullPrompt}`
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 800,
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          }
-        ]
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      return {
-        success: true,
-        response: data.candidates[0].content.parts[0].text
-      };
-    } else {
-      console.error('Gemini API Error:', data);
-      return {
-        success: false,
-        error: data.error?.message || 'No response from AI'
-      };
-    }
-  } catch (error) {
-    console.error('Gemini API Error:', error);
-    return {
-      success: false,
-      error: 'Failed to connect to AI service. Please try again.'
-    };
-  }
-}
-
-function formatAIResponse(text) {
-  let formatted = text
-    .replace(/^### (.*$)/gim, '<h4 style="color: var(--darker); margin: 16px 0 8px; font-size: 1.1rem;">$1</h4>')
-    .replace(/^## (.*$)/gim, '<h3 style="color: var(--darker); margin: 20px 0 12px; font-size: 1.2rem;">$1</h3>')
-    .replace(/^# (.*$)/gim, '<h2 style="color: var(--darker); margin: 24px 0 16px; font-size: 1.3rem;">$1</h2>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
-    .replace(/^• (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
-    .replace(/^\d+\. (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
-    .replace(/\n\n/g, '</p><p style="margin-bottom: 12px; line-height: 1.7;">')
-    .replace(/\n/g, '<br>');
-  
-  if (!formatted.includes('<p')) {
-    formatted = `<p style="margin-bottom: 12px; line-height: 1.7;">${formatted}</p>`;
-  }
-  
-  formatted = formatted.replace(/(<li.*?<\/li>)+/g, '<ul style="list-style-type: disc; margin: 12px 0; padding-left: 20px;">$&</ul>');
-  
-  return formatted;
 }
 
 // ========================================
@@ -1063,7 +950,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE - ENHANCED
+// RANKING PAGE - ENHANCED WITH DURATION & INTENSITY
 // ========================================
 
 function renderRanking() {
@@ -1128,6 +1015,7 @@ async function loadRankings() {
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
+      // Keep the best performance based on rating, then value, then intensity
       const existing = exerciseRankings[a.exercise][existingIndex];
       if (parseFloat(a.rating) > existing.rating ||
           (parseFloat(a.rating) === existing.rating && parseFloat(a.value) > existing.value) ||
@@ -1137,6 +1025,7 @@ async function loadRankings() {
     }
   });
   
+  // Sort by rating, then value, then intensity
   for (const exercise in exerciseRankings) {
     exerciseRankings[exercise].sort((a, b) => {
       if (b.rating !== a.rating) return b.rating - a.rating;
@@ -1181,6 +1070,7 @@ async function loadRankings() {
       
       const isCurrentUser = r.schoolId === currentUser.schoolId;
       
+      // Format unit display
       let unitDisplay = r.unit;
       if (r.unit === 'reps') unitDisplay = 'reps';
       else if (r.unit === 'seconds') unitDisplay = 'sec';
@@ -1240,136 +1130,100 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// FREE AI - USING OPENROUTER (NO QUOTA LIMITS)
+// AI EXERCISE GUIDE PAGE
 // ========================================
 
-async function askGemini(prompt, context = '') {
-  try {
-    // Free OpenRouter endpoint with a public model
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'HydroFit'
-      },
-      body: JSON.stringify({
-        model: 'google/gemma-3b-it:free', // Free model
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a fitness trainer for PathFit students. Provide workout routines, form tips, sets/reps, and rest times. Keep responses under 400 words.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 600
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (data.choices && data.choices[0]) {
-      return {
-        success: true,
-        response: data.choices[0].message.content
-      };
-    } else {
-      // Fallback if API fails
-      return getFallbackResponse(prompt);
-    }
-  } catch (error) {
-    console.error('AI Error:', error);
-    return getFallbackResponse(prompt);
-  }
+function renderAIGuide() {
+  const container = document.getElementById("tabContent");
+  
+  container.innerHTML = `
+    <div class="ai-guide-container">
+      <div class="ai-guide-header">
+        <h2><i class="fas fa-robot"></i> AI Exercise Guide</h2>
+        <p>Your smart fitness assistant - Ask for any workout routine!</p>
+      </div>
+      
+      <div class="card ai-info-card">
+        <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
+        <p>Click the chat widget in the bottom right corner and try asking:</p>
+        <div class="example-prompts">
+          <div class="prompt-item" onclick="window.setPrompt('I want flexibility training')">
+            <i class="fas fa-person-walking"></i> "I want flexibility training"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Give me a strength workout routine')">
+            <i class="fas fa-dumbbell"></i> "Give me a strength workout routine"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('I need cardio exercises for beginners')">
+            <i class="fas fa-heart-pulse"></i> "I need cardio exercises for beginners"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Show me proper push-up form')">
+            <i class="fas fa-person"></i> "Show me proper push-up form"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Create a full body workout plan')">
+            <i class="fas fa-calendar-alt"></i> "Create a full body workout plan"
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-star"></i> What the AI Can Do</h3>
+        <ul class="feature-list">
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Step-by-step exercise routines</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Proper form instructions</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Suggested sets and rest times</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Customized workouts for your goals</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Exercise modifications and alternatives</li>
+        </ul>
+      </div>
+      
+      <div class="card ai-tip-card">
+        <h3><i class="fas fa-comment-dots"></i> Pro Tips</h3>
+        <p>Be specific about your goals! Try mentioning:</p>
+        <ul class="tip-list">
+          <li>• Your fitness level (beginner, intermediate, advanced)</li>
+          <li>• Available equipment (none, dumbbells, resistance bands)</li>
+          <li>• Time available (15 min, 30 min, 1 hour)</li>
+          <li>• Target areas (full body, upper body, core, legs)</li>
+        </ul>
+      </div>
+    </div>
+  `;
+  
+  // Initialize Chatbase AI
+  initChatbaseAI();
 }
 
-function getFallbackResponse(prompt) {
-  const lowerPrompt = prompt.toLowerCase();
-  let response = '';
-  
-  if (lowerPrompt.includes('flexibility') || lowerPrompt.includes('stretch')) {
-    response = `**FLEXIBILITY ROUTINE**
-    
-Warm-up: March in place 2 min, arm circles 30 sec
-
-Main (2-3 rounds, 45 sec hold each):
-• Standing Forward Fold
-• Cat-Cow Stretch (10 reps)
-• Downward Dog
-• Seated Butterfly
-• Child's Pose
-• Quad Stretch (each leg)
-
-Rest: 15 sec between stretches
-Tip: Breathe deeply during each stretch.`;
-  
-  } else if (lowerPrompt.includes('strength')) {
-    response = `**STRENGTH WORKOUT**
-
-Warm-up: Jumping jacks 2 min, squats 15 reps
-
-3 Sets Each (60 sec rest):
-• Push-Ups: 10-15 reps
-• Squats: 15-20 reps
-• Lunges: 10 each leg
-• Plank: 30-45 sec
-• Glute Bridges: 15 reps
-
-Form tip: Keep core tight throughout.`;
-  
-  } else if (lowerPrompt.includes('cardio')) {
-    response = `**CARDIO CIRCUIT (20 min)**
-
-3 Rounds - 45 sec work / 15 sec rest:
-1. Jumping Jacks
-2. High Knees
-3. Butt Kicks
-4. Mountain Climbers
-5. Side Shuffles
-
-Cool-down: Walk 2 min, stretch 3 min
-Intensity: Moderate (can talk but not sing)`;
-  
-  } else if (lowerPrompt.includes('push-up')) {
-    response = `**PUSH-UP FORM GUIDE**
-
-Setup: Hands shoulder-width, body straight line
-
-Movement:
-• Lower (2 sec): Elbows at 45°
-• Bottom: Brief pause
-• Push (1 sec): Full extension
-
-Common mistakes:
-❌ Sagging hips → Engage glutes
-❌ Flared elbows → Keep at 45°
-
-Beginner: Knee push-ups 3x8
-Advanced: Regular push-ups 3x12`;
-  
-  } else {
-    response = `**HYDROFIT AI TRAINER**
-
-I can help with:
-• Flexibility routines
-• Strength workouts
-• Cardio exercises
-• Form instructions
-
-Try asking:
-"I want flexibility training"
-"Give me a strength workout"
-"I need cardio for beginners"
-"Show me proper push-up form"
-
-What would you like to work on?`;
+function setPrompt(prompt) {
+  // Try to set the prompt in Chatbase if available
+  const chatbaseIframe = document.querySelector('iframe[src*="chatbase"]');
+  if (chatbaseIframe) {
+    // Focus on the chat widget
+    chatbaseIframe.contentWindow.postMessage({ type: 'setPrompt', prompt: prompt }, '*');
   }
   
-  return { success: true, response };
+  // Open chatbase if closed
+  if (window.chatbase && window.chatbase("getState") !== "open") {
+    window.chatbase("open");
+  }
+  
+  showToast('Click the chat widget to send your question!', false);
+}
+
+// Chatbase AI Integration
+function initChatbaseAI() {
+  if (window.chatbase && window.chatbase("getState") === "initialized") return;
+  
+  window.chatbaseConfig = { chatbotId: "Zqs29nX4-jV3VlilBTsjp" };
+  
+  const script = document.createElement('script');
+  script.src = "https://www.chatbase.co/embed.min.js";
+  script.id = "Zqs29nX4-jV3VlilBTsjp";
+  script.defer = true;
+  script.onload = () => {
+    console.log('✅ Chatbase AI loaded');
+  };
+  
+  document.body.appendChild(script);
 }
 
 // ========================================
@@ -1588,10 +1442,8 @@ window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
 window.refreshAssessments = refreshAssessments;
-window.sendAIMessage = sendAIMessage;
-window.sendQuickPrompt = sendQuickPrompt;
-window.clearAIChat = clearAIChat;
+window.setPrompt = setPrompt;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete with Gemini AI");
+console.log("✅ HydroFit Loaded - Complete with AI Guide");
