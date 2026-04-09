@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH RANKINGS
+// HYDROFIT - COMPLETE WITH AI GUIDE & ENHANCED RANKINGS
 // ========================================
 
 let currentTab = "dashboard";
@@ -9,7 +9,6 @@ let assessments = [];
 
 // Custom Confirm Dialog
 function showCustomConfirm(message, onConfirm) {
-  // Create overlay
   const overlay = document.createElement('div');
   overlay.style.cssText = `
     position: fixed;
@@ -26,7 +25,6 @@ function showCustomConfirm(message, onConfirm) {
     animation: fadeIn 0.2s ease;
   `;
   
-  // Create dialog
   const dialog = document.createElement('div');
   dialog.style.cssText = `
     background: white;
@@ -58,7 +56,6 @@ function showCustomConfirm(message, onConfirm) {
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
   
-  // Add animation styles
   const style = document.createElement('style');
   style.textContent = `
     @keyframes fadeIn {
@@ -72,7 +69,6 @@ function showCustomConfirm(message, onConfirm) {
   `;
   document.head.appendChild(style);
   
-  // Handle buttons
   document.getElementById('customConfirmCancel').onclick = () => {
     overlay.style.opacity = '0';
     setTimeout(() => overlay.remove(), 200);
@@ -86,7 +82,6 @@ function showCustomConfirm(message, onConfirm) {
     }, 200);
   };
   
-  // Close on overlay click
   overlay.onclick = (e) => {
     if (e.target === overlay) {
       overlay.style.opacity = '0';
@@ -95,7 +90,6 @@ function showCustomConfirm(message, onConfirm) {
   };
 }
 
-// Toast notification function
 function showToast(message, isError = false) {
   const toast = document.getElementById("toast");
   toast.style.display = "block";
@@ -124,7 +118,6 @@ function closeSidebar() {
   if (overlay) overlay.remove();
 }
 
-// Loading indicator functions
 function showLoading(containerId) {
   const container = document.getElementById(containerId);
   if (container) {
@@ -628,7 +621,9 @@ async function addAssessment() {
     document.getElementById('repetitions').value = '';
     document.getElementById('notes').value = '';
     document.getElementById('intensity').value = 5;
-    document.getElementById('intensityValue').innerText = 5;
+    if (document.getElementById('intensityValue')) {
+      document.getElementById('intensityValue').innerText = 5;
+    }
     
     showToast('Assessment saved!', false);
   } else {
@@ -955,7 +950,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE
+// RANKING PAGE - ENHANCED WITH DURATION & INTENSITY
 // ========================================
 
 function renderRanking() {
@@ -1013,20 +1008,30 @@ async function loadRankings() {
       grade: a.grade,
       value: parseFloat(a.value),
       unit: a.unit,
+      intensity: parseInt(a.intensity) || 5,
       date: a.date
     };
     
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
-      if (parseFloat(a.rating) > exerciseRankings[a.exercise][existingIndex].rating) {
+      // Keep the best performance based on rating, then value, then intensity
+      const existing = exerciseRankings[a.exercise][existingIndex];
+      if (parseFloat(a.rating) > existing.rating ||
+          (parseFloat(a.rating) === existing.rating && parseFloat(a.value) > existing.value) ||
+          (parseFloat(a.rating) === existing.rating && parseFloat(a.value) === existing.value && parseInt(a.intensity) > existing.intensity)) {
         exerciseRankings[a.exercise][existingIndex] = entry;
       }
     }
   });
   
+  // Sort by rating, then value, then intensity
   for (const exercise in exerciseRankings) {
-    exerciseRankings[exercise].sort((a, b) => b.rating - a.rating);
+    exerciseRankings[exercise].sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      if (b.value !== a.value) return b.value - a.value;
+      return b.intensity - a.intensity;
+    });
   }
   
   let html = '';
@@ -1050,6 +1055,7 @@ async function loadRankings() {
               <th>Rating</th>
               <th>Grade</th>
               <th>Performance</th>
+              <th>Intensity</th>
             </tr>
           </thead>
           <tbody>
@@ -1064,6 +1070,14 @@ async function loadRankings() {
       
       const isCurrentUser = r.schoolId === currentUser.schoolId;
       
+      // Format unit display
+      let unitDisplay = r.unit;
+      if (r.unit === 'reps') unitDisplay = 'reps';
+      else if (r.unit === 'seconds') unitDisplay = 'sec';
+      else if (r.unit === 'minutes') unitDisplay = 'min';
+      else if (r.unit === 'meters') unitDisplay = 'm';
+      else if (r.unit === 'laps') unitDisplay = 'laps';
+      
       html += `
         <tr style="${isCurrentUser ? 'background: #e0f2fe; font-weight: 600;' : ''}">
           <td>
@@ -1075,7 +1089,15 @@ async function loadRankings() {
           </td>
           <td style="font-weight: 700; color: ${getGradeColor(r.grade)};">${r.rating}</td>
           <td style="color: ${getGradeColor(r.grade)};">${r.grade}</td>
-          <td style="color: #64748b;">${r.value} ${r.unit}</td>
+          <td style="color: #1a1a1a; font-weight: 500;">${r.value} ${unitDisplay}</td>
+          <td style="color: #64748b;">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <div style="width: 40px; height: 6px; background: #e0e7ff; border-radius: 3px; overflow: hidden;">
+                <div style="width: ${r.intensity * 10}%; height: 100%; background: ${getIntensityColor(r.intensity)}; border-radius: 3px;"></div>
+              </div>
+              <span style="font-size: 0.8rem;">${r.intensity}/10</span>
+            </div>
+          </td>
         </tr>
       `;
     });
@@ -1083,7 +1105,7 @@ async function loadRankings() {
     if (rankings.length > 10) {
       html += `
         <tr>
-          <td colspan="5" style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 12px;">
+          <td colspan="6" style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 12px;">
             ... and ${rankings.length - 10} more participants
           </td>
         </tr>
@@ -1098,6 +1120,110 @@ async function loadRankings() {
   }
   
   container.innerHTML = html;
+}
+
+function getIntensityColor(intensity) {
+  if (intensity >= 8) return '#00b894';
+  if (intensity >= 6) return '#00b4d8';
+  if (intensity >= 4) return '#fdcb6e';
+  return '#e17055';
+}
+
+// ========================================
+// AI EXERCISE GUIDE PAGE
+// ========================================
+
+function renderAIGuide() {
+  const container = document.getElementById("tabContent");
+  
+  container.innerHTML = `
+    <div class="ai-guide-container">
+      <div class="ai-guide-header">
+        <h2><i class="fas fa-robot"></i> AI Exercise Guide</h2>
+        <p>Your smart fitness assistant - Ask for any workout routine!</p>
+      </div>
+      
+      <div class="card ai-info-card">
+        <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
+        <p>Click the chat widget in the bottom right corner and try asking:</p>
+        <div class="example-prompts">
+          <div class="prompt-item" onclick="window.setPrompt('I want flexibility training')">
+            <i class="fas fa-person-walking"></i> "I want flexibility training"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Give me a strength workout routine')">
+            <i class="fas fa-dumbbell"></i> "Give me a strength workout routine"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('I need cardio exercises for beginners')">
+            <i class="fas fa-heart-pulse"></i> "I need cardio exercises for beginners"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Show me proper push-up form')">
+            <i class="fas fa-person"></i> "Show me proper push-up form"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Create a full body workout plan')">
+            <i class="fas fa-calendar-alt"></i> "Create a full body workout plan"
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-star"></i> What the AI Can Do</h3>
+        <ul class="feature-list">
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Step-by-step exercise routines</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Proper form instructions</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Suggested sets and rest times</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Customized workouts for your goals</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Exercise modifications and alternatives</li>
+        </ul>
+      </div>
+      
+      <div class="card ai-tip-card">
+        <h3><i class="fas fa-comment-dots"></i> Pro Tips</h3>
+        <p>Be specific about your goals! Try mentioning:</p>
+        <ul class="tip-list">
+          <li>• Your fitness level (beginner, intermediate, advanced)</li>
+          <li>• Available equipment (none, dumbbells, resistance bands)</li>
+          <li>• Time available (15 min, 30 min, 1 hour)</li>
+          <li>• Target areas (full body, upper body, core, legs)</li>
+        </ul>
+      </div>
+    </div>
+  `;
+  
+  // Initialize Chatbase AI
+  initChatbaseAI();
+}
+
+function setPrompt(prompt) {
+  // Try to set the prompt in Chatbase if available
+  const chatbaseIframe = document.querySelector('iframe[src*="chatbase"]');
+  if (chatbaseIframe) {
+    // Focus on the chat widget
+    chatbaseIframe.contentWindow.postMessage({ type: 'setPrompt', prompt: prompt }, '*');
+  }
+  
+  // Open chatbase if closed
+  if (window.chatbase && window.chatbase("getState") !== "open") {
+    window.chatbase("open");
+  }
+  
+  showToast('Click the chat widget to send your question!', false);
+}
+
+// Chatbase AI Integration
+function initChatbaseAI() {
+  if (window.chatbase && window.chatbase("getState") === "initialized") return;
+  
+  window.chatbaseConfig = { chatbotId: "Zqs29nX4-jV3VlilBTsjp" };
+  
+  const script = document.createElement('script');
+  script.src = "https://www.chatbase.co/embed.min.js";
+  script.id = "Zqs29nX4-jV3VlilBTsjp";
+  script.defer = true;
+  script.onload = () => {
+    console.log('✅ Chatbase AI loaded');
+  };
+  
+  document.body.appendChild(script);
 }
 
 // ========================================
@@ -1136,6 +1262,11 @@ function switchTab(tab) {
   else if (tab === 'ranking') { 
     updatePageTitle('Rankings'); 
     renderRanking(); 
+    isLoading = false;
+  }
+  else if (tab === 'aiguide') { 
+    updatePageTitle('AI Exercise Guide'); 
+    renderAIGuide(); 
     isLoading = false;
   }
 }
@@ -1311,7 +1442,8 @@ window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
 window.refreshAssessments = refreshAssessments;
+window.setPrompt = setPrompt;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete");
+console.log("✅ HydroFit Loaded - Complete with AI Guide");

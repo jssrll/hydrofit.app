@@ -912,3 +912,119 @@ input[type="range"] {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* AI Exercise Guide Styles */
+.ai-guide-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.ai-guide-header {
+  margin-bottom: 24px;
+}
+
+.ai-guide-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--darker);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.ai-guide-header p {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.ai-info-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.ai-info-card h3 {
+  color: white !important;
+}
+
+.ai-info-card p {
+  color: rgba(255,255,255,0.95) !important;
+}
+
+.example-prompts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.prompt-item {
+  background: rgba(255,255,255,0.15);
+  padding: 14px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.prompt-item:hover {
+  background: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+}
+
+.prompt-item i {
+  color: #fdcb6e;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+}
+
+.feature-list li {
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.feature-list li:last-child {
+  border-bottom: none;
+}
+
+.ai-tip-card {
+  background: #f0f9ff;
+  border: 1px solid rgba(0,180,216,0.2);
+}
+
+.tip-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+}
+
+.tip-list li {
+  padding: 6px 0;
+  color: #555;
+}
+
+/* Mobile responsive for AI Guide */
+@media (max-width: 768px) {
+  .ai-guide-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .example-prompts {
+    grid-template-columns: 1fr;
+  }
+  
+  .prompt-item {
+    padding: 12px 14px;
+  }
+}
