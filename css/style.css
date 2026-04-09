@@ -1,4 +1,4 @@
-/* style.css - HYDROFIT with Fixed Header */
+/* style.css - HYDROFIT with Fixed Header and Settings */
 :root {
   --primary: #00b4d8;
   --primary-dark: #0096c7;
@@ -29,6 +29,7 @@ body {
   min-height: 100vh;
   color: #1a1a1a;
   overflow: hidden;
+  transition: background 0.3s ease;
 }
 
 .app-container {
@@ -64,6 +65,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .logo-area img {
@@ -91,6 +93,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .nav-btn {
@@ -107,6 +111,7 @@ body {
   align-items: center;
   gap: 12px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .nav-btn i {
@@ -124,24 +129,9 @@ body {
   color: white;
 }
 
+/* Old logout button - hidden */
 .logout-btn {
-  margin: 20px;
-  padding: 12px;
-  background: rgba(214, 48, 49, 0.9);
-  border: none;
-  color: white;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.logout-btn:hover {
-  background: var(--danger);
+  display: none;
 }
 
 /* FIXED MAIN PANEL */
@@ -153,6 +143,7 @@ body {
   background: #f0f9ff;
   margin-left: 280px;
   height: 100vh;
+  transition: background 0.3s ease;
 }
 
 /* FIXED HEADER */
@@ -171,6 +162,7 @@ body {
   z-index: 50;
   height: var(--header-height);
   border-bottom: 1px solid rgba(0,180,216,0.1);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .mobile-menu-btn {
@@ -205,6 +197,7 @@ body {
   padding: 8px 20px;
   border-radius: 40px;
   border: 1px solid rgba(0,180,216,0.1);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .user-stats span {
@@ -230,6 +223,7 @@ body {
   box-shadow: var(--shadow);
   margin-bottom: 20px;
   border: 1px solid rgba(255,255,255,0.5);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .card h3 {
@@ -280,6 +274,17 @@ body {
   color: white;
 }
 
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}
+
 /* Form Elements */
 input, select, textarea {
   width: 100%;
@@ -291,7 +296,7 @@ input, select, textarea {
   margin-bottom: 12px;
   background: white;
   color: #1a1a1a;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background 0.3s ease, color 0.3s ease;
 }
 
 input:focus, select:focus {
@@ -317,7 +322,7 @@ label {
 .slideshow-container {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 200px;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -556,17 +561,39 @@ label {
   image-rendering: crisp-edges;
 }
 
-/* Fitness Banner */
-.fitness-banner {
+.qr-card .btn-outline {
+  background: white;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qr-card .btn-outline:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,180,216,0.2);
+}
+
+/* Banner Size Consistency */
+.fitness-banner,
+.ranking-banner {
   margin-bottom: 20px;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: var(--shadow);
+  height: 200px;
 }
 
-.fitness-banner img {
+.fitness-banner img,
+.ranking-banner img {
   width: 100%;
-  height: auto;
+  height: 200px;
+  object-fit: cover;
   display: block;
 }
 
@@ -683,6 +710,112 @@ input[type="range"] {
 .rank-3 { background: #cd7f32; color: white; }
 .rank-other { background: #e0e7ff; color: #1a1a1a; }
 
+/* Ranking Card */
+.ranking-card {
+  padding: 20px;
+}
+
+.ranking-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========================================
+   SETTINGS PAGE STYLES
+   ======================================== */
+
+.settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-card {
+  margin-bottom: 24px;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item-info {
+  flex: 1;
+}
+
+.settings-item-title {
+  font-weight: 600;
+  color: var(--darker);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.settings-item-title i {
+  color: var(--primary);
+  width: 20px;
+}
+
+.settings-item-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-left: 28px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
 /* Modal */
 .modal {
   position: fixed;
@@ -783,6 +916,16 @@ input[type="range"] {
   color: var(--dark);
 }
 
+/* Spinner Animation */
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* Toast */
 #toast {
   position: fixed;
@@ -795,6 +938,181 @@ input[type="range"] {
   border-radius: 40px;
   font-size: 0.9rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   DARK MODE STYLES
+   ======================================== */
+
+body.dark-mode {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+body.dark-mode .main-panel {
+  background: #0f172a;
+}
+
+body.dark-mode .card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.dark-mode .card h3 {
+  color: #e2e8f0;
+}
+
+body.dark-mode .card p {
+  color: #cbd5e1;
+}
+
+body.dark-mode .top-bar {
+  background: rgba(30, 41, 59, 0.98);
+  border-bottom-color: #334155;
+}
+
+body.dark-mode .top-bar h2 {
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+body.dark-mode .user-stats {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.dark-mode .user-stats span {
+  color: #38bdf8;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background: #1e293b;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+body.dark-mode .settings-item {
+  border-bottom-color: #334155;
+}
+
+body.dark-mode .settings-item-title {
+  color: #e2e8f0;
+}
+
+body.dark-mode .settings-item-desc {
+  color: #94a3b8;
+}
+
+body.dark-mode .ranking-table {
+  background: #1e293b;
+}
+
+body.dark-mode .ranking-table th {
+  background: #0284c7;
+}
+
+body.dark-mode .ranking-table td {
+  border-bottom-color: #334155;
+  color: #e2e8f0;
+}
+
+body.dark-mode .ranking-table tr:hover {
+  background: #334155;
+}
+
+body.dark-mode .history-item {
+  border-bottom-color: #334155 !important;
+}
+
+body.dark-mode .history-item:hover {
+  background: #334155 !important;
+}
+
+body.dark-mode .modal-content {
+  background: #1e293b;
+}
+
+body.dark-mode .modal-input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+body.dark-mode .modal-link {
+  color: #94a3b8;
+}
+
+body.dark-mode .toggle-slider {
+  background-color: #475569;
+}
+
+body.dark-mode .dev-credits p {
+  color: #cbd5e1;
+}
+
+body.dark-mode .dev-credits li {
+  color: #94a3b8;
+}
+
+body.dark-mode .form-group label {
+  color: #cbd5e1;
+}
+
+/* ========================================
+   COMPACT MODE STYLES
+   ======================================== */
+
+body.compact-mode .tab-content {
+  padding: 16px;
+}
+
+body.compact-mode .card {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+body.compact-mode .card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+body.compact-mode .welcome-card {
+  padding: 20px 16px;
+}
+
+body.compact-mode .profile-card {
+  padding: 20px 16px;
+}
+
+body.compact-mode .settings-item {
+  padding: 12px 0;
+}
+
+body.compact-mode .nav-btn {
+  padding: 8px 12px;
+}
+
+body.compact-mode .top-bar {
+  padding: 0 16px;
+  height: 55px;
+}
+
+body.compact-mode {
+  --header-height: 55px;
 }
 
 /* Mobile Responsive */
@@ -808,12 +1126,25 @@ input[type="range"] {
     left: -280px;
     top: 0;
     height: 100vh;
+    width: 280px;
     z-index: 200;
+    display: flex;
+    flex-direction: column;
   }
   
   .sidebar.open {
     left: 0;
     box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  }
+  
+  .sidebar .logo-area {
+    flex-shrink: 0;
+  }
+  
+  .sidebar .nav-menu {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
   
   .main-panel {
@@ -843,7 +1174,17 @@ input[type="range"] {
   }
   
   .slideshow-container {
-    height: 180px;
+    height: 160px;
+  }
+  
+  .fitness-banner,
+  .ranking-banner {
+    height: 160px;
+  }
+  
+  .fitness-banner img,
+  .ranking-banner img {
+    height: 160px;
   }
   
   .welcome-card {
@@ -873,6 +1214,13 @@ input[type="range"] {
     font-size: 0.8rem;
   }
   
+  .rank-badge {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 0.75rem;
+  }
+  
   #sidebarOverlay {
     position: fixed;
     top: 0;
@@ -882,33 +1230,30 @@ input[type="range"] {
     background: rgba(0,0,0,0.5);
     z-index: 199;
   }
+  
+  body.compact-mode {
+    --header-height: 50px;
+  }
 }
 
-/* Ranking Banner */
-.ranking-banner {
-  margin-bottom: 20px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
+/* Tablet Responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tab-content {
+    padding: 20px;
+  }
+  
+  .form-row {
+    gap: 12px;
+  }
 }
 
-.ranking-banner img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Loading animation for buttons */
-.btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.fa-spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Fix for very small screens */
+@media (max-height: 600px) {
+  .sidebar .logo-area {
+    padding: 16px 20px;
+  }
+  
+  .sidebar .nav-btn {
+    padding: 8px 16px;
+  }
 }
