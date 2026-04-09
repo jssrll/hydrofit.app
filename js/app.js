@@ -1,17 +1,14 @@
 // ========================================
-// HYDROFIT - WITH TEACHER DASHBOARD
+// HYDROFIT - COMPLETE WITH QR GENERATOR
 // ========================================
 
 let currentTab = "dashboard";
 let currentUser = null;
 let isLoading = false;
-let html5QrCode = null;
-let selectedClass = null;
 
-// Toast notification
+// Toast notification function
 function showToast(message, isError = false) {
   const toast = document.getElementById("toast");
-  if (!toast) return;
   toast.style.display = "block";
   toast.style.background = isError ? "#d63031" : "#03045e";
   toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}" style="margin-right: 8px;"></i> ${message}`;
@@ -21,81 +18,21 @@ function showToast(message, isError = false) {
 }
 
 function updatePageTitle(title) {
-  const titleEl = document.getElementById("pageTitle");
-  if (titleEl) titleEl.innerText = title;
+  document.getElementById("pageTitle").innerText = title;
 }
 
 function updateUserStats() {
   if (currentUser) {
     const lastName = currentUser.fullName.split(',')[0];
-    const roleBadge = document.getElementById("userRoleBadge");
-    const nameDisplay = document.getElementById("userNameDisplay");
-    const isTeacher = currentUser.role === 'teacher';
-    
-    if (roleBadge) {
-      roleBadge.innerHTML = `<i class="fas ${isTeacher ? 'fa-chalkboard-user' : 'fa-user-graduate'}"></i> ${isTeacher ? 'TEACHER' : 'STUDENT'}`;
-      roleBadge.style.background = isTeacher ? '#48cae4' : '#00b4d8';
-    }
-    
-    if (nameDisplay) {
-      nameDisplay.innerHTML = `<i class="fas fa-user"></i> ${lastName}`;
-    }
+    document.getElementById("userNameDisplay").innerHTML = `<i class="fas fa-user"></i> ${lastName}`;
   }
 }
 
-function updateNavMenu() {
-  const navMenu = document.getElementById("navMenu");
-  if (!navMenu) return;
-  
-  const isTeacher = currentUser?.role === 'teacher';
-  
-  if (isTeacher) {
-    navMenu.innerHTML = `
-      <button class="nav-btn active" data-tab="teacherDashboard">
-        <i class="fas fa-chalkboard"></i> Teacher Dashboard
-      </button>
-      <button class="nav-btn" data-tab="myStudents">
-        <i class="fas fa-users"></i> My Students
-      </button>
-      <button class="nav-btn" data-tab="takeAttendance">
-        <i class="fas fa-camera"></i> Take Attendance
-      </button>
-      <button class="nav-btn" data-tab="attendanceRecords">
-        <i class="fas fa-clipboard-list"></i> Attendance Records
-      </button>
-      <button class="nav-btn" data-tab="teacherProfile">
-        <i class="fas fa-user-circle"></i> My Profile
-      </button>
-    `;
-  } else {
-    navMenu.innerHTML = `
-      <button class="nav-btn active" data-tab="dashboard">
-        <i class="fas fa-chalkboard-user"></i> Dashboard
-      </button>
-      <button class="nav-btn" data-tab="profile">
-        <i class="fas fa-user-circle"></i> My Profile
-      </button>
-      <button class="nav-btn" data-tab="assignment">
-        <i class="fas fa-pen-ruler"></i> Assignment
-      </button>
-      <button class="nav-btn" data-tab="ranking">
-        <i class="fas fa-trophy"></i> Ranking
-      </button>
-    `;
-  }
-  
-  // Re-attach listeners
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      switchTab(btn.getAttribute('data-tab'));
-    });
-  });
-}
-
+// Close sidebar function
 function closeSidebar() {
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
-  if (sidebar) sidebar.classList.remove("open");
+  sidebar.classList.remove("open");
   if (overlay) overlay.remove();
 }
 
@@ -118,7 +55,7 @@ async function callAPI(action, data = {}) {
 }
 
 // ========================================
-// QR CODE GENERATOR (Student)
+// QR CODE GENERATOR
 // ========================================
 
 function generateQRCodeSVG(userData) {
@@ -230,31 +167,37 @@ function printQRCode() {
         <title>HydroFit QR Code - ${currentUser.fullName}</title>
         <style>
           body { font-family: 'Inter', sans-serif; text-align: center; padding: 40px; }
+          .print-container { max-width: 400px; margin: 0 auto; }
           h2 { color: #023e8a; }
           img, canvas { width: 250px; height: 250px; }
+          p { margin: 10px 0; color: #333; }
         </style>
       </head>
       <body>
-        <div style="max-width: 400px; margin: 0 auto;">
+        <div class="print-container">
           <h2>HydroFit Attendance QR</h2>
           ${qrContainer.innerHTML}
           <p><strong>${escapeHtml(currentUser.fullName)}</strong></p>
           <p>School ID: ${currentUser.schoolId}</p>
+          <p>${currentUser.program} - ${currentUser.yearLevel}${getYearSuffix(currentUser.yearLevel)} Year</p>
+          <p style="margin-top: 20px; font-size: 12px; color: #666;">Scan for attendance</p>
         </div>
       </body>
     </html>
   `);
   printWindow.document.close();
-  setTimeout(() => printWindow.print(), 500);
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+  }, 500);
 }
 
 // ========================================
-// STUDENT DASHBOARD
+// DASHBOARD
 // ========================================
 
 function renderDashboard() {
   const container = document.getElementById("tabContent");
-  if (!container) return;
   
   container.innerHTML = `
     <div class="slideshow-wrapper">
@@ -288,18 +231,18 @@ function renderDashboard() {
       </p>
       <p style="margin-bottom: 16px;">
         The platform was created to support the PathFit curriculum by providing a simple and modern digital tool where students can log their progress, 
-        view assignments, and check their rankings—all in one place.
+        view assignments, and check their rankings—all in one place. HydroFit aims to promote a healthy and active lifestyle among students while making fitness tracking easy and accessible.
       </p>
       
       <div class="dev-credits">
-        <p><i class="fas fa-users"></i> Developed by:</p>
+        <p><i class="fas fa-users"></i> HydroFit was developed by:</p>
         <ul>
           <li><i class="fas fa-user-graduate"></i> Jessrell M. Custodio</li>
           <li><i class="fas fa-user-graduate"></i> John Daniel C. Soriano</li>
           <li><i class="fas fa-user-graduate"></i> John Roberth C. Marchina</li>
         </ul>
         <p class="completion-date">
-          <i class="fas fa-calendar-check"></i> Completed April 15, 2026
+          <i class="fas fa-calendar-check"></i> The application was completed on April 15, 2026, as a project dedicated to enhancing the PathFit learning experience through technology and innovation.
         </p>
       </div>
     </div>
@@ -314,16 +257,14 @@ function initSlideshow() {
   const dotsContainer = document.getElementById('slideDots');
   if (!slides.length) return;
   
-  if (dotsContainer) {
-    dotsContainer.innerHTML = '';
-    slides.forEach((_, i) => {
-      const dot = document.createElement('div');
-      dot.classList.add('dot');
-      if (i === 0) dot.classList.add('active');
-      dot.onclick = () => goToSlide(i);
-      dotsContainer.appendChild(dot);
-    });
-  }
+  dotsContainer.innerHTML = '';
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.classList.add('dot');
+    if (i === 0) dot.classList.add('active');
+    dot.onclick = () => goToSlide(i);
+    dotsContainer.appendChild(dot);
+  });
   
   function goToSlide(n) {
     slides.forEach(s => s.classList.remove('active'));
@@ -342,16 +283,28 @@ function initSlideshow() {
 }
 
 // ========================================
-// STUDENT PROFILE
+// PROFILE PAGE WITH QR CODE
 // ========================================
 
 async function renderProfile() {
   const container = document.getElementById("tabContent");
-  if (!container) return;
-  
   container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading profile...</div>`;
   
   let userData = currentUser;
+  if (!userData || !userData.schoolId) {
+    const result = await callAPI("getProfile", { schoolId: currentUser?.schoolId });
+    if (result.success) {
+      userData = result.user;
+      currentUser = userData;
+      localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
+    }
+  }
+  
+  if (!userData) {
+    container.innerHTML = `<div class="card"><p style="color: #d63031;">Error loading profile. Please try again.</p></div>`;
+    isLoading = false;
+    return;
+  }
   
   const programColors = {
     'BSIT': '#00b4d8', 'BSED': '#48cae4', 'BSHM': '#90e0ef', 'BSTM': '#00b894',
@@ -389,496 +342,61 @@ async function renderProfile() {
         <p style="color: #64748b; font-size: 0.85rem;">
           <i class="fas fa-id-card"></i> ${userData.schoolId}
         </p>
+        <p style="color: #64748b; font-size: 0.8rem; margin-top: 4px;">
+          <i class="fas fa-envelope"></i> ${escapeHtml(userData.email)}
+        </p>
         <button class="btn btn-outline" onclick="window.downloadQRCode()" style="margin-top: 16px; width: 100%;">
           <i class="fas fa-download"></i> Download QR Code
         </button>
         <button class="btn btn-outline" onclick="window.printQRCode()" style="margin-top: 8px; width: 100%;">
           <i class="fas fa-print"></i> Print QR Code
         </button>
-      </div>
-    </div>
-  `;
-}
-
-// ========================================
-// TEACHER DASHBOARD
-// ========================================
-
-async function renderTeacherDashboard() {
-  const container = document.getElementById("tabContent");
-  if (!container) return;
-  
-  container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading dashboard...</div>`;
-  
-  // Get student count
-  const studentsResult = await callAPI("getStudents", { teacherId: currentUser.schoolId });
-  const studentCount = studentsResult.success ? studentsResult.students.length : 0;
-  
-  // Get today's attendance
-  const today = new Date().toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' });
-  const attendanceResult = await callAPI("getAttendance", { date: today, teacherId: currentUser.schoolId });
-  const todayAttendance = attendanceResult.success ? attendanceResult.records.length : 0;
-  
-  container.innerHTML = `
-    <div class="welcome-card">
-      <h2>Welcome, ${escapeHtml(currentUser.fullName.split(',')[0])}!</h2>
-      <p>Teacher Dashboard - ${currentUser.program} Department</p>
-    </div>
-    
-    <div class="stats-grid">
-      <div class="stat-card">
-        <i class="fas fa-users"></i>
-        <div class="stat-value">${studentCount}</div>
-        <div class="stat-label">Total Students</div>
-      </div>
-      <div class="stat-card">
-        <i class="fas fa-user-check"></i>
-        <div class="stat-value">${todayAttendance}</div>
-        <div class="stat-label">Present Today</div>
-      </div>
-      <div class="stat-card">
-        <i class="fas fa-door-open"></i>
-        <div class="stat-value">2</div>
-        <div class="stat-label">Sections</div>
-      </div>
-    </div>
-    
-    <div class="card">
-      <h3><i class="fas fa-clock"></i> Quick Actions</h3>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
-        <button class="btn" onclick="window.switchTab('takeAttendance')">
-          <i class="fas fa-camera"></i> Take Attendance
-        </button>
-        <button class="btn btn-outline" onclick="window.switchTab('myStudents')">
-          <i class="fas fa-users"></i> View Students
-        </button>
-        <button class="btn btn-outline" onclick="window.switchTab('attendanceRecords')">
-          <i class="fas fa-clipboard-list"></i> View Records
-        </button>
-      </div>
-    </div>
-    
-    <div class="card">
-      <h3><i class="fas fa-calendar-check"></i> Today's Attendance (${today})</h3>
-      <div id="todayAttendanceList">
-        ${todayAttendance > 0 ? '<p style="color: #64748b;">Loading attendance...</p>' : '<p style="color: #64748b; text-align: center; padding: 20px;">No attendance recorded today. Click "Take Attendance" to start.</p>'}
+        <p style="margin-top: 12px; font-size: 0.75rem; color: #94a3b8;">
+          <i class="fas fa-info-circle"></i> Present this QR code for attendance
+        </p>
       </div>
     </div>
   `;
   
-  if (todayAttendance > 0) {
-    const recordsHtml = attendanceResult.records.slice(0, 5).map(r => `
-      <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0e0e0;">
-        <span><i class="fas fa-user"></i> ${escapeHtml(r.studentName)}</span>
-        <span style="color: #00b894;"><i class="fas fa-check-circle"></i> ${r.timeIn}</span>
-      </div>
-    `).join('');
-    const listEl = document.getElementById('todayAttendanceList');
-    if (listEl) listEl.innerHTML = recordsHtml || '<p style="color: #64748b;">No records</p>';
-  }
-}
-
-// ========================================
-// TEACHER - MY STUDENTS
-// ========================================
-
-async function renderMyStudents() {
-  const container = document.getElementById("tabContent");
-  if (!container) return;
-  
-  container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading students...</div>`;
-  
-  const result = await callAPI("getStudents", { teacherId: currentUser.schoolId });
-  
-  if (!result.success) {
-    container.innerHTML = `<div class="card"><p style="color: #d63031;">Error loading students</p></div>`;
-    return;
-  }
-  
-  const students = result.students;
-  const sections = [...new Set(students.map(s => s.section))];
-  
-  container.innerHTML = `
-    <div class="card">
-      <h3><i class="fas fa-users"></i> My Students (${students.length})</h3>
-      
-      <div class="class-selector">
-        <button class="class-btn active" onclick="window.filterStudents('all')">All Sections</button>
-        ${sections.map(s => `<button class="class-btn" onclick="window.filterStudents('${s}')">Section ${s}</button>`).join('')}
-      </div>
-      
-      <div style="overflow-x: auto;">
-        <table class="student-table" id="studentTable">
-          <thead>
-            <tr>
-              <th>School ID</th>
-              <th>Full Name</th>
-              <th>Program</th>
-              <th>Year</th>
-              <th>Section</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="studentTableBody">
-            ${students.map(s => `
-              <tr data-section="${s.section}">
-                <td>${s.schoolId}</td>
-                <td>${escapeHtml(s.fullName)}</td>
-                <td>${s.program}</td>
-                <td>${s.yearLevel}</td>
-                <td>${s.section}</td>
-                <td><span class="status-badge status-present">${s.status || 'Active'}</span></td>
-                <td>
-                  <button class="btn btn-sm" onclick="window.markAttendance('${s.schoolId}', '${escapeHtml(s.fullName).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-check"></i> Mark Present
-                  </button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-  
-  window.filterStudents = function(section) {
-    document.querySelectorAll('.class-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const rows = document.querySelectorAll('#studentTableBody tr');
-    rows.forEach(row => {
-      if (section === 'all' || row.dataset.section === section) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  };
-  
-  window.markAttendance = async function(studentId, studentName) {
-    const result = await callAPI("recordAttendance", {
-      studentId: studentId,
-      teacherId: currentUser.schoolId,
-      status: 'Present'
-    });
-    
-    if (result.success) {
-      showToast(`Marked ${studentName} as present`, false);
-    } else {
-      showToast('Failed to mark attendance', true);
+  setTimeout(() => {
+    const img = document.getElementById('qrImage');
+    if (img && !img.complete) {
+      img.onerror = function() {
+        this.onerror = null;
+        generateQRCodeCanvas(userData, 'qrCanvasContainer');
+        this.style.display = 'none';
+        document.getElementById('qrCanvasContainer').style.display = 'block';
+      };
     }
-  };
+  }, 100);
 }
 
-// ========================================
-// TEACHER - TAKE ATTENDANCE (QR Scanner)
-// ========================================
-
-function renderTakeAttendance() {
-  const container = document.getElementById("tabContent");
-  if (!container) return;
-  
-  container.innerHTML = `
-    <div class="card">
-      <h3><i class="fas fa-camera"></i> Scan Student QR Code</h3>
-      <p style="color: #64748b; margin-bottom: 20px;">Point your camera at a student's QR code to mark attendance</p>
-      
-      <div style="text-align: center;">
-        <button class="btn" onclick="window.startQRScanner()" style="padding: 16px 32px; font-size: 1.1rem;">
-          <i class="fas fa-qrcode"></i> Open QR Scanner
-        </button>
-      </div>
-      
-      <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 16px;">
-        <h4 style="margin-bottom: 16px;"><i class="fas fa-history"></i> Recent Scans</h4>
-        <div id="recentScans" style="color: #64748b;">
-          <p><i class="fas fa-info-circle"></i> No recent scans</p>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  window.recentScans = window.recentScans || [];
-}
-
-function startQRScanner() {
-  const modal = document.getElementById("qrScannerModal");
-  if (!modal) return;
-  
-  modal.style.display = "flex";
-  
-  if (html5QrCode) {
-    html5QrCode.stop().then(() => {
-      html5QrCode.clear();
-      initQRScanner();
-    }).catch(() => {
-      initQRScanner();
-    });
-  } else {
-    initQRScanner();
-  }
-}
-
-function initQRScanner() {
-  const qrReader = document.getElementById("qr-reader");
-  if (!qrReader) return;
-  
-  html5QrCode = new Html5Qrcode("qr-reader");
-  
-  const config = {
-    fps: 10,
-    qrbox: { width: 250, height: 250 },
-    aspectRatio: 1.0
-  };
-  
-  html5QrCode.start(
-    { facingMode: "environment" },
-    config,
-    onScanSuccess,
-    onScanFailure
-  ).catch(err => {
-    showToast("Camera access denied or not available", true);
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;';
   });
 }
 
-async function onScanSuccess(decodedText) {
-  try {
-    const qrData = JSON.parse(decodedText);
-    const studentId = qrData.schoolId;
-    
-    if (!studentId) {
-      showToast("Invalid QR code", true);
-      return;
-    }
-    
-    // Stop scanner
-    if (html5QrCode) {
-      await html5QrCode.stop();
-    }
-    
-    // Record attendance
-    const result = await callAPI("recordAttendance", {
-      studentId: studentId,
-      teacherId: currentUser.schoolId,
-      status: 'Present'
-    });
-    
-    const qrResult = document.getElementById("qr-result");
-    
-    if (result.success) {
-      if (qrResult) {
-        qrResult.innerHTML = `
-          <div style="color: #00b894; padding: 16px;">
-            <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
-            <p style="margin-top: 8px; font-weight: 600;">${result.record.studentName}</p>
-            <p style="font-size: 0.9rem;">Attendance recorded at ${result.record.timeIn}</p>
-          </div>
-        `;
-      }
-      showToast(`${result.record.studentName} marked present`, false);
-      
-      // Add to recent scans
-      window.recentScans = window.recentScans || [];
-      window.recentScans.unshift({
-        name: result.record.studentName,
-        time: result.record.timeIn,
-        id: studentId
-      });
-      if (window.recentScans.length > 5) window.recentScans.pop();
-      
-      updateRecentScansDisplay();
-    } else {
-      if (qrResult) {
-        qrResult.innerHTML = `
-          <div style="color: #d63031; padding: 16px;">
-            <i class="fas fa-exclamation-circle" style="font-size: 2rem;"></i>
-            <p style="margin-top: 8px;">Failed to record attendance</p>
-          </div>
-        `;
-      }
-    }
-    
-    // Restart scanner after 3 seconds
-    setTimeout(() => {
-      const qrResultEl = document.getElementById("qr-result");
-      if (qrResultEl) qrResultEl.innerHTML = '';
-      if (html5QrCode) {
-        initQRScanner();
-      }
-    }, 3000);
-    
-  } catch (error) {
-    showToast("Invalid QR code format", true);
-  }
-}
-
-function onScanFailure(error) {
-  // Silently ignore scan failures
-}
-
-function updateRecentScansDisplay() {
-  const container = document.getElementById("recentScans");
-  if (!container) return;
-  
-  if (!window.recentScans || window.recentScans.length === 0) {
-    container.innerHTML = '<p><i class="fas fa-info-circle"></i> No recent scans</p>';
-    return;
-  }
-  
-  container.innerHTML = window.recentScans.map(scan => `
-    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
-      <span><i class="fas fa-user-check" style="color: #00b894;"></i> ${escapeHtml(scan.name)}</span>
-      <span style="color: #64748b; font-size: 0.85rem;">${scan.time}</span>
-    </div>
-  `).join('');
+function getYearSuffix(year) {
+  if (year == 1) return 'st';
+  if (year == 2) return 'nd';
+  if (year == 3) return 'rd';
+  return 'th';
 }
 
 // ========================================
-// TEACHER - ATTENDANCE RECORDS
-// ========================================
-
-async function renderAttendanceRecords() {
-  const container = document.getElementById("tabContent");
-  if (!container) return;
-  
-  container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading records...</div>`;
-  
-  const result = await callAPI("getAttendance", { teacherId: currentUser.schoolId });
-  
-  if (!result.success) {
-    container.innerHTML = `<div class="card"><p style="color: #d63031;">Error loading records</p></div>`;
-    return;
-  }
-  
-  const records = result.records || [];
-  const dates = [...new Set(records.map(r => r.date))];
-  
-  container.innerHTML = `
-    <div class="card">
-      <h3><i class="fas fa-clipboard-list"></i> Attendance Records</h3>
-      
-      <div style="margin-bottom: 20px;">
-        <select id="dateFilter" class="modal-input" style="width: auto; min-width: 200px;" onchange="window.filterByDate()">
-          <option value="all">All Dates</option>
-          ${dates.map(d => `<option value="${d}">${d}</option>`).join('')}
-        </select>
-      </div>
-      
-      <div style="overflow-x: auto;">
-        <table class="student-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Student ID</th>
-              <th>Student Name</th>
-              <th>Time In</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="recordsTableBody">
-            ${records.map(r => `
-              <tr data-date="${r.date}">
-                <td>${r.date}</td>
-                <td>${r.studentId}</td>
-                <td>${escapeHtml(r.studentName)}</td>
-                <td>${r.timeIn || '--'}</td>
-                <td><span class="status-badge status-${r.status?.toLowerCase() || 'present'}">${r.status || 'Present'}</span></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-      
-      ${records.length === 0 ? '<p style="color: #64748b; text-align: center; padding: 40px;">No attendance records found</p>' : ''}
-    </div>
-  `;
-  
-  window.filterByDate = function() {
-    const filter = document.getElementById('dateFilter')?.value || 'all';
-    const rows = document.querySelectorAll('#recordsTableBody tr');
-    rows.forEach(row => {
-      if (filter === 'all' || row.dataset.date === filter) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  };
-}
-
-// ========================================
-// TEACHER PROFILE
-// ========================================
-
-async function renderTeacherProfile() {
-  const container = document.getElementById("tabContent");
-  if (!container) return;
-  
-  const programColors = {
-    'BSIT': '#00b4d8', 'BSED': '#48cae4', 'BSHM': '#90e0ef', 'BSTM': '#00b894',
-    'BS PSYCHOLOGY': '#fdcb6e', 'BSCRIM': '#e17055', 'BTLED': '#6c5ce7', 'BTVTED': '#a29bfe'
-  };
-  
-  container.innerHTML = `
-    <div class="profile-card">
-      <div class="profile-avatar"><i class="fas fa-chalkboard-user"></i></div>
-      <h2>${escapeHtml(currentUser.fullName)}</h2>
-      <p>PathFit Instructor</p>
-      <span class="program-badge" style="background: ${programColors[currentUser.program] || '#48cae4'}; color: white;">${currentUser.program}</span>
-      <div class="profile-info-grid">
-        <div class="info-item"><label>Teacher ID</label><p>${currentUser.schoolId}</p></div>
-        <div class="info-item"><label>Email</label><p>${currentUser.email}</p></div>
-        <div class="info-item"><label>Department</label><p>${currentUser.program}</p></div>
-        <div class="info-item"><label>Sections</label><p>${currentUser.section || 'Multiple'}</p></div>
-      </div>
-    </div>
-    
-    <div class="card">
-      <h3><i class="fas fa-chart-bar"></i> Teaching Summary</h3>
-      <div class="stats-grid" style="margin-top: 16px;">
-        <div class="stat-card">
-          <i class="fas fa-users"></i>
-          <div class="stat-value" id="teacherStudentCount">--</div>
-          <div class="stat-label">Students</div>
-        </div>
-        <div class="stat-card">
-          <i class="fas fa-calendar-check"></i>
-          <div class="stat-value" id="teacherAttendanceCount">--</div>
-          <div class="stat-label">Total Attendance</div>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Load stats
-  const studentsResult = await callAPI("getStudents", { teacherId: currentUser.schoolId });
-  if (studentsResult.success) {
-    const countEl = document.getElementById("teacherStudentCount");
-    if (countEl) countEl.innerText = studentsResult.students.length;
-  }
-  
-  const attendanceResult = await callAPI("getAttendance", { teacherId: currentUser.schoolId });
-  if (attendanceResult.success) {
-    const countEl = document.getElementById("teacherAttendanceCount");
-    if (countEl) countEl.innerText = attendanceResult.records.length;
-  }
-}
-
-// ========================================
-// ASSIGNMENT & RANKING (Student)
+// ASSIGNMENT & RANKING
 // ========================================
 
 function renderAssignment() {
   const container = document.getElementById("tabContent");
-  if (!container) return;
-  
   container.innerHTML = `
     <div class="card">
       <div style="text-align: center; padding: 40px 20px;">
         <i class="fas fa-pen-ruler" style="font-size: 3.5rem; color: #00b4d8; margin-bottom: 16px;"></i>
         <h3 style="color: #1a1a1a; margin-bottom: 8px;">Assignments Coming Soon</h3>
-        <p style="color: #64748b;">Track your PathFit assignments here.</p>
+        <p style="color: #64748b;">Track your PathFit assignments and written outputs here.</p>
       </div>
     </div>
   `;
@@ -886,8 +404,6 @@ function renderAssignment() {
 
 function renderRanking() {
   const container = document.getElementById("tabContent");
-  if (!container) return;
-  
   container.innerHTML = `
     <div class="card">
       <div style="text-align: center; padding: 40px 20px;">
@@ -903,7 +419,7 @@ function renderRanking() {
 // TAB SWITCHING
 // ========================================
 
-async function switchTab(tab) {
+function switchTab(tab) {
   if (isLoading) return;
   isLoading = true;
   currentTab = tab;
@@ -917,26 +433,26 @@ async function switchTab(tab) {
   
   closeSidebar();
   
-  // Page titles
-  const titles = {
-    'dashboard': 'Dashboard', 'profile': 'My Profile', 'assignment': 'Assignments', 'ranking': 'Ranking',
-    'teacherDashboard': 'Teacher Dashboard', 'myStudents': 'My Students', 'takeAttendance': 'Take Attendance',
-    'attendanceRecords': 'Attendance Records', 'teacherProfile': 'My Profile'
-  };
-  updatePageTitle(titles[tab] || 'HydroFit');
-  
-  // Render based on tab
-  if (tab === 'dashboard') renderDashboard();
-  else if (tab === 'profile') await renderProfile();
-  else if (tab === 'assignment') renderAssignment();
-  else if (tab === 'ranking') renderRanking();
-  else if (tab === 'teacherDashboard') await renderTeacherDashboard();
-  else if (tab === 'myStudents') await renderMyStudents();
-  else if (tab === 'takeAttendance') renderTakeAttendance();
-  else if (tab === 'attendanceRecords') await renderAttendanceRecords();
-  else if (tab === 'teacherProfile') await renderTeacherProfile();
-  
-  isLoading = false;
+  if (tab === 'dashboard') { 
+    updatePageTitle('Dashboard'); 
+    renderDashboard(); 
+    isLoading = false;
+  }
+  else if (tab === 'profile') { 
+    updatePageTitle('My Profile'); 
+    renderProfile().then(() => isLoading = false);
+    return;
+  }
+  else if (tab === 'assignment') { 
+    updatePageTitle('Assignments'); 
+    renderAssignment(); 
+    isLoading = false;
+  }
+  else if (tab === 'ranking') { 
+    updatePageTitle('Ranking'); 
+    renderRanking(); 
+    isLoading = false;
+  }
 }
 
 // ========================================
@@ -948,24 +464,19 @@ async function initAuth() {
   if (stored) {
     try {
       currentUser = JSON.parse(stored);
-      const modal = document.getElementById("authModal");
-      if (modal) modal.style.display = "none";
-      updateNavMenu();
+      document.getElementById("authModal").style.display = "none";
       updateUserStats();
-      
-      const defaultTab = currentUser.role === 'teacher' ? 'teacherDashboard' : 'dashboard';
-      switchTab(defaultTab);
+      switchTab('dashboard');
     } catch(e) { 
       localStorage.removeItem("hydrofit_user"); 
     }
   }
 }
 
-// Login
 document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
   const btn = e.target;
-  const schoolId = document.getElementById("loginSchoolId")?.value.trim();
-  const password = document.getElementById("loginPassword")?.value;
+  const schoolId = document.getElementById("loginSchoolId").value.trim();
+  const password = document.getElementById("loginPassword").value;
   
   if (!schoolId || !password) {
     showToast("Please enter School ID and Password", true);
@@ -984,31 +495,25 @@ document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
   if (result.success) {
     currentUser = result.user;
     localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
-    const modal = document.getElementById("authModal");
-    if (modal) modal.style.display = "none";
-    updateNavMenu();
+    document.getElementById("authModal").style.display = "none";
     updateUserStats();
-    
-    const defaultTab = currentUser.role === 'teacher' ? 'teacherDashboard' : 'dashboard';
-    switchTab(defaultTab);
+    switchTab('dashboard');
     showToast(`Welcome back, ${currentUser.fullName.split(',')[0]}!`, false);
   } else {
-    showToast(result.error || "Invalid credentials", true);
+    showToast(result.error || "Invalid School ID or Password", true);
   }
 });
 
-// Register
 document.getElementById("registerBtn")?.addEventListener("click", async (e) => {
   const btn = e.target;
-  const fullName = document.getElementById("regFullName")?.value.trim();
-  const schoolId = document.getElementById("regSchoolId")?.value.trim();
-  const email = document.getElementById("regEmail")?.value.trim();
-  const program = document.getElementById("regProgram")?.value;
-  const yearLevel = document.getElementById("regYearLevel")?.value;
-  const section = document.getElementById("regSection")?.value.trim();
-  const password = document.getElementById("regPassword")?.value;
-  const confirmPassword = document.getElementById("regConfirmPassword")?.value;
-  const role = document.getElementById("regRole")?.value || 'student';
+  const fullName = document.getElementById("regFullName").value.trim();
+  const schoolId = document.getElementById("regSchoolId").value.trim();
+  const email = document.getElementById("regEmail").value.trim();
+  const program = document.getElementById("regProgram").value;
+  const yearLevel = document.getElementById("regYearLevel").value;
+  const section = document.getElementById("regSection").value.trim();
+  const password = document.getElementById("regPassword").value;
+  const confirmPassword = document.getElementById("regConfirmPassword").value;
   
   if (!fullName || !schoolId || !email || !program || !yearLevel || !section || !password) {
     showToast("Please fill in all fields", true);
@@ -1024,135 +529,45 @@ document.getElementById("registerBtn")?.addEventListener("click", async (e) => {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
   
-  const result = await callAPI("register", { fullName, schoolId, email, program, yearLevel, section, password, role });
+  const result = await callAPI("register", { fullName, schoolId, email, program, yearLevel, section, password });
   
   btn.disabled = false;
   btn.innerHTML = originalText;
   
   if (result.success) {
     showToast("Registration successful! Please login.", false);
-    const registerForm = document.getElementById("registerForm");
-    const loginForm = document.getElementById("loginForm");
-    if (registerForm) registerForm.style.display = "none";
-    if (loginForm) loginForm.style.display = "block";
-    const loginSchoolId = document.getElementById("loginSchoolId");
-    if (loginSchoolId) loginSchoolId.value = schoolId;
+    document.getElementById("registerForm").style.display = "none";
+    document.getElementById("loginForm").style.display = "block";
+    document.getElementById("loginSchoolId").value = schoolId;
   } else {
     showToast(result.error || "Registration failed", true);
   }
 });
 
-// Logout
 document.getElementById("logoutBtn")?.addEventListener("click", () => {
-  if (html5QrCode) {
-    html5QrCode.stop().catch(() => {});
-  }
   localStorage.removeItem("hydrofit_user");
   currentUser = null;
-  const modal = document.getElementById("authModal");
-  if (modal) modal.style.display = "flex";
-  const loginForm = document.getElementById("loginForm");
-  const registerForm = document.getElementById("registerForm");
-  if (loginForm) loginForm.style.display = "block";
-  if (registerForm) registerForm.style.display = "none";
-  const loginSchoolId = document.getElementById("loginSchoolId");
-  const loginPassword = document.getElementById("loginPassword");
-  if (loginSchoolId) loginSchoolId.value = "";
-  if (loginPassword) loginPassword.value = "";
+  document.getElementById("authModal").style.display = "flex";
+  document.getElementById("loginForm").style.display = "block";
+  document.getElementById("registerForm").style.display = "none";
+  document.getElementById("loginSchoolId").value = "";
+  document.getElementById("loginPassword").value = "";
   closeSidebar();
   showToast("Logged out successfully", false);
 });
 
-// Form toggles
 document.getElementById("showRegister")?.addEventListener("click", () => {
-  const loginForm = document.getElementById("loginForm");
-  const registerForm = document.getElementById("registerForm");
-  if (loginForm) loginForm.style.display = "none";
-  if (registerForm) registerForm.style.display = "block";
+  document.getElementById("loginForm").style.display = "none";
+  document.getElementById("registerForm").style.display = "block";
 });
 
 document.getElementById("showLogin")?.addEventListener("click", () => {
-  const registerForm = document.getElementById("registerForm");
-  const loginForm = document.getElementById("loginForm");
-  if (registerForm) registerForm.style.display = "none";
-  if (loginForm) loginForm.style.display = "block";
+  document.getElementById("registerForm").style.display = "none";
+  document.getElementById("loginForm").style.display = "block";
 });
 
-// Role toggle in login
-document.getElementById("studentRoleBtn")?.addEventListener("click", function() {
-  this.style.background = "#00b4d8";
-  this.style.color = "white";
-  this.style.borderColor = "#00b4d8";
-  const teacherBtn = document.getElementById("teacherRoleBtn");
-  if (teacherBtn) {
-    teacherBtn.style.background = "white";
-    teacherBtn.style.color = "#64748b";
-    teacherBtn.style.borderColor = "#e0e0e0";
-  }
-  const loginSchoolId = document.getElementById("loginSchoolId");
-  if (loginSchoolId) loginSchoolId.placeholder = "School ID (e.g., MCC2025-00001)";
-});
-
-document.getElementById("teacherRoleBtn")?.addEventListener("click", function() {
-  this.style.background = "#48cae4";
-  this.style.color = "white";
-  this.style.borderColor = "#48cae4";
-  const studentBtn = document.getElementById("studentRoleBtn");
-  if (studentBtn) {
-    studentBtn.style.background = "white";
-    studentBtn.style.color = "#64748b";
-    studentBtn.style.borderColor = "#e0e0e0";
-  }
-  const loginSchoolId = document.getElementById("loginSchoolId");
-  if (loginSchoolId) loginSchoolId.placeholder = "Teacher ID (e.g., TCH2025-00001)";
-});
-
-// Role toggle in register
-document.getElementById("regStudentBtn")?.addEventListener("click", function() {
-  this.style.background = "#00b4d8";
-  this.style.color = "white";
-  const teacherBtn = document.getElementById("regTeacherBtn");
-  if (teacherBtn) {
-    teacherBtn.style.background = "white";
-    teacherBtn.style.color = "#64748b";
-  }
-  const regRole = document.getElementById("regRole");
-  if (regRole) regRole.value = "student";
-  const regYearLevel = document.getElementById("regYearLevel");
-  if (regYearLevel) regYearLevel.disabled = false;
-  const regSchoolId = document.getElementById("regSchoolId");
-  if (regSchoolId) regSchoolId.placeholder = "School ID (e.g., MCC2025-00001)";
-});
-
-document.getElementById("regTeacherBtn")?.addEventListener("click", function() {
-  this.style.background = "#48cae4";
-  this.style.color = "white";
-  const studentBtn = document.getElementById("regStudentBtn");
-  if (studentBtn) {
-    studentBtn.style.background = "white";
-    studentBtn.style.color = "#64748b";
-  }
-  const regRole = document.getElementById("regRole");
-  if (regRole) regRole.value = "teacher";
-  const regYearLevel = document.getElementById("regYearLevel");
-  if (regYearLevel) {
-    regYearLevel.disabled = true;
-    regYearLevel.value = "";
-  }
-  const regSchoolId = document.getElementById("regSchoolId");
-  if (regSchoolId) regSchoolId.placeholder = "Teacher ID (e.g., TCH2025-00001)";
-});
-
-// Show test credentials
-document.getElementById("showTestCredentials")?.addEventListener("click", () => {
-  showToast("Student: MCC2025-00001 / password123 | Teacher: TCH2025-00001 / teacher123", false);
-});
-
-// Mobile menu
 document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
   const sidebar = document.getElementById("sidebar");
-  if (!sidebar) return;
-  
   sidebar.classList.toggle("open");
   
   if (window.innerWidth <= 768) {
@@ -1177,68 +592,35 @@ document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
   }
 });
 
-// Close scanner modal
-document.getElementById("closeScannerBtn")?.addEventListener("click", () => {
-  const modal = document.getElementById("qrScannerModal");
-  if (modal) modal.style.display = "none";
-  if (html5QrCode) {
-    html5QrCode.stop().catch(() => {});
-  }
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    switchTab(btn.getAttribute('data-tab'));
+  });
 });
 
-// Close modals on escape
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    closeSidebar();
-    const qrModal = document.getElementById("qrScannerModal");
-    if (qrModal) qrModal.style.display = "none";
-    if (html5QrCode) {
-      html5QrCode.stop().catch(() => {});
-    }
-  }
-});
-
-// Click outside sidebar to close
 document.addEventListener('click', (e) => {
   if (window.innerWidth <= 768) {
     const sidebar = document.getElementById("sidebar");
     const menuBtn = document.getElementById("mobileMenuBtn");
     
-    if (sidebar && sidebar.classList.contains("open") && 
+    if (sidebar.classList.contains("open") && 
         !sidebar.contains(e.target) && 
-        menuBtn && !menuBtn.contains(e.target)) {
+        !menuBtn.contains(e.target)) {
       closeSidebar();
     }
   }
 });
 
-// Utility functions
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
-}
-
-function getYearSuffix(year) {
-  if (year == 1) return 'st';
-  if (year == 2) return 'nd';
-  if (year == 3) return 'rd';
-  return 'th';
-}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeSidebar();
+});
 
 // Initialize
 window.switchTab = switchTab;
 window.downloadQRCode = downloadQRCode;
 window.printQRCode = printQRCode;
-window.startQRScanner = startQRScanner;
 window.closeSidebar = closeSidebar;
 window.generateQRCodeCanvas = generateQRCodeCanvas;
-window.filterStudents = () => {};
-window.markAttendance = () => {};
-window.filterByDate = () => {};
+initAuth();
 
-// Start auth when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  initAuth();
-});
-
-console.log("✅ HydroFit Loaded - Teacher Dashboard Ready");
+console.log("✅ HydroFit Loaded - Complete");
