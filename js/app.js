@@ -1130,16 +1130,14 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// AI EXERCISE GUIDE PAGE
-// ========================================
-
-// ========================================
-// AI EXERCISE GUIDE PAGE - GEMINI API
+// AI EXERCISE GUIDE PAGE - GEMINI API (FIXED)
 // ========================================
 
 // Gemini API Configuration
 const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI'; // Get free key from https://aistudio.google.com/app/apikey
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL_V1 = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL_ALT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 let chatHistory = [];
 
@@ -1239,7 +1237,6 @@ function renderAIGuide() {
     </div>
   `;
   
-  // Reset chat history when page loads
   chatHistory = [];
 }
 
@@ -1257,17 +1254,11 @@ async function sendMessage() {
   
   if (!message) return;
   
-  // Clear input
   input.value = '';
-  
-  // Add user message to chat
   addMessageToChat('user', message);
-  
-  // Show typing indicator
   showTypingIndicator();
   
   try {
-    // Build context with fitness focus
     const fitnessContext = `You are a professional fitness coach and exercise specialist. 
     Provide detailed, safe, and effective exercise advice. Include:
     - Step-by-step instructions
@@ -1278,38 +1269,46 @@ async function sendMessage() {
     
     Keep responses clear and actionable. Focus on proper technique and injury prevention.`;
     
-    // Prepare the prompt with context
     const fullPrompt = `${fitnessContext}\n\nUser question: ${message}\n\nProvide a helpful fitness response:`;
     
-    // Call Gemini API
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: fullPrompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1024,
-        }
-      })
-    });
+    // Try multiple API endpoints
+    let response;
+    let data;
     
-    const data = await response.json();
+    // Try gemini-1.5-flash with v1
+    try {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: fullPrompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+        })
+      });
+      data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+    } catch (e) {
+      console.log('Trying alternative endpoint...');
+      // Try gemini-pro as fallback
+      response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: fullPrompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+        })
+      });
+      data = await response.json();
+    }
     
-    // Remove typing indicator
     removeTypingIndicator();
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       const aiResponse = data.candidates[0].content.parts[0].text;
       addMessageToChat('bot', aiResponse);
     } else if (data.error) {
-      addMessageToChat('bot', `Sorry, I encountered an error: ${data.error.message}. Please try again.`);
+      console.error('API Error:', data.error);
+      addMessageToChat('bot', `Sorry, I encountered an error: ${data.error.message}. Please try again or check your API key.`);
     } else {
       addMessageToChat('bot', 'Sorry, I couldn\'t process that request. Please try again.');
     }
@@ -1317,7 +1316,7 @@ async function sendMessage() {
   } catch (error) {
     console.error('Gemini API Error:', error);
     removeTypingIndicator();
-    addMessageToChat('bot', 'Sorry, there was an error connecting to the AI service. Please check your internet connection and try again.');
+    addMessageToChat('bot', 'Sorry, there was an error connecting to the AI service. Please make sure you have set a valid Gemini API key.');
   }
 }
 
@@ -1334,7 +1333,6 @@ function addMessageToChat(sender, message) {
   const content = document.createElement('div');
   content.className = 'message-content';
   
-  // Format the message with proper line breaks and lists
   const formattedMessage = formatMessage(message);
   content.innerHTML = formattedMessage;
   
@@ -1342,13 +1340,10 @@ function addMessageToChat(sender, message) {
   messageDiv.appendChild(content);
   
   chatMessages.appendChild(messageDiv);
-  
-  // Scroll to bottom
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function formatMessage(text) {
-  // Convert markdown-style formatting to HTML
   let formatted = text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -1356,14 +1351,12 @@ function formatMessage(text) {
     .replace(/^## (.*$)/gim, '<h3>$1</h3>')
     .replace(/^# (.*$)/gim, '<h2>$1</h2>')
     .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li>$1</li>')
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
   
-  // Wrap lists
   if (formatted.includes('<li>')) {
-    formatted = formatted.replace(/(<li>.*?<\/li>)/gs, (match) => {
-      return `<ul>${match}</ul>`;
-    });
+    formatted = formatted.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
   }
   
   return `<p>${formatted}</p>`;
@@ -1391,12 +1384,9 @@ function showTypingIndicator() {
 
 function removeTypingIndicator() {
   const typingIndicator = document.getElementById('typingIndicator');
-  if (typingIndicator) {
-    typingIndicator.remove();
-  }
+  if (typingIndicator) typingIndicator.remove();
 }
 
-// Update the setPrompt function for compatibility
 function setPrompt(prompt) {
   quickPrompt(prompt);
 }
