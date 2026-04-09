@@ -45,7 +45,6 @@ body {
   color: white;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
   border-right: 1px solid rgba(255,255,255,0.1);
   transition: left 0.25s ease;
   z-index: 100;
@@ -54,6 +53,7 @@ body {
   left: 0;
   bottom: 0;
   height: 100vh;
+  overflow: hidden;
 }
 
 .logo-area {
@@ -64,6 +64,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .logo-area img {
@@ -91,6 +92,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .nav-btn {
@@ -107,6 +110,7 @@ body {
   align-items: center;
   gap: 12px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .nav-btn i {
@@ -124,9 +128,10 @@ body {
   color: white;
 }
 
+/* Logout Button - Fixed to bottom */
 .logout-btn {
-  margin: 20px;
-  padding: 12px;
+  margin: 16px 20px 20px 20px;
+  padding: 14px 12px;
   background: rgba(214, 48, 49, 0.9);
   border: none;
   color: white;
@@ -138,10 +143,13 @@ body {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .logout-btn:hover {
   background: var(--danger);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(214, 48, 49, 0.3);
 }
 
 /* FIXED MAIN PANEL */
@@ -797,6 +805,56 @@ input[type="range"] {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
+/* Ranking Banner */
+.ranking-banner {
+  margin-bottom: 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.ranking-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Loading animation for buttons */
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Ranking Table Enhancements */
+.ranking-table td {
+  vertical-align: middle;
+}
+
+/* Intensity bar */
+.intensity-bar {
+  width: 40px;
+  height: 6px;
+  background: #e0e7ff;
+  border-radius: 3px;
+  overflow: hidden;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.intensity-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   :root {
@@ -814,6 +872,10 @@ input[type="range"] {
   .sidebar.open {
     left: 0;
     box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  }
+  
+  .logout-btn {
+    margin: 16px 16px 20px 16px;
   }
   
   .main-panel {
@@ -867,89 +929,6 @@ input[type="range"] {
     width: 95%;
   }
   
-  .ranking-table th,
-  .ranking-table td {
-    padding: 8px 10px;
-    font-size: 0.8rem;
-  }
-  
-  #sidebarOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 199;
-  }
-}
-
-/* Ranking Banner */
-.ranking-banner {
-  margin-bottom: 20px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
-
-.ranking-banner img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Loading animation for buttons */
-.btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.fa-spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Ranking Info Card */
-.ranking-banner {
-  margin-bottom: 20px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
-
-.ranking-banner img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Ranking Table Enhancements */
-.ranking-table td {
-  vertical-align: middle;
-}
-
-/* Intensity bar */
-.intensity-bar {
-  width: 40px;
-  height: 6px;
-  background: #e0e7ff;
-  border-radius: 3px;
-  overflow: hidden;
-  display: inline-block;
-  margin-right: 6px;
-}
-
-.intensity-fill {
-  height: 100%;
-  border-radius: 3px;
-}
-
-/* Mobile responsive for ranking table */
-@media (max-width: 768px) {
   .ranking-table {
     font-size: 0.75rem;
   }
@@ -964,5 +943,15 @@ input[type="range"] {
     height: 24px;
     line-height: 24px;
     font-size: 0.75rem;
+  }
+  
+  #sidebarOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
   }
 }
