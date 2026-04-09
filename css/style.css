@@ -64,6 +64,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .logo-area img {
@@ -91,6 +92,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .nav-btn {
@@ -107,6 +110,7 @@ body {
   align-items: center;
   gap: 12px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .nav-btn i {
@@ -138,6 +142,7 @@ body {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .logout-btn:hover {
@@ -868,7 +873,7 @@ input[type="range"] {
   }
 }
 
-/* Mobile Responsive */
+/* Mobile Responsive - FIXED */
 @media (max-width: 768px) {
   :root {
     --header-height: 60px;
@@ -879,12 +884,30 @@ input[type="range"] {
     left: -280px;
     top: 0;
     height: 100vh;
+    width: 280px;
     z-index: 200;
+    display: flex;
+    flex-direction: column;
   }
   
   .sidebar.open {
     left: 0;
     box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  }
+  
+  .sidebar .logo-area {
+    flex-shrink: 0;
+  }
+  
+  .sidebar .nav-menu {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  
+  .sidebar .logout-btn {
+    margin: 16px 20px 20px 20px;
+    flex-shrink: 0;
   }
   
   .main-panel {
@@ -970,5 +993,21 @@ input[type="range"] {
   
   .form-row {
     gap: 12px;
+  }
+}
+
+/* Fix for very small screens */
+@media (max-height: 600px) {
+  .sidebar .logo-area {
+    padding: 16px 20px;
+  }
+  
+  .sidebar .nav-btn {
+    padding: 8px 16px;
+  }
+  
+  .sidebar .logout-btn {
+    margin: 12px 20px 16px 20px;
+    padding: 10px;
   }
 }
