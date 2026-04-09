@@ -1133,13 +1133,12 @@ function getIntensityColor(intensity) {
 // AI EXERCISE GUIDE PAGE - FIXED GEMINI API
 // ========================================
 
-// Gemini API Configuration - GET YOUR FREE KEY AT: https://aistudio.google.com/app/apikey
-const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI'; // ⚠️ REPLACE WITH YOUR ACTUAL API KEY
-// Updated model name - Gemini 2.0 Flash is the current free model
+// ========================================
+// AI EXERCISE GUIDE PAGE - FIXED GEMINI API
+// ========================================
+// Gemini API Configuration
+const GEMINI_API_KEY = 'AIzaSyCe-YgVqK7d6fiz6l9P70Lq-0x3ZqlhHEQ';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
-// Alternative models if the above doesn't work:
-// 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent'
-// 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
 
 function renderAIGuide() {
   const container = document.getElementById("tabContent");
@@ -1241,7 +1240,7 @@ async function sendMessage() {
   if (!message) return;
   
   // Check if API key is set
-  if (GEMINI_API_KEY === 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI') {
+  if (GEMINI_API_KEY === 'AIzaSyCe-YgVqK7d6fiz6l9P70Lq-0x3ZqlhHEQ') {
     addMessageToChat('bot', '⚠️ Please set your Gemini API key in the code. Get a free key at: https://aistudio.google.com/app/apikey');
     input.value = '';
     return;
