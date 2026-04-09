@@ -1,6 +1,6 @@
 // ========== GEMINI AI INTEGRATION ==========
 
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Get from https://aistudio.google.com/app/apikey
+const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI'; // Get from https://aistudio.google.com/app/apikey
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 let chatHistory = [];
