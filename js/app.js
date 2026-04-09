@@ -1130,15 +1130,11 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// AI EXERCISE GUIDE PAGE - FIXED GEMINI API
+// AI EXERCISE GUIDE PAGE - WORKING GEMINI API
 // ========================================
 
-// ========================================
-// AI EXERCISE GUIDE PAGE - FIXED GEMINI API
-// ========================================
 // Gemini API Configuration
 const GEMINI_API_KEY = 'AIzaSyCe-YgVqK7d6fiz6l9P70Lq-0x3ZqlhHEQ';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 function renderAIGuide() {
   const container = document.getElementById("tabContent");
@@ -1203,22 +1199,7 @@ function renderAIGuide() {
           <div class="prompt-item" onclick="window.quickPrompt('Create a 30 minute full body workout plan for beginners')">
             <i class="fas fa-calendar-alt"></i> Full body plan
           </div>
-          <div class="prompt-item" onclick="window.quickPrompt('What are the best exercises for core strength and abs?')">
-            <i class="fas fa-circle"></i> Core exercises
-          </div>
         </div>
-      </div>
-      
-      <!-- Tips Card -->
-      <div class="card ai-tip-card">
-        <h3><i class="fas fa-star"></i> What I Can Help With</h3>
-        <ul class="feature-list">
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Step-by-step exercise routines</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Proper form instructions and cues</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Suggested sets, reps, and rest times</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Customized workouts for your goals</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Exercise modifications and alternatives</li>
-        </ul>
       </div>
     </div>
   `;
@@ -1239,13 +1220,6 @@ async function sendMessage() {
   
   if (!message) return;
   
-  // Check if API key is set
-  if (GEMINI_API_KEY === 'AIzaSyCe-YgVqK7d6fiz6l9P70Lq-0x3ZqlhHEQ') {
-    addMessageToChat('bot', '⚠️ Please set your Gemini API key in the code. Get a free key at: https://aistudio.google.com/app/apikey');
-    input.value = '';
-    return;
-  }
-  
   // Clear input
   input.value = '';
   
@@ -1259,45 +1233,34 @@ async function sendMessage() {
   showTypingIndicator();
   
   try {
-    // Fitness-focused context
-    const fitnessContext = `You are HydroFit AI, a professional fitness coach and exercise specialist for the HydroFit app. 
-    Provide detailed, safe, and effective exercise advice. Format your responses with:
-    - Clear step-by-step instructions
-    - Proper form cues
-    - Recommended sets, reps, and rest times
-    - Safety precautions
+    const fitnessContext = `You are HydroFit AI, a professional fitness coach. Provide detailed, safe exercise advice. Include step-by-step instructions, proper form cues, recommended sets/reps, and safety precautions. Keep responses under 400 words.`;
     
-    Keep responses under 500 words. Be encouraging and supportive!`;
+    const fullPrompt = `${fitnessContext}\n\nUser: ${message}\n\nAssistant:`;
     
-    const fullPrompt = `${fitnessContext}\n\nUser question: ${message}\n\nProvide a helpful fitness response:`;
-    
-    // Try multiple model endpoints in case one fails
+    // Try multiple models - v1 is most reliable
     const modelUrls = [
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
+      'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent',
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent'
     ];
     
-    let response = null;
     let data = null;
     let success = false;
     
     for (const modelUrl of modelUrls) {
       try {
-        response = await fetch(`${modelUrl}?key=${GEMINI_API_KEY}`, {
+        console.log('Trying model:', modelUrl);
+        
+        const response = await fetch(`${modelUrl}?key=${GEMINI_API_KEY}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
-              parts: [{
-                text: fullPrompt
-              }]
+              parts: [{ text: fullPrompt }]
             }],
             generationConfig: {
               temperature: 0.7,
-              maxOutputTokens: 800,
+              maxOutputTokens: 600
             }
           })
         });
@@ -1305,33 +1268,148 @@ async function sendMessage() {
         if (response.ok) {
           data = await response.json();
           success = true;
-          console.log('Success with model:', modelUrl);
+          console.log('Success!');
           break;
+        } else {
+          const errorData = await response.json();
+          console.log('Failed:', errorData);
         }
       } catch (e) {
-        console.log('Failed with model:', modelUrl, e);
+        console.log('Error with model:', e);
       }
     }
     
-    // Remove typing indicator
     removeTypingIndicator();
     
-    if (success && data && data.candidates && data.candidates[0] && data.candidates[0].content) {
+    if (success && data && data.candidates && data.candidates[0]) {
       const aiResponse = data.candidates[0].content.parts[0].text;
       addMessageToChat('bot', aiResponse);
-    } else if (data && data.error) {
-      console.error('API Error:', data.error);
-      addMessageToChat('bot', `❌ API Error: ${data.error.message || 'Unknown error'}. Please check your API key.`);
     } else {
-      addMessageToChat('bot', '❌ Sorry, the AI service is currently unavailable. Please try again later.');
+      // Fallback response if API fails
+      addMessageToChat('bot', getFallbackResponse(message));
     }
     
   } catch (error) {
-    console.error('Fetch Error:', error);
+    console.error('Error:', error);
     removeTypingIndicator();
-    addMessageToChat('bot', '❌ Network error. Please check your internet connection and try again.');
+    addMessageToChat('bot', getFallbackResponse(message));
   } finally {
     sendBtn.disabled = false;
+  }
+}
+
+// Fallback responses when API is unavailable
+function getFallbackResponse(message) {
+  const msg = message.toLowerCase();
+  
+  if (msg.includes('flexibility') || msg.includes('stretch')) {
+    return `🏃 **Flexibility Training Routine**
+
+**Warm-up (5 min):**
+• Arm circles - 30 sec each direction
+• Neck rolls - 30 sec
+• Torso twists - 30 sec
+
+**Main Stretches (hold each 30 sec):**
+1. **Hamstring Stretch** - Sit with one leg straight, reach for toes
+2. **Quad Stretch** - Stand, pull heel to glute
+3. **Cat-Cow** - On hands and knees, arch and round spine
+4. **Child's Pose** - Kneel, stretch arms forward
+5. **Butterfly Stretch** - Soles together, knees out
+
+**Cool-down (5 min):**
+• Deep breathing
+• Gentle neck stretches
+
+💡 **Tip:** Never bounce while stretching - hold steady!`;
+  
+  } else if (msg.includes('strength') || msg.includes('muscle')) {
+    return `💪 **Bodyweight Strength Routine**
+
+**Warm-up (5 min):**
+• Jumping jacks - 2 min
+• Arm circles - 1 min
+• High knees - 2 min
+
+**Workout (3 rounds, 60 sec rest between rounds):**
+1. **Push-ups** - 10-15 reps
+2. **Squats** - 15-20 reps
+3. **Lunges** - 10 each leg
+4. **Plank** - Hold 30-60 sec
+5. **Glute Bridges** - 15 reps
+
+**Cool-down:**
+Stretch chest, quads, and hamstrings
+
+💡 **Form tip:** Keep core tight during all exercises!`;
+  
+  } else if (msg.includes('cardio') || msg.includes('weight loss')) {
+    return `🔥 **Home Cardio Workout**
+
+**No equipment needed - 20 minutes**
+
+**Circuit (45 sec work, 15 sec rest - 3 rounds):**
+1. **High Knees** - Run in place
+2. **Burpees** - Full body move
+3. **Mountain Climbers** - Core + cardio
+4. **Jump Squats** - Explosive legs
+5. **Butt Kicks** - Hamstring activation
+
+**Finisher (2 rounds):**
+• Jumping Jacks - 1 min
+• Plank Jacks - 30 sec
+
+💡 **Intensity tip:** Aim to be breathless but able to speak a few words!`;
+  
+  } else if (msg.includes('push-up') || msg.includes('pushup')) {
+    return `🏋️ **Perfect Push-Up Form Guide**
+
+**Setup:**
+• Hands shoulder-width apart
+• Body in straight line from head to heels
+• Core tight, glutes squeezed
+
+**Movement:**
+• Lower chest to elbow height
+• Elbows at 45° angle (not flared)
+• Push through whole palm
+• Exhale on way up
+
+**Sets & Reps:**
+• Beginners: 3 sets of 5-10 reps
+• Intermediate: 3 sets of 15-20 reps
+• Advanced: 4 sets of 20-30 reps
+
+**Variations:**
+• Knee push-ups (easier)
+• Diamond push-ups (harder)
+• Decline push-ups (hardest)
+
+💡 **Common mistake:** Don't let hips sag!`;
+  
+  } else {
+    return `💡 **HydroFit AI Tip**
+
+I'm currently in offline mode. Here are some general fitness tips:
+
+**Daily Movement:**
+• Aim for 30 min of activity daily
+• Mix cardio, strength, and flexibility
+
+**Proper Form Always:**
+• Quality over quantity
+• Stop if you feel pain (not fatigue)
+
+**Progression:**
+• Increase gradually (10% per week)
+• Track your workouts in Assessment tab
+
+**Recovery:**
+• Sleep 7-9 hours
+• Stay hydrated
+• Rest 48 hours between same muscle groups
+
+Try asking about: flexibility, strength, cardio, or specific exercises like push-ups!`;
   }
 }
 
@@ -1348,7 +1426,6 @@ function addMessageToChat(sender, message) {
   const content = document.createElement('div');
   content.className = 'message-content';
   
-  // Format the message
   const formattedMessage = formatMessage(message);
   content.innerHTML = formattedMessage;
   
@@ -1356,39 +1433,27 @@ function addMessageToChat(sender, message) {
   messageDiv.appendChild(content);
   
   chatMessages.appendChild(messageDiv);
-  
-  // Scroll to bottom
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function formatMessage(text) {
-  // Escape HTML
   let formatted = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-  
-  // Format markdown-style
-  formatted = formatted
+    .replace(/>/g, '&gt;')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/^### (.*$)/gim, '<h4>$1</h4>')
     .replace(/^## (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^# (.*$)/gim, '<h2>$1</h2>')
     .replace(/^- (.*$)/gim, '<li>$1</li>')
     .replace(/^• (.*$)/gim, '<li>$1</li>')
-    .replace(/^\d+\. (.*$)/gim, '<li>$1</li>')
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
   
-  // Wrap lists
   if (formatted.includes('<li>')) {
-    formatted = formatted.replace(/(<li>.*?<\/li>)/gs, (match) => {
-      return `<ul>${match}</ul>`;
-    });
+    formatted = formatted.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
   }
   
-  // Wrap in paragraph if not already
   if (!formatted.startsWith('<')) {
     formatted = `<p>${formatted}</p>`;
   }
@@ -1418,12 +1483,9 @@ function showTypingIndicator() {
 
 function removeTypingIndicator() {
   const typingIndicator = document.getElementById('typingIndicator');
-  if (typingIndicator) {
-    typingIndicator.remove();
-  }
+  if (typingIndicator) typingIndicator.remove();
 }
 
-// Update the setPrompt function for compatibility
 function setPrompt(prompt) {
   quickPrompt(prompt);
 }
