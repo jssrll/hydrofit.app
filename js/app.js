@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - WITH BUILT-IN QR GENERATOR
+// HYDROFIT - COMPLETE WITH QR GENERATOR
 // ========================================
 
 let currentTab = "dashboard";
@@ -55,11 +55,10 @@ async function callAPI(action, data = {}) {
 }
 
 // ========================================
-// QR CODE GENERATOR (Pure JavaScript)
+// QR CODE GENERATOR
 // ========================================
 
 function generateQRCodeSVG(userData) {
-  // Create QR data string with user info
   const qrData = JSON.stringify({
     name: userData.fullName,
     schoolId: userData.schoolId,
@@ -69,16 +68,11 @@ function generateQRCodeSVG(userData) {
     section: userData.section
   });
   
-  // Use a reliable QR code API
-  // Option 1: QRServer (most reliable)
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}&bgcolor=ffffff&color=000000&format=png`;
-  
   return qrUrl;
 }
 
-// Alternative: Generate QR using canvas (no external API)
 function generateQRCodeCanvas(userData, containerId) {
-  // Simple QR-like pattern based on user data (fallback if API fails)
   const container = document.getElementById(containerId);
   if (!container) return;
   
@@ -87,7 +81,6 @@ function generateQRCodeCanvas(userData, containerId) {
   canvas.height = 250;
   const ctx = canvas.getContext('2d');
   
-  // Generate a deterministic pattern from user data
   const dataStr = userData.schoolId + userData.fullName;
   let hash = 0;
   for (let i = 0; i < dataStr.length; i++) {
@@ -95,24 +88,19 @@ function generateQRCodeCanvas(userData, containerId) {
     hash = hash & hash;
   }
   
-  // Draw background
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, 250, 250);
   
-  // Draw QR-like pattern
   ctx.fillStyle = '#000000';
   const cellSize = 10;
   const cells = 25;
   
-  // Draw position markers (top-left, top-right, bottom-left)
   drawPositionMarker(ctx, 0, 0);
   drawPositionMarker(ctx, 190, 0);
   drawPositionMarker(ctx, 0, 190);
   
-  // Draw data pattern based on hash
   for (let i = 0; i < cells; i++) {
     for (let j = 0; j < cells; j++) {
-      // Skip position markers
       if ((i < 7 && j < 7) || (i > 17 && j < 7) || (i < 7 && j > 17)) continue;
       
       const value = (hash >> (i * j) % 32) & 1;
@@ -122,7 +110,6 @@ function generateQRCodeCanvas(userData, containerId) {
     }
   }
   
-  // Add text with user info
   ctx.font = 'bold 12px Inter, sans-serif';
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
@@ -131,7 +118,6 @@ function generateQRCodeCanvas(userData, containerId) {
   container.innerHTML = '';
   container.appendChild(canvas);
   
-  // Store canvas for download
   window.qrCanvas = canvas;
 }
 
@@ -144,7 +130,6 @@ function drawPositionMarker(ctx, x, y) {
   ctx.fillRect(x + 20, y + 20, 30, 30);
 }
 
-// Download QR Code function
 function downloadQRCode() {
   if (window.qrCanvas) {
     const link = document.createElement('a');
@@ -153,7 +138,6 @@ function downloadQRCode() {
     link.click();
     showToast('QR Code downloaded!', false);
   } else if (window.currentQRCodeUrl) {
-    // Fallback to image download
     fetch(window.currentQRCodeUrl)
       .then(res => res.blob())
       .then(blob => {
@@ -170,6 +154,42 @@ function downloadQRCode() {
         showToast('Right-click the QR code to save it', false);
       });
   }
+}
+
+function printQRCode() {
+  const qrContainer = document.querySelector('.qr-container');
+  if (!qrContainer) return;
+  
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>HydroFit QR Code - ${currentUser.fullName}</title>
+        <style>
+          body { font-family: 'Inter', sans-serif; text-align: center; padding: 40px; }
+          .print-container { max-width: 400px; margin: 0 auto; }
+          h2 { color: #023e8a; }
+          img, canvas { width: 250px; height: 250px; }
+          p { margin: 10px 0; color: #333; }
+        </style>
+      </head>
+      <body>
+        <div class="print-container">
+          <h2>HydroFit Attendance QR</h2>
+          ${qrContainer.innerHTML}
+          <p><strong>${escapeHtml(currentUser.fullName)}</strong></p>
+          <p>School ID: ${currentUser.schoolId}</p>
+          <p>${currentUser.program} - ${currentUser.yearLevel}${getYearSuffix(currentUser.yearLevel)} Year</p>
+          <p style="margin-top: 20px; font-size: 12px; color: #666;">Scan for attendance</p>
+        </div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+  }, 500);
 }
 
 // ========================================
@@ -198,41 +218,32 @@ function renderDashboard() {
       </div>
     </div>
 
-    <div class="goals-card">
+    <div class="welcome-card">
       <h2>Welcome to HydroFit</h2>
       <p>Your Academic Fitness Tracker for PathFit Class</p>
-      <div class="goals-stats">
-        <div class="goal-item">
-          <div class="value"><i class="fas fa-heart"></i></div>
-          <div class="label">Stay Active</div>
-        </div>
-        <div class="goal-item">
-          <div class="value"><i class="fas fa-brain"></i></div>
-          <div class="label">Learn & Grow</div>
-        </div>
-        <div class="goal-item">
-          <div class="value"><i class="fas fa-medal"></i></div>
-          <div class="label">Excel</div>
-        </div>
-      </div>
     </div>
 
     <div class="card">
       <h3><i class="fas fa-info-circle"></i> About HydroFit</h3>
-      <p style="line-height: 1.6; margin: 16px 0; color: #333;">
-        HydroFit is an academic fitness tracking platform designed for Mindoro State University students. 
-        Track your PathFit activities, monitor your progress, and achieve your fitness goals.
+      <p style="margin-bottom: 16px;">
+        HydroFit is an academic fitness tracking web application designed specifically for the PathFit program at Mindoro State University. 
+        Its purpose is to help students monitor their physical activity, track hydration goals, and stay engaged with their fitness journey throughout the semester.
       </p>
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
-        <span style="background: #e0f2fe; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #023e8a;">
-          <i class="fas fa-check-circle" style="color: #00b894;"></i> Track Activities
-        </span>
-        <span style="background: #e0f2fe; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #023e8a;">
-          <i class="fas fa-check-circle" style="color: #00b894;"></i> Monitor Progress
-        </span>
-        <span style="background: #e0f2fe; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #023e8a;">
-          <i class="fas fa-check-circle" style="color: #00b894;"></i> Earn Badges
-        </span>
+      <p style="margin-bottom: 16px;">
+        The platform was created to support the PathFit curriculum by providing a simple and modern digital tool where students can log their progress, 
+        view assignments, and check their rankings—all in one place. HydroFit aims to promote a healthy and active lifestyle among students while making fitness tracking easy and accessible.
+      </p>
+      
+      <div class="dev-credits">
+        <p><i class="fas fa-users"></i> HydroFit was developed by:</p>
+        <ul>
+          <li><i class="fas fa-user-graduate"></i> Jessrell M. Custodio</li>
+          <li><i class="fas fa-user-graduate"></i> John Daniel C. Soriano</li>
+          <li><i class="fas fa-user-graduate"></i> John Roberth C. Marchina</li>
+        </ul>
+        <p class="completion-date">
+          <i class="fas fa-calendar-check"></i> The application was completed on April 15, 2026, as a project dedicated to enhancing the PathFit learning experience through technology and innovation.
+        </p>
       </div>
     </div>
   `;
@@ -300,7 +311,6 @@ async function renderProfile() {
     'BS PSYCHOLOGY': '#fdcb6e', 'BSCRIM': '#e17055', 'BTLED': '#6c5ce7', 'BTVTED': '#a29bfe'
   };
   
-  // Generate QR code URL from reliable API
   const qrCodeUrl = generateQRCodeSVG(userData);
   window.currentQRCodeUrl = qrCodeUrl;
   
@@ -322,7 +332,7 @@ async function renderProfile() {
       <h3><i class="fas fa-qrcode"></i> Attendance QR Code</h3>
       <p style="color: #64748b; margin-bottom: 20px; font-size: 0.9rem;">Scan this QR code for attendance tracking</p>
       <div style="text-align: center;">
-        <div class="qr-container" id="qrCodeContainer" style="background: white; padding: 20px; border-radius: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div class="qr-container" style="background: white; padding: 20px; border-radius: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           <img src="${qrCodeUrl}" alt="QR Code" style="width: 200px; height: 200px; display: block;" id="qrImage" onerror="this.onerror=null; generateQRCodeCanvas(currentUser, 'qrCanvasContainer'); this.style.display='none'; document.getElementById('qrCanvasContainer').style.display='block';">
           <div id="qrCanvasContainer" style="display: none;"></div>
         </div>
@@ -348,7 +358,6 @@ async function renderProfile() {
     </div>
   `;
   
-  // Generate canvas fallback immediately
   setTimeout(() => {
     const img = document.getElementById('qrImage');
     if (img && !img.complete) {
@@ -360,43 +369,6 @@ async function renderProfile() {
       };
     }
   }, 100);
-}
-
-// Print QR Code
-function printQRCode() {
-  const qrContainer = document.querySelector('.qr-container');
-  if (!qrContainer) return;
-  
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>HydroFit QR Code - ${currentUser.fullName}</title>
-        <style>
-          body { font-family: 'Inter', sans-serif; text-align: center; padding: 40px; }
-          .print-container { max-width: 400px; margin: 0 auto; }
-          h2 { color: #023e8a; }
-          img, canvas { width: 250px; height: 250px; }
-          p { margin: 10px 0; color: #333; }
-        </style>
-      </head>
-      <body>
-        <div class="print-container">
-          <h2>HydroFit Attendance QR</h2>
-          ${qrContainer.innerHTML}
-          <p><strong>${escapeHtml(currentUser.fullName)}</strong></p>
-          <p>School ID: ${currentUser.schoolId}</p>
-          <p>${currentUser.program} - ${currentUser.yearLevel}${getYearSuffix(currentUser.yearLevel)} Year</p>
-          <p style="margin-top: 20px; font-size: 12px; color: #666;">Scan for attendance</p>
-        </div>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => {
-    printWindow.print();
-  }, 500);
 }
 
 function escapeHtml(str) {
@@ -651,4 +623,4 @@ window.closeSidebar = closeSidebar;
 window.generateQRCodeCanvas = generateQRCodeCanvas;
 initAuth();
 
-console.log("✅ HydroFit Loaded - QR Code Ready");
+console.log("✅ HydroFit Loaded - Complete");

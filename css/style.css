@@ -226,7 +226,7 @@ body {
 .card {
   background: var(--card-bg);
   border-radius: 20px;
-  padding: 20px;
+  padding: 24px;
   box-shadow: var(--shadow);
   margin-bottom: 20px;
   border: 1px solid rgba(255,255,255,0.5);
@@ -239,6 +239,11 @@ body {
   align-items: center;
   gap: 8px;
   color: var(--darker);
+}
+
+.card p {
+  line-height: 1.7;
+  color: #333;
 }
 
 /* Buttons */
@@ -406,8 +411,8 @@ label {
   opacity: 0.9;
 }
 
-/* Goals Card */
-.goals-card {
+/* Welcome Card */
+.welcome-card {
   background: linear-gradient(135deg, var(--primary), var(--dark));
   color: white;
   text-align: center;
@@ -417,36 +422,54 @@ label {
   box-shadow: var(--shadow);
 }
 
-.goals-card h2 {
-  font-size: 1.6rem;
+.welcome-card h2 {
+  font-size: 1.8rem;
   margin-bottom: 6px;
 }
 
-.goals-card p {
-  opacity: 0.9;
-  margin-bottom: 20px;
+.welcome-card p {
+  opacity: 0.95;
+  font-size: 1rem;
+  color: white;
 }
 
-.goals-stats {
+/* Developer Credits */
+.dev-credits {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0,180,216,0.2);
+  text-align: left;
+}
+
+.dev-credits p {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.dev-credits ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.dev-credits li {
+  padding: 4px 0;
+  color: #555;
   display: flex;
-  justify-content: center;
-  gap: 32px;
+  align-items: center;
+  gap: 8px;
 }
 
-.goal-item {
-  text-align: center;
+.dev-credits li i {
+  color: var(--primary);
+  width: 20px;
 }
 
-.goal-item .value {
-  font-size: 2.2rem;
-  font-weight: 700;
-}
-
-.goal-item .label {
-  font-size: 0.8rem;
-  opacity: 0.9;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.dev-credits .completion-date {
+  margin-top: 12px;
+  font-style: italic;
+  color: #666;
+  font-size: 0.9rem;
 }
 
 /* Profile Card */
@@ -530,6 +553,24 @@ label {
   width: 200px !important;
   height: 200px !important;
   image-rendering: crisp-edges;
+}
+
+.qr-card .btn-outline {
+  background: white;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qr-card .btn-outline:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,180,216,0.2);
 }
 
 /* Modal */
@@ -695,20 +736,12 @@ label {
     height: 180px;
   }
   
-  .goals-card {
+  .welcome-card {
     padding: 20px 16px;
   }
   
-  .goals-card h2 {
+  .welcome-card h2 {
     font-size: 1.4rem;
-  }
-  
-  .goals-stats {
-    gap: 20px;
-  }
-  
-  .goal-item .value {
-    font-size: 1.8rem;
   }
   
   .profile-info-grid {
