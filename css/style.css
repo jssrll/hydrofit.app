@@ -883,3 +883,32 @@ input[type="range"] {
     z-index: 199;
   }
 }
+
+/* Ranking Banner */
+.ranking-banner {
+  margin-bottom: 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.ranking-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Loading animation for buttons */
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
