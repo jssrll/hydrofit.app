@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - MAIN APPLICATION LOGIC (CLEAN VERSION)
+// HYDROFIT - SIMPLE WORKING VERSION
 // ========================================
 
 let currentTab = "dashboard";
@@ -27,58 +27,27 @@ function updateUserStats() {
 }
 
 // ========================================
-// LOADING BUTTON FUNCTION
+// API CALL
 // ========================================
 
-async function withLoading(button, asyncFunction) {
-  if (!button) return await asyncFunction();
-  
-  const originalText = button.innerHTML;
-  button.disabled = true;
-  button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-  
-  try {
-    return await asyncFunction();
-  } finally {
-    button.disabled = false;
-    button.innerHTML = originalText;
-  }
-}
-
-// ========================================
-// API CALL FUNCTION
-// ========================================
-
-async function callGoogleScript(action, data = {}) {
+async function callAPI(action, data = {}) {
   try {
     const params = new URLSearchParams({ action, ...data });
     const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+    console.log("Calling:", url);
     
-    console.log("📡 Calling API:", action);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
+    const response = await fetch(url);
     const result = await response.json();
-    console.log("📦 Response:", result);
+    console.log("Response:", result);
     return result;
-  } catch (error) {
-    console.error("❌ API Error:", error);
+  } catch(error) {
+    console.error("Error:", error);
     return { success: false, error: error.message };
   }
 }
 
 // ========================================
-// DASHBOARD PAGE
+// DASHBOARD
 // ========================================
 
 function renderDashboard() {
@@ -106,32 +75,17 @@ function renderDashboard() {
       <h2>🎯 Welcome to HydroFit</h2>
       <p>Your Academic Fitness Tracker for PathFit Class</p>
       <div class="goals-stats">
-        <div class="goal-item">
-          <div class="value">💪</div>
-          <div class="label">Stay Active</div>
-        </div>
-        <div class="goal-item">
-          <div class="value">📚</div>
-          <div class="label">Learn & Grow</div>
-        </div>
-        <div class="goal-item">
-          <div class="value">🏆</div>
-          <div class="label">Excel</div>
-        </div>
+        <div class="goal-item"><div class="value">💪</div><div class="label">Stay Active</div></div>
+        <div class="goal-item"><div class="value">📚</div><div class="label">Learn & Grow</div></div>
+        <div class="goal-item"><div class="value">🏆</div><div class="label">Excel</div></div>
       </div>
     </div>
 
     <div class="card">
       <h3><i class="fas fa-info-circle"></i> About HydroFit</h3>
       <p style="line-height: 1.6; margin: 16px 0;">
-        HydroFit is an academic fitness tracking platform for Mindoro State University students. 
-        Track your physical activities, log your fitness progress, and stay motivated throughout 
-        your PathFit class journey.
+        HydroFit is an academic fitness tracking platform for Mindoro State University students.
       </p>
-      <div class="flex-between">
-        <span><i class="fas fa-calendar-check"></i> Active Semester: 2025-2026</span>
-        <span><i class="fas fa-users"></i> PathFit Program</span>
-      </div>
     </div>
   `;
   
@@ -142,11 +96,9 @@ function initSlideshow() {
   let currentSlide = 0;
   const slides = document.querySelectorAll('.slide');
   const dotsContainer = document.getElementById('slideDots');
-  
-  if (!slides.length || !dotsContainer) return;
+  if (!slides.length) return;
   
   dotsContainer.innerHTML = '';
-  
   slides.forEach((_, i) => {
     const dot = document.createElement('div');
     dot.classList.add('dot');
@@ -156,20 +108,17 @@ function initSlideshow() {
   });
   
   function goToSlide(n) {
-    slides.forEach(slide => slide.classList.remove('active'));
-    document.querySelectorAll('.dot').forEach(dot => dot.classList.remove('active'));
+    slides.forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
     slides[n].classList.add('active');
-    const dots = document.querySelectorAll('.dot');
-    if (dots[n]) dots[n].classList.add('active');
+    if (document.querySelectorAll('.dot')[n]) document.querySelectorAll('.dot')[n].classList.add('active');
     currentSlide = n;
   }
   
-  function nextSlide() {
+  setInterval(() => {
     let next = (currentSlide + 1) % slides.length;
     goToSlide(next);
-  }
-  
-  setInterval(nextSlide, 4000);
+  }, 4000);
 }
 
 // ========================================
@@ -178,51 +127,30 @@ function initSlideshow() {
 
 async function renderProfile() {
   const container = document.getElementById("tabContent");
-  
   container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading profile...</div>`;
   
-  const profileResult = await callGoogleScript("getProfile", { schoolId: currentUser.schoolId });
-  if (profileResult.success) {
-    currentUser = profileResult.user;
+  const result = await callAPI("getProfile", { schoolId: currentUser.schoolId });
+  if (result.success) {
+    currentUser = result.user;
     localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
   }
   
   const programColors = {
-    'BSIT': '#00b4d8',
-    'BSED': '#48cae4',
-    'BSHM': '#90e0ef',
-    'BSTM': '#00b894',
-    'BS PSYCHOLOGY': '#fdcb6e',
-    'BSCRIM': '#e17055',
-    'BTLED': '#6c5ce7',
-    'BTVTED': '#a29bfe'
+    'BSIT': '#00b4d8', 'BSED': '#48cae4', 'BSHM': '#90e0ef', 'BSTM': '#00b894',
+    'BS PSYCHOLOGY': '#fdcb6e', 'BSCRIM': '#e17055', 'BTLED': '#6c5ce7', 'BTVTED': '#a29bfe'
   };
   
   container.innerHTML = `
     <div class="profile-card">
-      <div class="profile-avatar">
-        <i class="fas fa-user-graduate"></i>
-      </div>
+      <div class="profile-avatar"><i class="fas fa-user-graduate"></i></div>
       <h2>${escapeHtml(currentUser.fullName)}</h2>
       <p>PathFit Student</p>
       <span class="program-badge" style="background: ${programColors[currentUser.program] || '#00b4d8'}">${currentUser.program}</span>
       <div class="profile-info-grid">
-        <div class="info-item">
-          <label>School ID</label>
-          <p>${currentUser.schoolId}</p>
-        </div>
-        <div class="info-item">
-          <label>Email</label>
-          <p>${currentUser.email}</p>
-        </div>
-        <div class="info-item">
-          <label>Year Level</label>
-          <p>${currentUser.yearLevel}</p>
-        </div>
-        <div class="info-item">
-          <label>Section</label>
-          <p>${currentUser.section}</p>
-        </div>
+        <div class="info-item"><label>School ID</label><p>${currentUser.schoolId}</p></div>
+        <div class="info-item"><label>Email</label><p>${currentUser.email}</p></div>
+        <div class="info-item"><label>Year Level</label><p>${currentUser.yearLevel}</p></div>
+        <div class="info-item"><label>Section</label><p>${currentUser.section}</p></div>
       </div>
     </div>
   `;
@@ -231,116 +159,76 @@ async function renderProfile() {
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
+    return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;';
   });
 }
 
 // ========================================
-// ASSIGNMENT PAGE (Disabled)
+// ASSIGNMENT & RANKING (Disabled)
 // ========================================
 
 function renderAssignment() {
-  const container = document.getElementById("tabContent");
-  
-  container.innerHTML = `
-    <div class="card">
-      <div class="text-center" style="padding: 60px 20px;">
-        <i class="fas fa-pen-ruler" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
-        <h3>Assignments Coming Soon</h3>
-        <p style="margin-top: 12px; color: #666;">Check back later for your PathFit assignments.</p>
-      </div>
-    </div>
-  `;
+  document.getElementById("tabContent").innerHTML = `
+    <div class="card"><div class="text-center" style="padding: 60px 20px;">
+      <i class="fas fa-pen-ruler" style="font-size: 4rem; color: var(--primary);"></i>
+      <h3>Assignments Coming Soon</h3>
+    </div></div>`;
 }
 
-// ========================================
-// RANKING PAGE (Disabled)
-// ========================================
-
 function renderRanking() {
-  const container = document.getElementById("tabContent");
-  
-  container.innerHTML = `
-    <div class="card">
-      <div class="text-center" style="padding: 60px 20px;">
-        <i class="fas fa-trophy" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
-        <h3>Rankings Coming Soon</h3>
-        <p style="margin-top: 12px; color: #666;">Class rankings will be available soon.</p>
-      </div>
-    </div>
-  `;
+  document.getElementById("tabContent").innerHTML = `
+    <div class="card"><div class="text-center" style="padding: 60px 20px;">
+      <i class="fas fa-trophy" style="font-size: 4rem; color: var(--primary);"></i>
+      <h3>Rankings Coming Soon</h3>
+    </div></div>`;
 }
 
 // ========================================
 // TAB SWITCHING
 // ========================================
 
-let isLoadingPage = false;
+let isLoading = false;
 
 function switchTab(tab) {
-  if (isLoadingPage) return;
-  
+  if (isLoading) return;
+  isLoading = true;
   currentTab = tab;
-  isLoadingPage = true;
   
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.remove('active');
-    if (btn.getAttribute('data-tab') === tab) {
-      btn.classList.add('active');
-    }
+    if (btn.getAttribute('data-tab') === tab) btn.classList.add('active');
   });
   
-  const container = document.getElementById("tabContent");
-  container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+  document.getElementById("tabContent").innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
   
   setTimeout(async () => {
-    switch(tab) {
-      case 'dashboard':
-        updatePageTitle('Dashboard');
-        renderDashboard();
-        break;
-      case 'profile':
-        updatePageTitle('My Profile');
-        await renderProfile();
-        break;
-      case 'assignment':
-        updatePageTitle('Assignments');
-        renderAssignment();
-        break;
-      case 'ranking':
-        updatePageTitle('Ranking');
-        renderRanking();
-        break;
-    }
-    isLoadingPage = false;
+    if (tab === 'dashboard') { updatePageTitle('Dashboard'); renderDashboard(); }
+    else if (tab === 'profile') { updatePageTitle('My Profile'); await renderProfile(); }
+    else if (tab === 'assignment') { updatePageTitle('Assignments'); renderAssignment(); }
+    else if (tab === 'ranking') { updatePageTitle('Ranking'); renderRanking(); }
+    isLoading = false;
   }, 50);
 }
 
 // ========================================
-// AUTHENTICATION
+// LOGIN & REGISTER
 // ========================================
 
 async function initAuth() {
-  const storedUser = localStorage.getItem("hydrofit_user");
-  if (storedUser) {
+  const stored = localStorage.getItem("hydrofit_user");
+  if (stored) {
     try {
-      currentUser = JSON.parse(storedUser);
+      currentUser = JSON.parse(stored);
       document.getElementById("authModal").style.display = "none";
       updateUserStats();
       switchTab('dashboard');
-      return;
-    } catch(e) {
-      localStorage.removeItem("hydrofit_user");
-    }
+    } catch(e) { localStorage.removeItem("hydrofit_user"); }
   }
 }
 
-// Login handler
+// Login
 document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
-  const button = e.target;
+  const btn = e.target;
   const schoolId = document.getElementById("loginSchoolId").value.trim();
   const password = document.getElementById("loginPassword").value;
   
@@ -349,25 +237,30 @@ document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
     return;
   }
   
-  await withLoading(button, async () => {
-    const result = await callGoogleScript("login", { schoolId, password });
-    
-    if (result.success) {
-      currentUser = result.user;
-      localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
-      document.getElementById("authModal").style.display = "none";
-      updateUserStats();
-      switchTab('dashboard');
-      showToast(`Welcome back, ${currentUser.fullName.split(',')[0]}!`, false);
-    } else {
-      showToast(result.error || "Invalid School ID or Password", true);
-    }
-  });
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+  
+  const result = await callAPI("login", { schoolId, password });
+  
+  btn.disabled = false;
+  btn.innerHTML = originalText;
+  
+  if (result.success) {
+    currentUser = result.user;
+    localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
+    document.getElementById("authModal").style.display = "none";
+    updateUserStats();
+    switchTab('dashboard');
+    showToast(`Welcome, ${currentUser.fullName.split(',')[0]}!`, false);
+  } else {
+    showToast(result.error || "Invalid School ID or Password", true);
+  }
 });
 
-// Register handler
+// Register
 document.getElementById("registerBtn")?.addEventListener("click", async (e) => {
-  const button = e.target;
+  const btn = e.target;
   const fullName = document.getElementById("regFullName").value.trim();
   const schoolId = document.getElementById("regSchoolId").value.trim();
   const email = document.getElementById("regEmail").value.trim();
@@ -387,26 +280,23 @@ document.getElementById("registerBtn")?.addEventListener("click", async (e) => {
     return;
   }
   
-  await withLoading(button, async () => {
-    const result = await callGoogleScript("register", {
-      fullName,
-      schoolId,
-      email,
-      program,
-      yearLevel,
-      section,
-      password
-    });
-    
-    if (result.success) {
-      showToast("Registration successful! Please login.", false);
-      document.getElementById("registerForm").style.display = "none";
-      document.getElementById("loginForm").style.display = "block";
-      document.getElementById("loginSchoolId").value = schoolId;
-    } else {
-      showToast(result.error || "Registration failed", true);
-    }
-  });
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+  
+  const result = await callAPI("register", { fullName, schoolId, email, program, yearLevel, section, password });
+  
+  btn.disabled = false;
+  btn.innerHTML = originalText;
+  
+  if (result.success) {
+    showToast("Registration successful! Please login.", false);
+    document.getElementById("registerForm").style.display = "none";
+    document.getElementById("loginForm").style.display = "block";
+    document.getElementById("loginSchoolId").value = schoolId;
+  } else {
+    showToast(result.error || "Registration failed", true);
+  }
 });
 
 // Logout
@@ -418,7 +308,7 @@ document.getElementById("logoutBtn")?.addEventListener("click", () => {
   document.getElementById("registerForm").style.display = "none";
   document.getElementById("loginSchoolId").value = "";
   document.getElementById("loginPassword").value = "";
-  showToast("Logged out successfully", false);
+  showToast("Logged out", false);
 });
 
 // Form toggles
@@ -438,12 +328,9 @@ document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
 });
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    const tab = btn.getAttribute('data-tab');
-    switchTab(tab);
-    if (window.innerWidth <= 768) {
-      document.getElementById("sidebar").classList.remove("open");
-    }
+  btn.addEventListener('click', () => {
+    switchTab(btn.getAttribute('data-tab'));
+    if (window.innerWidth <= 768) document.getElementById("sidebar").classList.remove("open");
   });
 });
 
