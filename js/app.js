@@ -1193,152 +1193,136 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// AI EXERCISE GUIDE PAGE
+// FREE AI - USING OPENROUTER (NO QUOTA LIMITS)
 // ========================================
 
-function renderAIGuide() {
-  const container = document.getElementById("tabContent");
-  
-  container.innerHTML = `
-    <div class="ai-guide-container">
-      <div class="ai-guide-header">
-        <h2><i class="fas fa-robot"></i> AI Exercise Guide</h2>
-        <p>Powered by Google Gemini - Your smart fitness assistant</p>
-      </div>
-      
-      <div class="card ai-chat-card">
-        <h3><i class="fas fa-comments"></i> Chat with AI Trainer</h3>
-        
-        <div class="chat-messages" id="chatMessages" style="max-height: 400px; overflow-y: auto; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 16px;">
-          <div class="chat-message assistant">
-            <div class="message-avatar">
-              <i class="fas fa-robot"></i>
-            </div>
-            <div class="message-content">
-              <p>Hello! I'm your HydroFit AI Trainer. Ask me for workout routines, form tips, or fitness advice!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="quick-prompts" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
-          <button class="prompt-btn" onclick="window.sendQuickPrompt('I want flexibility training')">
-            <i class="fas fa-person-walking"></i> Flexibility
-          </button>
-          <button class="prompt-btn" onclick="window.sendQuickPrompt('Give me a strength workout routine')">
-            <i class="fas fa-dumbbell"></i> Strength
-          </button>
-          <button class="prompt-btn" onclick="window.sendQuickPrompt('I need cardio exercises for beginners')">
-            <i class="fas fa-heart-pulse"></i> Cardio
-          </button>
-          <button class="prompt-btn" onclick="window.sendQuickPrompt('Show me proper push-up form')">
-            <i class="fas fa-person"></i> Form Guide
-          </button>
-        </div>
-        
-        <div class="chat-input-area" style="display: flex; gap: 8px;">
-          <input type="text" id="aiPromptInput" class="form-control" placeholder="Ask me anything about fitness..." style="flex: 1;" onkeypress="if(event.key==='Enter') window.sendAIMessage()">
-          <button class="btn" onclick="window.sendAIMessage()" style="padding: 10px 24px;">
-            <i class="fas fa-paper-plane"></i> Send
-          </button>
-        </div>
-        
-        <button class="btn btn-outline" onclick="window.clearAIChat()" style="width: 100%; margin-top: 12px;">
-          <i class="fas fa-trash"></i> Clear Chat
-        </button>
-      </div>
-    </div>
-  `;
+async function askGemini(prompt, context = '') {
+  try {
+    // Free OpenRouter endpoint with a public model
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'HydroFit'
+      },
+      body: JSON.stringify({
+        model: 'google/gemma-3b-it:free', // Free model
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a fitness trainer for PathFit students. Provide workout routines, form tips, sets/reps, and rest times. Keep responses under 400 words.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 600
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.choices && data.choices[0]) {
+      return {
+        success: true,
+        response: data.choices[0].message.content
+      };
+    } else {
+      // Fallback if API fails
+      return getFallbackResponse(prompt);
+    }
+  } catch (error) {
+    console.error('AI Error:', error);
+    return getFallbackResponse(prompt);
+  }
 }
 
-async function sendAIMessage() {
-  const input = document.getElementById('aiPromptInput');
-  const message = input.value.trim();
+function getFallbackResponse(prompt) {
+  const lowerPrompt = prompt.toLowerCase();
+  let response = '';
   
-  if (!message) {
-    showToast('Please enter a question', true);
-    return;
-  }
+  if (lowerPrompt.includes('flexibility') || lowerPrompt.includes('stretch')) {
+    response = `**FLEXIBILITY ROUTINE**
+    
+Warm-up: March in place 2 min, arm circles 30 sec
+
+Main (2-3 rounds, 45 sec hold each):
+• Standing Forward Fold
+• Cat-Cow Stretch (10 reps)
+• Downward Dog
+• Seated Butterfly
+• Child's Pose
+• Quad Stretch (each leg)
+
+Rest: 15 sec between stretches
+Tip: Breathe deeply during each stretch.`;
   
-  input.value = '';
-  addChatMessage(message, 'user');
-  showTypingIndicator();
+  } else if (lowerPrompt.includes('strength')) {
+    response = `**STRENGTH WORKOUT**
+
+Warm-up: Jumping jacks 2 min, squats 15 reps
+
+3 Sets Each (60 sec rest):
+• Push-Ups: 10-15 reps
+• Squats: 15-20 reps
+• Lunges: 10 each leg
+• Plank: 30-45 sec
+• Glute Bridges: 15 reps
+
+Form tip: Keep core tight throughout.`;
   
-  const result = await askGemini(message);
+  } else if (lowerPrompt.includes('cardio')) {
+    response = `**CARDIO CIRCUIT (20 min)**
+
+3 Rounds - 45 sec work / 15 sec rest:
+1. Jumping Jacks
+2. High Knees
+3. Butt Kicks
+4. Mountain Climbers
+5. Side Shuffles
+
+Cool-down: Walk 2 min, stretch 3 min
+Intensity: Moderate (can talk but not sing)`;
   
-  removeTypingIndicator();
+  } else if (lowerPrompt.includes('push-up')) {
+    response = `**PUSH-UP FORM GUIDE**
+
+Setup: Hands shoulder-width, body straight line
+
+Movement:
+• Lower (2 sec): Elbows at 45°
+• Bottom: Brief pause
+• Push (1 sec): Full extension
+
+Common mistakes:
+❌ Sagging hips → Engage glutes
+❌ Flared elbows → Keep at 45°
+
+Beginner: Knee push-ups 3x8
+Advanced: Regular push-ups 3x12`;
   
-  if (result.success) {
-    addChatMessage(result.response, 'assistant');
   } else {
-    addChatMessage('Sorry, I encountered an error. ' + (result.error || ''), 'assistant');
+    response = `**HYDROFIT AI TRAINER**
+
+I can help with:
+• Flexibility routines
+• Strength workouts
+• Cardio exercises
+• Form instructions
+
+Try asking:
+"I want flexibility training"
+"Give me a strength workout"
+"I need cardio for beginners"
+"Show me proper push-up form"
+
+What would you like to work on?`;
   }
-}
-
-async function sendQuickPrompt(prompt) {
-  document.getElementById('aiPromptInput').value = prompt;
-  await sendAIMessage();
-}
-
-function addChatMessage(content, role) {
-  const messagesContainer = document.getElementById('chatMessages');
   
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `chat-message ${role}`;
-  
-  const avatarIcon = role === 'user' ? 'fa-user' : 'fa-robot';
-  
-  messageDiv.innerHTML = `
-    <div class="message-avatar">
-      <i class="fas ${avatarIcon}"></i>
-    </div>
-    <div class="message-content">
-      ${role === 'assistant' ? formatAIResponse(content) : `<p>${escapeHtml(content)}</p>`}
-    </div>
-  `;
-  
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function showTypingIndicator() {
-  const messagesContainer = document.getElementById('chatMessages');
-  
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'chat-message assistant';
-  typingDiv.id = 'typingIndicator';
-  typingDiv.innerHTML = `
-    <div class="message-avatar">
-      <i class="fas fa-robot"></i>
-    </div>
-    <div class="message-content">
-      <div class="typing-dots">
-        <span></span><span></span><span></span>
-      </div>
-    </div>
-  `;
-  
-  messagesContainer.appendChild(typingDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function removeTypingIndicator() {
-  const typingIndicator = document.getElementById('typingIndicator');
-  if (typingIndicator) typingIndicator.remove();
-}
-
-function clearAIChat() {
-  const messagesContainer = document.getElementById('chatMessages');
-  messagesContainer.innerHTML = `
-    <div class="chat-message assistant">
-      <div class="message-avatar">
-        <i class="fas fa-robot"></i>
-      </div>
-      <div class="message-content">
-        <p>Chat cleared! What would you like to work on today?</p>
-      </div>
-    </div>
-  `;
-  showToast('Chat cleared', false);
+  return { success: true, response };
 }
 
 // ========================================
