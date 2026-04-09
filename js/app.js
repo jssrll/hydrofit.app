@@ -1133,6 +1133,16 @@ function getIntensityColor(intensity) {
 // AI EXERCISE GUIDE PAGE
 // ========================================
 
+// ========================================
+// AI EXERCISE GUIDE PAGE - GEMINI API
+// ========================================
+
+// Gemini API Configuration
+const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI'; // Get free key from https://aistudio.google.com/app/apikey
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+
+let chatHistory = [];
+
 function renderAIGuide() {
   const container = document.getElementById("tabContent");
   
@@ -1140,90 +1150,255 @@ function renderAIGuide() {
     <div class="ai-guide-container">
       <div class="ai-guide-header">
         <h2><i class="fas fa-robot"></i> AI Exercise Guide</h2>
-        <p>Your smart fitness assistant - Ask for any workout routine!</p>
+        <p>Your smart fitness assistant powered by Gemini AI - Ask for any workout routine!</p>
       </div>
       
-      <div class="card ai-info-card">
-        <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
-        <p>Click the chat widget in the bottom right corner and try asking:</p>
-        <div class="example-prompts">
-          <div class="prompt-item" onclick="window.setPrompt('I want flexibility training')">
-            <i class="fas fa-person-walking"></i> "I want flexibility training"
+      <!-- Chat Container -->
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="chat-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px 20px; color: white;">
+          <h3 style="color: white; margin: 0;"><i class="fas fa-comments"></i> Fitness Assistant Chat</h3>
+          <p style="opacity: 0.9; margin: 4px 0 0; font-size: 0.85rem;">Ask me anything about exercises, form, or workout plans!</p>
+        </div>
+        
+        <div id="chatMessages" class="chat-messages" style="height: 400px; overflow-y: auto; padding: 20px; background: #f8fafc;">
+          <div class="message bot-message">
+            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <div class="message-content">
+              <p>👋 Hi! I'm your AI fitness assistant. I can help you with:</p>
+              <ul style="margin-top: 8px; padding-left: 20px;">
+                <li>Step-by-step exercise routines</li>
+                <li>Proper form instructions</li>
+                <li>Suggested sets and rest times</li>
+                <li>Customized workouts for your goals</li>
+              </ul>
+              <p style="margin-top: 8px;">Try asking: "I want flexibility training" or "Give me a strength workout routine"</p>
+            </div>
           </div>
-          <div class="prompt-item" onclick="window.setPrompt('Give me a strength workout routine')">
-            <i class="fas fa-dumbbell"></i> "Give me a strength workout routine"
-          </div>
-          <div class="prompt-item" onclick="window.setPrompt('I need cardio exercises for beginners')">
-            <i class="fas fa-heart-pulse"></i> "I need cardio exercises for beginners"
-          </div>
-          <div class="prompt-item" onclick="window.setPrompt('Show me proper push-up form')">
-            <i class="fas fa-person"></i> "Show me proper push-up form"
-          </div>
-          <div class="prompt-item" onclick="window.setPrompt('Create a full body workout plan')">
-            <i class="fas fa-calendar-alt"></i> "Create a full body workout plan"
+        </div>
+        
+        <div class="chat-input-area" style="padding: 16px; border-top: 1px solid #e0e7ff; background: white;">
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="chatInput" class="chat-input" placeholder="Type your question here..." style="flex: 1; padding: 12px 16px; border: 2px solid #e0e7ff; border-radius: 30px; font-size: 0.95rem;" onkeypress="if(event.key==='Enter') window.sendMessage()">
+            <button class="btn" onclick="window.sendMessage()" style="padding: 12px 24px; border-radius: 30px;">
+              <i class="fas fa-paper-plane"></i> Send
+            </button>
           </div>
         </div>
       </div>
       
-      <div class="card">
-        <h3><i class="fas fa-star"></i> What the AI Can Do</h3>
+      <!-- Quick Prompts -->
+      <div class="card ai-info-card">
+        <h3><i class="fas fa-lightbulb"></i> Quick Prompts</h3>
+        <p>Click any prompt to quickly ask:</p>
+        <div class="example-prompts">
+          <div class="prompt-item" onclick="window.quickPrompt('I want flexibility training for beginners')">
+            <i class="fas fa-person-walking"></i> Flexibility training
+          </div>
+          <div class="prompt-item" onclick="window.quickPrompt('Give me a strength workout routine with dumbbells')">
+            <i class="fas fa-dumbbell"></i> Strength workout
+          </div>
+          <div class="prompt-item" onclick="window.quickPrompt('I need cardio exercises for weight loss')">
+            <i class="fas fa-heart-pulse"></i> Cardio exercises
+          </div>
+          <div class="prompt-item" onclick="window.quickPrompt('Show me proper push-up form and technique')">
+            <i class="fas fa-person"></i> Push-up form
+          </div>
+          <div class="prompt-item" onclick="window.quickPrompt('Create a full body workout plan for 30 minutes')">
+            <i class="fas fa-calendar-alt"></i> Full body plan
+          </div>
+          <div class="prompt-item" onclick="window.quickPrompt('What are the best exercises for core strength?')">
+            <i class="fas fa-circle"></i> Core exercises
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tips Card -->
+      <div class="card ai-tip-card">
+        <h3><i class="fas fa-star"></i> What I Can Help With</h3>
         <ul class="feature-list">
           <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Step-by-step exercise routines</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Proper form instructions</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Suggested sets and rest times</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Proper form instructions and cues</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Suggested sets, reps, and rest times</li>
           <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Customized workouts for your goals</li>
           <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Exercise modifications and alternatives</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Warm-up and cool-down routines</li>
         </ul>
       </div>
       
       <div class="card ai-tip-card">
-        <h3><i class="fas fa-comment-dots"></i> Pro Tips</h3>
-        <p>Be specific about your goals! Try mentioning:</p>
+        <h3><i class="fas fa-comment-dots"></i> Pro Tips for Better Results</h3>
+        <p>Be specific about your goals! Mention:</p>
         <ul class="tip-list">
           <li>• Your fitness level (beginner, intermediate, advanced)</li>
           <li>• Available equipment (none, dumbbells, resistance bands)</li>
           <li>• Time available (15 min, 30 min, 1 hour)</li>
           <li>• Target areas (full body, upper body, core, legs)</li>
+          <li>• Any injuries or limitations</li>
         </ul>
       </div>
     </div>
   `;
   
-  // Initialize Chatbase AI
-  initChatbaseAI();
+  // Reset chat history when page loads
+  chatHistory = [];
 }
 
+function quickPrompt(prompt) {
+  const input = document.getElementById('chatInput');
+  if (input) {
+    input.value = prompt;
+    sendMessage();
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+  
+  if (!message) return;
+  
+  // Clear input
+  input.value = '';
+  
+  // Add user message to chat
+  addMessageToChat('user', message);
+  
+  // Show typing indicator
+  showTypingIndicator();
+  
+  try {
+    // Build context with fitness focus
+    const fitnessContext = `You are a professional fitness coach and exercise specialist. 
+    Provide detailed, safe, and effective exercise advice. Include:
+    - Step-by-step instructions
+    - Proper form cues
+    - Recommended sets, reps, and rest times
+    - Safety precautions
+    - Modifications for different fitness levels
+    
+    Keep responses clear and actionable. Focus on proper technique and injury prevention.`;
+    
+    // Prepare the prompt with context
+    const fullPrompt = `${fitnessContext}\n\nUser question: ${message}\n\nProvide a helpful fitness response:`;
+    
+    // Call Gemini API
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: fullPrompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        }
+      })
+    });
+    
+    const data = await response.json();
+    
+    // Remove typing indicator
+    removeTypingIndicator();
+    
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      const aiResponse = data.candidates[0].content.parts[0].text;
+      addMessageToChat('bot', aiResponse);
+    } else if (data.error) {
+      addMessageToChat('bot', `Sorry, I encountered an error: ${data.error.message}. Please try again.`);
+    } else {
+      addMessageToChat('bot', 'Sorry, I couldn\'t process that request. Please try again.');
+    }
+    
+  } catch (error) {
+    console.error('Gemini API Error:', error);
+    removeTypingIndicator();
+    addMessageToChat('bot', 'Sorry, there was an error connecting to the AI service. Please check your internet connection and try again.');
+  }
+}
+
+function addMessageToChat(sender, message) {
+  const chatMessages = document.getElementById('chatMessages');
+  
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${sender}-message`;
+  
+  const avatar = document.createElement('div');
+  avatar.className = 'message-avatar';
+  avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+  
+  const content = document.createElement('div');
+  content.className = 'message-content';
+  
+  // Format the message with proper line breaks and lists
+  const formattedMessage = formatMessage(message);
+  content.innerHTML = formattedMessage;
+  
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(content);
+  
+  chatMessages.appendChild(messageDiv);
+  
+  // Scroll to bottom
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function formatMessage(text) {
+  // Convert markdown-style formatting to HTML
+  let formatted = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+    .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^# (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+  
+  // Wrap lists
+  if (formatted.includes('<li>')) {
+    formatted = formatted.replace(/(<li>.*?<\/li>)/gs, (match) => {
+      return `<ul>${match}</ul>`;
+    });
+  }
+  
+  return `<p>${formatted}</p>`;
+}
+
+function showTypingIndicator() {
+  const chatMessages = document.getElementById('chatMessages');
+  
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'message bot-message';
+  typingDiv.id = 'typingIndicator';
+  
+  typingDiv.innerHTML = `
+    <div class="message-avatar"><i class="fas fa-robot"></i></div>
+    <div class="message-content">
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  `;
+  
+  chatMessages.appendChild(typingDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const typingIndicator = document.getElementById('typingIndicator');
+  if (typingIndicator) {
+    typingIndicator.remove();
+  }
+}
+
+// Update the setPrompt function for compatibility
 function setPrompt(prompt) {
-  // Try to set the prompt in Chatbase if available
-  const chatbaseIframe = document.querySelector('iframe[src*="chatbase"]');
-  if (chatbaseIframe) {
-    // Focus on the chat widget
-    chatbaseIframe.contentWindow.postMessage({ type: 'setPrompt', prompt: prompt }, '*');
-  }
-  
-  // Open chatbase if closed
-  if (window.chatbase && window.chatbase("getState") !== "open") {
-    window.chatbase("open");
-  }
-  
-  showToast('Click the chat widget to send your question!', false);
-}
-
-// Chatbase AI Integration
-function initChatbaseAI() {
-  if (window.chatbase && window.chatbase("getState") === "initialized") return;
-  
-  window.chatbaseConfig = { chatbotId: "Zqs29nX4-jV3VlilBTsjp" };
-  
-  const script = document.createElement('script');
-  script.src = "https://www.chatbase.co/embed.min.js";
-  script.id = "Zqs29nX4-jV3VlilBTsjp";
-  script.defer = true;
-  script.onload = () => {
-    console.log('✅ Chatbase AI loaded');
-  };
-  
-  document.body.appendChild(script);
+  quickPrompt(prompt);
 }
 
 // ========================================
