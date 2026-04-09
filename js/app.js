@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - SMOOTH ANIMATIONS & ENHANCED UI
+// HYDROFIT - MOBILE OPTIMIZED
 // ========================================
 
 let currentTab = "dashboard";
@@ -10,47 +10,21 @@ let isLoading = false;
 function showToast(message, isError = false) {
   const toast = document.getElementById("toast");
   toast.style.display = "block";
-  toast.style.background = isError 
-    ? "linear-gradient(135deg, #d63031, #e17055)" 
-    : "linear-gradient(135deg, #03045e, #023e8a)";
+  toast.style.background = isError ? "#d63031" : "#03045e";
   toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}" style="margin-right: 8px;"></i> ${message}`;
-  
-  // Animate out
   setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-    setTimeout(() => {
-      toast.style.display = "none";
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateX(0)';
-    }, 300);
+    toast.style.display = "none";
   }, 3000);
 }
 
 function updatePageTitle(title) {
-  const titleEl = document.getElementById("pageTitle");
-  titleEl.style.opacity = '0';
-  titleEl.style.transform = 'translateY(-10px)';
-  
-  setTimeout(() => {
-    titleEl.innerText = title;
-    titleEl.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    titleEl.style.opacity = '1';
-    titleEl.style.transform = 'translateY(0)';
-  }, 150);
+  document.getElementById("pageTitle").innerText = title;
 }
 
 function updateUserStats() {
   if (currentUser) {
     const lastName = currentUser.fullName.split(',')[0];
-    const displayEl = document.getElementById("userNameDisplay");
-    displayEl.style.opacity = '0';
-    
-    setTimeout(() => {
-      displayEl.innerHTML = `<i class="fas fa-user"></i> ${lastName}`;
-      displayEl.style.transition = 'opacity 0.3s ease';
-      displayEl.style.opacity = '1';
-    }, 100);
+    document.getElementById("userNameDisplay").innerHTML = `<i class="fas fa-user"></i> ${lastName}`;
   }
 }
 
@@ -62,16 +36,33 @@ async function callAPI(action, data = {}) {
   try {
     const params = new URLSearchParams({ action, ...data });
     const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-    console.log("Calling:", url);
     
     const response = await fetch(url);
     const result = await response.json();
-    console.log("Response:", result);
     return result;
   } catch(error) {
     console.error("Error:", error);
     return { success: false, error: error.message };
   }
+}
+
+// ========================================
+// QR CODE GENERATOR
+// ========================================
+
+function generateQRCode(userData) {
+  // Create QR data string with user info
+  const qrData = JSON.stringify({
+    name: userData.fullName,
+    schoolId: userData.schoolId,
+    email: userData.email,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Use Google Charts API for QR code (lightweight, no external libraries)
+  const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(qrData)}&choe=UTF-8&chld=L|0`;
+  
+  return qrUrl;
 }
 
 // ========================================
@@ -101,29 +92,38 @@ function renderDashboard() {
     </div>
 
     <div class="goals-card">
-      <h2>🎯 Welcome to HydroFit</h2>
+      <h2>Welcome to HydroFit</h2>
       <p>Your Academic Fitness Tracker for PathFit Class</p>
       <div class="goals-stats">
-        <div class="goal-item"><div class="value">💪</div><div class="label">Stay Active</div></div>
-        <div class="goal-item"><div class="value">📚</div><div class="label">Learn & Grow</div></div>
-        <div class="goal-item"><div class="value">🏆</div><div class="label">Excel</div></div>
+        <div class="goal-item">
+          <div class="value"><i class="fas fa-heart"></i></div>
+          <div class="label">Stay Active</div>
+        </div>
+        <div class="goal-item">
+          <div class="value"><i class="fas fa-brain"></i></div>
+          <div class="label">Learn & Grow</div>
+        </div>
+        <div class="goal-item">
+          <div class="value"><i class="fas fa-medal"></i></div>
+          <div class="label">Excel</div>
+        </div>
       </div>
     </div>
 
     <div class="card">
       <h3><i class="fas fa-info-circle"></i> About HydroFit</h3>
-      <p style="line-height: 1.8; margin: 16px 0; color: #1a1a1a; font-size: 1rem;">
-        HydroFit is an academic fitness tracking platform designed specifically for Mindoro State University students. 
-        Track your PathFit activities, monitor your progress, and achieve your fitness goals while excelling in your academic journey.
+      <p style="line-height: 1.6; margin: 16px 0; color: #333;">
+        HydroFit is an academic fitness tracking platform designed for Mindoro State University students. 
+        Track your PathFit activities, monitor your progress, and achieve your fitness goals.
       </p>
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <span style="background: #e0f2fe; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; color: #023e8a;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
+        <span style="background: #e0f2fe; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #023e8a;">
           <i class="fas fa-check-circle" style="color: #00b894;"></i> Track Activities
         </span>
-        <span style="background: #e0f2fe; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; color: #023e8a;">
+        <span style="background: #e0f2fe; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #023e8a;">
           <i class="fas fa-check-circle" style="color: #00b894;"></i> Monitor Progress
         </span>
-        <span style="background: #e0f2fe; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; color: #023e8a;">
+        <span style="background: #e0f2fe; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #023e8a;">
           <i class="fas fa-check-circle" style="color: #00b894;"></i> Earn Badges
         </span>
       </div>
@@ -131,19 +131,6 @@ function renderDashboard() {
   `;
   
   initSlideshow();
-  
-  // Animate cards on load
-  setTimeout(() => {
-    document.querySelectorAll('.card, .goals-card').forEach((card, index) => {
-      card.style.opacity = '0';
-      card.style.transform = 'translateY(20px)';
-      setTimeout(() => {
-        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-        card.style.opacity = '1';
-        card.style.transform = 'translateY(0)';
-      }, index * 100);
-    });
-  }, 50);
 }
 
 function initSlideshow() {
@@ -178,7 +165,7 @@ function initSlideshow() {
 }
 
 // ========================================
-// PROFILE PAGE
+// PROFILE PAGE WITH QR CODE
 // ========================================
 
 async function renderProfile() {
@@ -196,12 +183,15 @@ async function renderProfile() {
     'BS PSYCHOLOGY': '#fdcb6e', 'BSCRIM': '#e17055', 'BTLED': '#6c5ce7', 'BTVTED': '#a29bfe'
   };
   
+  // Generate QR code
+  const qrCodeUrl = generateQRCode(currentUser);
+  
   container.innerHTML = `
     <div class="profile-card">
       <div class="profile-avatar"><i class="fas fa-user-graduate"></i></div>
       <h2>${escapeHtml(currentUser.fullName)}</h2>
       <p>PathFit Student</p>
-      <span class="program-badge" style="background: ${programColors[currentUser.program] || '#00b4d8'}; color: white !important;">${currentUser.program}</span>
+      <span class="program-badge" style="background: ${programColors[currentUser.program] || '#00b4d8'}; color: white;">${currentUser.program}</span>
       <div class="profile-info-grid">
         <div class="info-item"><label>School ID</label><p>${currentUser.schoolId}</p></div>
         <div class="info-item"><label>Email</label><p>${currentUser.email}</p></div>
@@ -211,15 +201,23 @@ async function renderProfile() {
     </div>
     
     <div class="card">
-      <h3><i class="fas fa-chart-line"></i> Academic Progress</h3>
-      <p style="color: #64748b; margin: 16px 0;">Track your PathFit performance and achievements throughout the semester.</p>
-      <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; text-align: center;">
-        <i class="fas fa-trophy" style="font-size: 3rem; color: #fdcb6e; margin-bottom: 12px;"></i>
-        <p style="color: #1a1a1a; font-weight: 600;">Coming Soon!</p>
-        <p style="color: #64748b; font-size: 0.9rem;">Activity tracking will be available in the next update.</p>
+      <h3><i class="fas fa-qrcode"></i> Attendance QR Code</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.9rem;">Scan this QR code for attendance tracking</p>
+      <div style="text-align: center; padding: 20px; background: white; border-radius: 16px;">
+        <img src="${qrCodeUrl}" alt="Attendance QR Code" style="width: 200px; height: 200px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <p style="margin-top: 16px; color: #64748b; font-size: 0.85rem;">
+          <i class="fas fa-user"></i> ${escapeHtml(currentUser.fullName)}<br>
+          <i class="fas fa-id-card"></i> ${currentUser.schoolId}
+        </p>
+        <button class="btn btn-outline" onclick="downloadQRCode()" style="margin-top: 16px; width: 100%;">
+          <i class="fas fa-download"></i> Download QR Code
+        </button>
       </div>
     </div>
   `;
+  
+  // Store QR code URL for download
+  window.currentQRCodeUrl = qrCodeUrl;
 }
 
 function escapeHtml(str) {
@@ -236,6 +234,19 @@ function getYearSuffix(year) {
   return 'th';
 }
 
+// Download QR Code function
+function downloadQRCode() {
+  if (window.currentQRCodeUrl) {
+    const link = document.createElement('a');
+    link.href = window.currentQRCodeUrl;
+    link.download = `HydroFit_QR_${currentUser.schoolId}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('QR Code downloaded!', false);
+  }
+}
+
 // ========================================
 // ASSIGNMENT & RANKING
 // ========================================
@@ -244,9 +255,9 @@ function renderAssignment() {
   const container = document.getElementById("tabContent");
   container.innerHTML = `
     <div class="card">
-      <div style="text-align: center; padding: 60px 20px;">
-        <i class="fas fa-pen-ruler" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
-        <h3 style="color: #1a1a1a; margin-bottom: 12px;">Assignments Coming Soon</h3>
+      <div style="text-align: center; padding: 40px 20px;">
+        <i class="fas fa-pen-ruler" style="font-size: 3.5rem; color: #00b4d8; margin-bottom: 16px;"></i>
+        <h3 style="color: #1a1a1a; margin-bottom: 8px;">Assignments Coming Soon</h3>
         <p style="color: #64748b;">Track your PathFit assignments and written outputs here.</p>
       </div>
     </div>
@@ -257,9 +268,9 @@ function renderRanking() {
   const container = document.getElementById("tabContent");
   container.innerHTML = `
     <div class="card">
-      <div style="text-align: center; padding: 60px 20px;">
-        <i class="fas fa-trophy" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
-        <h3 style="color: #1a1a1a; margin-bottom: 12px;">Rankings Coming Soon</h3>
+      <div style="text-align: center; padding: 40px 20px;">
+        <i class="fas fa-trophy" style="font-size: 3.5rem; color: #00b4d8; margin-bottom: 16px;"></i>
+        <h3 style="color: #1a1a1a; margin-bottom: 8px;">Rankings Coming Soon</h3>
         <p style="color: #64748b;">Compete with classmates and climb the leaderboard.</p>
       </div>
     </div>
@@ -267,7 +278,7 @@ function renderRanking() {
 }
 
 // ========================================
-// TAB SWITCHING WITH SMOOTH ANIMATIONS
+// TAB SWITCHING - SIMPLE & FAST
 // ========================================
 
 function switchTab(tab) {
@@ -275,7 +286,7 @@ function switchTab(tab) {
   isLoading = true;
   currentTab = tab;
   
-  // Update active states with smooth animation
+  // Update active states
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.remove('active');
     if (btn.getAttribute('data-tab') === tab) {
@@ -283,50 +294,33 @@ function switchTab(tab) {
     }
   });
   
-  const content = document.getElementById("tabContent");
+  // Simple content update without heavy animations
+  if (tab === 'dashboard') { 
+    updatePageTitle('Dashboard'); 
+    renderDashboard(); 
+  }
+  else if (tab === 'profile') { 
+    updatePageTitle('My Profile'); 
+    renderProfile().then(() => isLoading = false);
+    return;
+  }
+  else if (tab === 'assignment') { 
+    updatePageTitle('Assignments'); 
+    renderAssignment(); 
+  }
+  else if (tab === 'ranking') { 
+    updatePageTitle('Ranking'); 
+    renderRanking(); 
+  }
   
-  // Fade out animation
-  content.style.opacity = '0';
-  content.style.transform = 'translateY(10px)';
-  content.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-  
-  setTimeout(async () => {
-    // Update content
-    if (tab === 'dashboard') { 
-      updatePageTitle('Dashboard'); 
-      renderDashboard(); 
-    }
-    else if (tab === 'profile') { 
-      updatePageTitle('My Profile'); 
-      await renderProfile(); 
-    }
-    else if (tab === 'assignment') { 
-      updatePageTitle('Assignments'); 
-      renderAssignment(); 
-    }
-    else if (tab === 'ranking') { 
-      updatePageTitle('Ranking'); 
-      renderRanking(); 
-    }
-    
-    // Fade in animation
-    setTimeout(() => {
-      content.style.opacity = '1';
-      content.style.transform = 'translateY(0)';
-    }, 50);
-    
-    isLoading = false;
-  }, 200);
+  isLoading = false;
   
   // Close sidebar on mobile after tab switch
   if (window.innerWidth <= 768) {
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("sidebarOverlay");
     sidebar.classList.remove("open");
-    if (overlay) {
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.remove(), 300);
-    }
+    if (overlay) overlay.remove();
   }
 }
 
@@ -371,16 +365,10 @@ document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
   if (result.success) {
     currentUser = result.user;
     localStorage.setItem("hydrofit_user", JSON.stringify(currentUser));
-    
-    // Smooth modal close
-    const modal = document.getElementById("authModal");
-    modal.style.opacity = '0';
-    setTimeout(() => {
-      modal.style.display = "none";
-      updateUserStats();
-      switchTab('dashboard');
-      showToast(`Welcome back, ${currentUser.fullName.split(',')[0]}!`, false);
-    }, 300);
+    document.getElementById("authModal").style.display = "none";
+    updateUserStats();
+    switchTab('dashboard');
+    showToast(`Welcome back, ${currentUser.fullName.split(',')[0]}!`, false);
   } else {
     showToast(result.error || "Invalid School ID or Password", true);
   }
@@ -419,29 +407,9 @@ document.getElementById("registerBtn")?.addEventListener("click", async (e) => {
   
   if (result.success) {
     showToast("Registration successful! Please login.", false);
-    
-    // Smooth form switch
-    const registerForm = document.getElementById("registerForm");
-    const loginForm = document.getElementById("loginForm");
-    
-    registerForm.style.opacity = '0';
-    registerForm.style.transform = 'translateX(-20px)';
-    registerForm.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    
-    setTimeout(() => {
-      registerForm.style.display = "none";
-      loginForm.style.display = "block";
-      loginForm.style.opacity = '0';
-      loginForm.style.transform = 'translateX(20px)';
-      loginForm.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      
-      setTimeout(() => {
-        loginForm.style.opacity = '1';
-        loginForm.style.transform = 'translateX(0)';
-      }, 10);
-      
-      document.getElementById("loginSchoolId").value = schoolId;
-    }, 200);
+    document.getElementById("registerForm").style.display = "none";
+    document.getElementById("loginForm").style.display = "block";
+    document.getElementById("loginSchoolId").value = schoolId;
   } else {
     showToast(result.error || "Registration failed", true);
   }
@@ -451,16 +419,7 @@ document.getElementById("registerBtn")?.addEventListener("click", async (e) => {
 document.getElementById("logoutBtn")?.addEventListener("click", () => {
   localStorage.removeItem("hydrofit_user");
   currentUser = null;
-  
-  const modal = document.getElementById("authModal");
-  modal.style.display = "flex";
-  modal.style.opacity = '0';
-  
-  setTimeout(() => {
-    modal.style.transition = 'opacity 0.3s ease';
-    modal.style.opacity = '1';
-  }, 10);
-  
+  document.getElementById("authModal").style.display = "flex";
   document.getElementById("loginForm").style.display = "block";
   document.getElementById("registerForm").style.display = "none";
   document.getElementById("loginSchoolId").value = "";
@@ -468,52 +427,18 @@ document.getElementById("logoutBtn")?.addEventListener("click", () => {
   showToast("Logged out successfully", false);
 });
 
-// Form toggles with smooth animations
+// Form toggles
 document.getElementById("showRegister")?.addEventListener("click", () => {
-  const loginForm = document.getElementById("loginForm");
-  const registerForm = document.getElementById("registerForm");
-  
-  loginForm.style.opacity = '0';
-  loginForm.style.transform = 'translateX(-20px)';
-  loginForm.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-  
-  setTimeout(() => {
-    loginForm.style.display = "none";
-    registerForm.style.display = "block";
-    registerForm.style.opacity = '0';
-    registerForm.style.transform = 'translateX(20px)';
-    registerForm.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    
-    setTimeout(() => {
-      registerForm.style.opacity = '1';
-      registerForm.style.transform = 'translateX(0)';
-    }, 10);
-  }, 200);
+  document.getElementById("loginForm").style.display = "none";
+  document.getElementById("registerForm").style.display = "block";
 });
 
 document.getElementById("showLogin")?.addEventListener("click", () => {
-  const registerForm = document.getElementById("registerForm");
-  const loginForm = document.getElementById("loginForm");
-  
-  registerForm.style.opacity = '0';
-  registerForm.style.transform = 'translateX(20px)';
-  registerForm.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-  
-  setTimeout(() => {
-    registerForm.style.display = "none";
-    loginForm.style.display = "block";
-    loginForm.style.opacity = '0';
-    loginForm.style.transform = 'translateX(-20px)';
-    loginForm.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    
-    setTimeout(() => {
-      loginForm.style.opacity = '1';
-      loginForm.style.transform = 'translateX(0)';
-    }, 10);
-  }, 200);
+  document.getElementById("registerForm").style.display = "none";
+  document.getElementById("loginForm").style.display = "block";
 });
 
-// Mobile menu with smooth animation and overlay
+// Mobile menu - simple and fast
 document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
   const sidebar = document.getElementById("sidebar");
   sidebar.classList.toggle("open");
@@ -529,26 +454,16 @@ document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
         width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(4px);
         z-index: 199;
-        opacity: 0;
-        transition: opacity 0.3s ease;
       `;
-      document.body.appendChild(overlay);
-      
-      setTimeout(() => overlay.style.opacity = '1', 10);
-      
       overlay.addEventListener('click', () => {
         sidebar.classList.remove("open");
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
+        overlay.remove();
       });
+      document.body.appendChild(overlay);
     } else {
       const overlay = document.getElementById("sidebarOverlay");
-      if (overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
-      }
+      if (overlay) overlay.remove();
     }
   }
 });
@@ -560,42 +475,9 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   });
 });
 
-// Close sidebar when clicking outside on mobile
-document.addEventListener('click', (e) => {
-  if (window.innerWidth <= 768) {
-    const sidebar = document.getElementById("sidebar");
-    const menuBtn = document.getElementById("mobileMenuBtn");
-    
-    if (sidebar.classList.contains("open") && 
-        !sidebar.contains(e.target) && 
-        !menuBtn.contains(e.target)) {
-      sidebar.classList.remove("open");
-      const overlay = document.getElementById("sidebarOverlay");
-      if (overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
-      }
-    }
-  }
-});
-
 // Initialize
 window.switchTab = switchTab;
+window.downloadQRCode = downloadQRCode;
 initAuth();
 
-// Add escape key to close modals
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    const sidebar = document.getElementById("sidebar");
-    if (sidebar.classList.contains("open")) {
-      sidebar.classList.remove("open");
-      const overlay = document.getElementById("sidebarOverlay");
-      if (overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
-      }
-    }
-  }
-});
-
-console.log("✅ HydroFit Loaded - Smooth Animations Active");
+console.log("✅ HydroFit Loaded - Mobile Optimized");
