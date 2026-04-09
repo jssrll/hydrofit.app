@@ -1,11 +1,16 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH AI GUIDE & ENHANCED RANKINGS
+// HYDROFIT - COMPLETE WITH GEMINI AI GUIDE
 // ========================================
+
+// Gemini API Configuration
+const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with your actual API key
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 let currentTab = "dashboard";
 let currentUser = null;
 let isLoading = false;
 let assessments = [];
+let chatHistory = [];
 
 // Custom Confirm Dialog
 function showCustomConfirm(message, onConfirm) {
@@ -158,6 +163,122 @@ async function callAPI(action, data = {}) {
     console.error("Error:", error);
     return { success: false, error: error.message };
   }
+}
+
+// ========================================
+// GEMINI AI API
+// ========================================
+
+async function askGemini(prompt, context = '') {
+  try {
+    const systemPrompt = `You are HydroFit AI, a knowledgeable and friendly fitness assistant for the PathFit program at Mindoro State University. 
+    
+Your role is to provide:
+- Step-by-step exercise routines with proper form instructions
+- Suggested sets, reps, and rest times based on fitness level
+- Modifications and alternatives for exercises
+- Safety tips and injury prevention advice
+- Motivation and encouragement
+
+When responding:
+- Be specific and actionable
+- Include warm-up and cool-down suggestions
+- Mention proper breathing techniques
+- Provide clear form cues
+
+Format your responses with clear sections using markdown-style formatting.
+Keep responses under 500 words unless specifically asked for more detail.`;
+
+    const fullPrompt = context ? `${context}\n\nUser question: ${prompt}` : prompt;
+    
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `${systemPrompt}\n\n${fullPrompt}`
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      return {
+        success: true,
+        response: data.candidates[0].content.parts[0].text
+      };
+    } else {
+      return {
+        success: false,
+        error: data.error?.message || 'No response from AI'
+      };
+    }
+  } catch (error) {
+    console.error('Gemini API Error:', error);
+    return {
+      success: false,
+      error: 'Failed to connect to AI service'
+    };
+  }
+}
+
+function formatAIResponse(text) {
+  // Convert markdown-style to HTML
+  let formatted = text
+    // Headers
+    .replace(/^### (.*$)/gim, '<h4 style="color: var(--darker); margin: 16px 0 8px; font-size: 1.1rem;">$1</h4>')
+    .replace(/^## (.*$)/gim, '<h3 style="color: var(--darker); margin: 20px 0 12px; font-size: 1.2rem;">$1</h3>')
+    .replace(/^# (.*$)/gim, '<h2 style="color: var(--darker); margin: 24px 0 16px; font-size: 1.3rem;">$1</h2>')
+    // Bold
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Lists
+    .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
+    .replace(/^• (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
+    // Line breaks
+    .replace(/\n\n/g, '</p><p style="margin-bottom: 12px; line-height: 1.7;">')
+    .replace(/\n/g, '<br>');
+  
+  // Wrap in paragraph if not already
+  if (!formatted.includes('<p')) {
+    formatted = `<p style="margin-bottom: 12px; line-height: 1.7;">${formatted}</p>`;
+  }
+  
+  // Wrap lists in ul
+  formatted = formatted.replace(/(<li.*?<\/li>)+/g, '<ul style="list-style-type: disc; margin: 12px 0; padding-left: 20px;">$&</ul>');
+  
+  return formatted;
 }
 
 // ========================================
@@ -950,7 +1071,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE - ENHANCED WITH DURATION & INTENSITY
+// RANKING PAGE - ENHANCED
 // ========================================
 
 function renderRanking() {
@@ -1015,7 +1136,6 @@ async function loadRankings() {
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
-      // Keep the best performance based on rating, then value, then intensity
       const existing = exerciseRankings[a.exercise][existingIndex];
       if (parseFloat(a.rating) > existing.rating ||
           (parseFloat(a.rating) === existing.rating && parseFloat(a.value) > existing.value) ||
@@ -1025,7 +1145,6 @@ async function loadRankings() {
     }
   });
   
-  // Sort by rating, then value, then intensity
   for (const exercise in exerciseRankings) {
     exerciseRankings[exercise].sort((a, b) => {
       if (b.rating !== a.rating) return b.rating - a.rating;
@@ -1070,7 +1189,6 @@ async function loadRankings() {
       
       const isCurrentUser = r.schoolId === currentUser.schoolId;
       
-      // Format unit display
       let unitDisplay = r.unit;
       if (r.unit === 'reps') unitDisplay = 'reps';
       else if (r.unit === 'seconds') unitDisplay = 'sec';
@@ -1130,7 +1248,7 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// AI EXERCISE GUIDE PAGE - FIXED
+// AI EXERCISE GUIDE PAGE WITH GEMINI
 // ========================================
 
 function renderAIGuide() {
@@ -1140,197 +1258,181 @@ function renderAIGuide() {
     <div class="ai-guide-container">
       <div class="ai-guide-header">
         <h2><i class="fas fa-robot"></i> AI Exercise Guide</h2>
-        <p>Your smart fitness assistant - Ask for any workout routine!</p>
+        <p>Powered by Google Gemini - Your smart fitness assistant</p>
       </div>
       
-      <div class="card ai-info-card">
-        <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
-        <p>Click the chat widget <i class="fas fa-comment-dots" style="color: #00b4d8;"></i> in the bottom right corner and try asking:</p>
-        <div class="example-prompts">
-          <div class="prompt-item" onclick="window.openChatAndAsk('I want flexibility training')">
-            <i class="fas fa-person-walking"></i> "I want flexibility training"
-          </div>
-          <div class="prompt-item" onclick="window.openChatAndAsk('Give me a strength workout routine')">
-            <i class="fas fa-dumbbell"></i> "Give me a strength workout routine"
-          </div>
-          <div class="prompt-item" onclick="window.openChatAndAsk('I need cardio exercises for beginners')">
-            <i class="fas fa-heart-pulse"></i> "I need cardio exercises for beginners"
-          </div>
-          <div class="prompt-item" onclick="window.openChatAndAsk('Show me proper push-up form')">
-            <i class="fas fa-person"></i> "Show me proper push-up form"
-          </div>
-          <div class="prompt-item" onclick="window.openChatAndAsk('Create a full body workout plan')">
-            <i class="fas fa-calendar-alt"></i> "Create a full body workout plan"
+      <div class="card ai-chat-card">
+        <h3><i class="fas fa-comments"></i> Chat with AI Trainer</h3>
+        
+        <!-- Chat Messages Container -->
+        <div class="chat-messages" id="chatMessages" style="max-height: 400px; overflow-y: auto; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 16px;">
+          <div class="chat-message assistant">
+            <div class="message-avatar">
+              <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+              <p>Hello! I'm your HydroFit AI Trainer powered by Google Gemini. I can help you with:</p>
+              <ul style="margin-top: 8px;">
+                <li>✓ Step-by-step exercise routines</li>
+                <li>✓ Proper form instructions</li>
+                <li>✓ Sets, reps, and rest time recommendations</li>
+                <li>✓ Workout modifications and alternatives</li>
+              </ul>
+              <p style="margin-top: 8px;">What would you like to work on today?</p>
+            </div>
           </div>
         </div>
-        <div style="margin-top: 20px; text-align: center;">
-          <button class="btn" onclick="window.openChatWidget()" style="background: white; color: #667eea;">
-            <i class="fas fa-comment"></i> Open AI Chat
+        
+        <!-- Quick Prompts -->
+        <div class="quick-prompts" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+          <button class="prompt-btn" onclick="window.sendQuickPrompt('I want flexibility training')">
+            <i class="fas fa-person-walking"></i> Flexibility
+          </button>
+          <button class="prompt-btn" onclick="window.sendQuickPrompt('Give me a strength workout routine')">
+            <i class="fas fa-dumbbell"></i> Strength
+          </button>
+          <button class="prompt-btn" onclick="window.sendQuickPrompt('I need cardio exercises for beginners')">
+            <i class="fas fa-heart-pulse"></i> Cardio
+          </button>
+          <button class="prompt-btn" onclick="window.sendQuickPrompt('Show me proper push-up form')">
+            <i class="fas fa-person"></i> Form Guide
+          </button>
+          <button class="prompt-btn" onclick="window.sendQuickPrompt('Create a full body workout plan')">
+            <i class="fas fa-calendar-alt"></i> Full Body
           </button>
         </div>
-      </div>
-      
-      <div class="card">
-        <h3><i class="fas fa-star"></i> What the AI Can Do</h3>
-        <ul class="feature-list">
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Step-by-step exercise routines</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Proper form instructions</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Suggested sets and rest times</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Customized workouts for your goals</li>
-          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Exercise modifications and alternatives</li>
-        </ul>
+        
+        <!-- Input Area -->
+        <div class="chat-input-area" style="display: flex; gap: 8px;">
+          <input type="text" id="aiPromptInput" class="form-control" placeholder="Ask me anything about fitness..." style="flex: 1;" onkeypress="if(event.key==='Enter') window.sendAIMessage()">
+          <button class="btn" onclick="window.sendAIMessage()" style="padding: 10px 24px;">
+            <i class="fas fa-paper-plane"></i> Send
+          </button>
+        </div>
+        
+        <button class="btn btn-outline" onclick="window.clearAIChat()" style="width: 100%; margin-top: 12px;">
+          <i class="fas fa-trash"></i> Clear Chat
+        </button>
       </div>
       
       <div class="card ai-tip-card">
-        <h3><i class="fas fa-comment-dots"></i> Pro Tips</h3>
-        <p>Be specific about your goals! Try mentioning:</p>
+        <h3><i class="fas fa-lightbulb"></i> Tips for Better Results</h3>
         <ul class="tip-list">
-          <li>• Your fitness level (beginner, intermediate, advanced)</li>
-          <li>• Available equipment (none, dumbbells, resistance bands)</li>
-          <li>• Time available (15 min, 30 min, 1 hour)</li>
-          <li>• Target areas (full body, upper body, core, legs)</li>
+          <li>• Be specific about your fitness level (beginner, intermediate, advanced)</li>
+          <li>• Mention available equipment (none, dumbbells, bands)</li>
+          <li>• Specify time available (15 min, 30 min, 1 hour)</li>
+          <li>• Tell me your target areas (full body, upper body, core, legs)</li>
+          <li>• Let me know about any injuries or limitations</li>
         </ul>
       </div>
-      
-      <div class="card" id="aiStatusCard">
-        <h3><i class="fas fa-info-circle"></i> AI Status</h3>
-        <div id="aiStatus">
-          <p><i class="fas fa-spinner fa-spin"></i> Loading AI assistant...</p>
-        </div>
+    </div>
+  `;
+}
+
+// AI Chat Functions
+async function sendAIMessage() {
+  const input = document.getElementById('aiPromptInput');
+  const message = input.value.trim();
+  
+  if (!message) {
+    showToast('Please enter a question', true);
+    return;
+  }
+  
+  // Clear input
+  input.value = '';
+  
+  // Add user message to chat
+  addChatMessage(message, 'user');
+  
+  // Show typing indicator
+  showTypingIndicator();
+  
+  // Get AI response
+  const result = await askGemini(message);
+  
+  // Remove typing indicator
+  removeTypingIndicator();
+  
+  if (result.success) {
+    addChatMessage(result.response, 'assistant');
+  } else {
+    addChatMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+    console.error('AI Error:', result.error);
+  }
+}
+
+async function sendQuickPrompt(prompt) {
+  document.getElementById('aiPromptInput').value = prompt;
+  await sendAIMessage();
+}
+
+function addChatMessage(content, role) {
+  const messagesContainer = document.getElementById('chatMessages');
+  
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `chat-message ${role}`;
+  
+  const avatarIcon = role === 'user' ? 'fa-user' : 'fa-robot';
+  
+  messageDiv.innerHTML = `
+    <div class="message-avatar">
+      <i class="fas ${avatarIcon}"></i>
+    </div>
+    <div class="message-content">
+      ${role === 'assistant' ? formatAIResponse(content) : `<p>${escapeHtml(content)}</p>`}
+    </div>
+  `;
+  
+  messagesContainer.appendChild(messageDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  
+  // Save to history
+  chatHistory.push({ role, content, timestamp: new Date().toISOString() });
+}
+
+function showTypingIndicator() {
+  const messagesContainer = document.getElementById('chatMessages');
+  
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chat-message assistant';
+  typingDiv.id = 'typingIndicator';
+  typingDiv.innerHTML = `
+    <div class="message-avatar">
+      <i class="fas fa-robot"></i>
+    </div>
+    <div class="message-content">
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
       </div>
     </div>
   `;
   
-  // Initialize Chatbase AI
-  initChatbaseAI();
+  messagesContainer.appendChild(typingDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Fixed Chatbase AI Integration
-function initChatbaseAI() {
-  const statusEl = document.getElementById('aiStatus');
-  
-  // Check if already loaded
-  if (window.chatbase && window.chatbase("getState") === "initialized") {
-    if (statusEl) {
-      statusEl.innerHTML = '<p style="color: #00b894;"><i class="fas fa-check-circle"></i> AI Assistant is ready! Click the chat icon <i class="fas fa-comment-dots"></i> in the bottom right.</p>';
-    }
-    return;
-  }
-  
-  // Remove any existing chatbase scripts
-  const existingScript = document.getElementById('chatbase-script');
-  if (existingScript) {
-    existingScript.remove();
-  }
-  
-  // Set Chatbase configuration
-  window.chatbaseConfig = {
-    chatbotId: "Zqs29nX4-jV3VlilBTsjp",
-    domain: "www.chatbase.co"
-  };
-  
-  // Create and append script
-  const script = document.createElement('script');
-  script.src = "https://www.chatbase.co/embed.min.js";
-  script.id = "chatbase-script";
-  script.defer = true;
-  
-  script.onload = () => {
-    console.log('✅ Chatbase AI loaded');
-    if (statusEl) {
-      statusEl.innerHTML = '<p style="color: #00b894;"><i class="fas fa-check-circle"></i> AI Assistant is ready! Click the chat icon <i class="fas fa-comment-dots"></i> in the bottom right.</p>';
-    }
-    showToast('AI Assistant loaded! Click the chat icon to start.', false);
-  };
-  
-  script.onerror = () => {
-    console.error('❌ Failed to load Chatbase AI');
-    if (statusEl) {
-      statusEl.innerHTML = `
-        <p style="color: #d63031;"><i class="fas fa-exclamation-triangle"></i> AI Assistant failed to load.</p>
-        <button class="btn btn-outline" onclick="window.retryLoadAI()" style="margin-top: 12px;">
-          <i class="fas fa-sync-alt"></i> Retry Loading AI
-        </button>
-        <p style="margin-top: 12px; font-size: 0.85rem; color: #64748b;">
-          Make sure you have a stable internet connection.
-        </p>
-      `;
-    }
-  };
-  
-  document.body.appendChild(script);
-  
-  // Set timeout for loading
-  setTimeout(() => {
-    if (statusEl && statusEl.innerHTML.includes('spinner')) {
-      statusEl.innerHTML = `
-        <p style="color: #fdcb6e;"><i class="fas fa-clock"></i> AI Assistant is taking longer than expected...</p>
-        <button class="btn btn-outline" onclick="window.retryLoadAI()" style="margin-top: 12px;">
-          <i class="fas fa-sync-alt"></i> Retry Loading
-        </button>
-      `;
-    }
-  }, 5000);
-}
-
-// Retry loading AI
-function retryLoadAI() {
-  const statusEl = document.getElementById('aiStatus');
-  if (statusEl) {
-    statusEl.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Loading AI assistant...</p>';
-  }
-  
-  // Remove existing script
-  const existingScript = document.getElementById('chatbase-script');
-  if (existingScript) {
-    existingScript.remove();
-  }
-  
-  // Try loading again
-  initChatbaseAI();
-}
-
-// Open chat widget
-function openChatWidget() {
-  if (window.chatbase) {
-    try {
-      window.chatbase("open");
-      showToast('Chat widget opened!', false);
-    } catch(e) {
-      // If chatbase is not ready, show message
-      showToast('AI Assistant is still loading. Please wait a moment.', true);
-    }
-  } else {
-    showToast('AI Assistant is loading. Please wait...', true);
-    initChatbaseAI();
+function removeTypingIndicator() {
+  const typingIndicator = document.getElementById('typingIndicator');
+  if (typingIndicator) {
+    typingIndicator.remove();
   }
 }
 
-// Open chat and ask a question
-function openChatAndAsk(prompt) {
-  if (window.chatbase) {
-    try {
-      window.chatbase("open");
-      // Note: Chatbase may not support programmatic message sending
-      // User will need to type or paste the prompt
-      showToast(`Type or paste: "${prompt}"`, false);
-      
-      // Copy to clipboard
-      navigator.clipboard?.writeText(prompt).then(() => {
-        showToast('Prompt copied to clipboard! Paste it in the chat.', false);
-      });
-    } catch(e) {
-      showToast('Click the chat icon and type your question!', false);
-    }
-  } else {
-    showToast('AI Assistant is loading. Please wait...', true);
-    initChatbaseAI();
-  }
-}
-
-// Set prompt (legacy function)
-function setPrompt(prompt) {
-  openChatAndAsk(prompt);
+function clearAIChat() {
+  const messagesContainer = document.getElementById('chatMessages');
+  messagesContainer.innerHTML = `
+    <div class="chat-message assistant">
+      <div class="message-avatar">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="message-content">
+        <p>Chat cleared! I'm your HydroFit AI Trainer powered by Google Gemini. What would you like to work on today?</p>
+      </div>
+    </div>
+  `;
+  chatHistory = [];
+  showToast('Chat history cleared', false);
 }
 
 // ========================================
@@ -1549,13 +1651,10 @@ window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
 window.refreshAssessments = refreshAssessments;
-window.setPrompt = setPrompt;
-// Add these to your window exports
-window.openChatWidget = openChatWidget;
-window.openChatAndAsk = openChatAndAsk;
-window.retryLoadAI = retryLoadAI;
-window.setPrompt = setPrompt;
+window.sendAIMessage = sendAIMessage;
+window.sendQuickPrompt = sendQuickPrompt;
+window.clearAIChat = clearAIChat;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete with AI Guide");
+console.log("✅ HydroFit Loaded - Complete with Gemini AI");
