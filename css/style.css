@@ -1352,3 +1352,13 @@ input[type="range"] {
     padding: 10px 16px !important;
   }
 }
+
+/* Ensure Chatbase widget doesn't overlap with toast */
+#toast {
+  z-index: 2000;
+}
+
+/* Chatbase widget z-index adjustment if needed */
+iframe[src*="chatbase"] {
+  z-index: 999 !important;
+}
