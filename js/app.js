@@ -950,7 +950,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE
+// RANKING PAGE - ENHANCED WITH DURATION & INTENSITY
 // ========================================
 
 function renderRanking() {
@@ -1015,6 +1015,7 @@ async function loadRankings() {
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
+      // Keep the best performance based on rating, then value, then intensity
       const existing = exerciseRankings[a.exercise][existingIndex];
       if (parseFloat(a.rating) > existing.rating ||
           (parseFloat(a.rating) === existing.rating && parseFloat(a.value) > existing.value) ||
@@ -1024,6 +1025,7 @@ async function loadRankings() {
     }
   });
   
+  // Sort by rating, then value, then intensity
   for (const exercise in exerciseRankings) {
     exerciseRankings[exercise].sort((a, b) => {
       if (b.rating !== a.rating) return b.rating - a.rating;
@@ -1068,6 +1070,7 @@ async function loadRankings() {
       
       const isCurrentUser = r.schoolId === currentUser.schoolId;
       
+      // Format unit display
       let unitDisplay = r.unit;
       if (r.unit === 'reps') unitDisplay = 'reps';
       else if (r.unit === 'seconds') unitDisplay = 'sec';
@@ -1186,15 +1189,19 @@ function renderAIGuide() {
     </div>
   `;
   
+  // Initialize Chatbase AI
   initChatbaseAI();
 }
 
 function setPrompt(prompt) {
+  // Try to set the prompt in Chatbase if available
   const chatbaseIframe = document.querySelector('iframe[src*="chatbase"]');
   if (chatbaseIframe) {
+    // Focus on the chat widget
     chatbaseIframe.contentWindow.postMessage({ type: 'setPrompt', prompt: prompt }, '*');
   }
   
+  // Open chatbase if closed
   if (window.chatbase && window.chatbase("getState") !== "open") {
     window.chatbase("open");
   }
@@ -1202,6 +1209,7 @@ function setPrompt(prompt) {
   showToast('Click the chat widget to send your question!', false);
 }
 
+// Chatbase AI Integration
 function initChatbaseAI() {
   if (window.chatbase && window.chatbase("getState") === "initialized") return;
   
