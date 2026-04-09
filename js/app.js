@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH AI GUIDE & ENHANCED RANKINGS
+// HYDROFIT - COMPLETE WITHOUT AI
 // ========================================
 
 let currentTab = "dashboard";
@@ -950,7 +950,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE - ENHANCED WITH DURATION & INTENSITY
+// RANKING PAGE
 // ========================================
 
 function renderRanking() {
@@ -1015,7 +1015,6 @@ async function loadRankings() {
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
-      // Keep the best performance based on rating, then value, then intensity
       const existing = exerciseRankings[a.exercise][existingIndex];
       if (parseFloat(a.rating) > existing.rating ||
           (parseFloat(a.rating) === existing.rating && parseFloat(a.value) > existing.value) ||
@@ -1025,7 +1024,6 @@ async function loadRankings() {
     }
   });
   
-  // Sort by rating, then value, then intensity
   for (const exercise in exerciseRankings) {
     exerciseRankings[exercise].sort((a, b) => {
       if (b.rating !== a.rating) return b.rating - a.rating;
@@ -1070,7 +1068,6 @@ async function loadRankings() {
       
       const isCurrentUser = r.schoolId === currentUser.schoolId;
       
-      // Format unit display
       let unitDisplay = r.unit;
       if (r.unit === 'reps') unitDisplay = 'reps';
       else if (r.unit === 'seconds') unitDisplay = 'sec';
@@ -1130,6 +1127,88 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
+// EXERCISE GUIDE PAGE (SIMPLE - NO AI)
+// ========================================
+
+function renderExerciseGuide() {
+  const container = document.getElementById("tabContent");
+  
+  container.innerHTML = `
+    <div class="ai-guide-container">
+      <div class="ai-guide-header">
+        <h2><i class="fas fa-dumbbell"></i> Exercise Guide</h2>
+        <p>Browse workout routines and exercise instructions</p>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-person-walking"></i> Flexibility Training</h3>
+        <p><strong>Warm-up (5 min):</strong> Arm circles, neck rolls, torso twists</p>
+        <p><strong>Main Stretches (hold each 30 sec):</strong></p>
+        <ul style="margin-left: 20px; margin-bottom: 16px;">
+          <li>Hamstring Stretch - Sit with one leg straight, reach for toes</li>
+          <li>Quad Stretch - Stand, pull heel to glute</li>
+          <li>Cat-Cow - On hands and knees, arch and round spine</li>
+          <li>Child's Pose - Kneel, stretch arms forward</li>
+          <li>Butterfly Stretch - Soles together, knees out</li>
+        </ul>
+        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Never bounce while stretching - hold steady!</p>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-dumbbell"></i> Strength Training</h3>
+        <p><strong>Bodyweight Routine (3 rounds, 60 sec rest):</strong></p>
+        <ul style="margin-left: 20px; margin-bottom: 16px;">
+          <li>Push-ups - 10-15 reps</li>
+          <li>Squats - 15-20 reps</li>
+          <li>Lunges - 10 each leg</li>
+          <li>Plank - Hold 30-60 sec</li>
+          <li>Glute Bridges - 15 reps</li>
+        </ul>
+        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Keep core tight during all exercises!</p>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-heart-pulse"></i> Cardio Workout</h3>
+        <p><strong>Home Cardio (45 sec work, 15 sec rest - 3 rounds):</strong></p>
+        <ul style="margin-left: 20px; margin-bottom: 16px;">
+          <li>High Knees - Run in place</li>
+          <li>Burpees - Full body move</li>
+          <li>Mountain Climbers - Core + cardio</li>
+          <li>Jump Squats - Explosive legs</li>
+          <li>Butt Kicks - Hamstring activation</li>
+        </ul>
+        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Aim to be breathless but able to speak a few words!</p>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-person"></i> Push-Up Form Guide</h3>
+        <p><strong>Setup:</strong> Hands shoulder-width, body straight, core tight</p>
+        <p><strong>Movement:</strong> Lower chest to elbow height, elbows at 45°</p>
+        <p><strong>Sets & Reps:</strong></p>
+        <ul style="margin-left: 20px; margin-bottom: 16px;">
+          <li>Beginners: 3 sets of 5-10 reps</li>
+          <li>Intermediate: 3 sets of 15-20 reps</li>
+          <li>Advanced: 4 sets of 20-30 reps</li>
+        </ul>
+        <p><i class="fas fa-lightbulb" style="color: #fdcb6e;"></i> <strong>Tip:</strong> Don't let hips sag!</p>
+      </div>
+      
+      <div class="card ai-tip-card">
+        <h3><i class="fas fa-clipboard-list"></i> General Fitness Tips</h3>
+        <ul class="feature-list">
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Aim for 30 min of activity daily</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Mix cardio, strength, and flexibility</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Quality over quantity - proper form always</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Increase gradually (10% per week)</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Sleep 7-9 hours for recovery</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Rest 48 hours between same muscle groups</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// ========================================
 // TAB SWITCHING
 // ========================================
 
@@ -1167,9 +1246,9 @@ function switchTab(tab) {
     renderRanking(); 
     isLoading = false;
   }
-  else if (tab === 'aiguide') { 
-    updatePageTitle('AI Exercise Guide'); 
-    renderAIGuide(); 
+  else if (tab === 'guide') { 
+    updatePageTitle('Exercise Guide'); 
+    renderExerciseGuide(); 
     isLoading = false;
   }
 }
@@ -1345,8 +1424,7 @@ window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
 window.refreshAssessments = refreshAssessments;
-window.setPrompt = setPrompt;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete with AI Guide");
+console.log("✅ HydroFit Loaded - Complete");
