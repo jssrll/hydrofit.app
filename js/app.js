@@ -1132,6 +1132,83 @@ function getIntensityColor(intensity) {
 // ========================================
 // AI EXERCISE GUIDE PAGE
 // ========================================
+
+function renderAIGuide() {
+  const container = document.getElementById("tabContent");
+  
+  container.innerHTML = `
+    <div class="ai-guide-container">
+      <div class="ai-guide-header">
+        <h2><i class="fas fa-robot"></i> AI Exercise Guide</h2>
+        <p>Your smart fitness assistant - Ask for any workout routine!</p>
+      </div>
+      
+      <div class="card ai-info-card">
+        <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
+        <p>Click the chat widget in the bottom right corner and try asking:</p>
+        <div class="example-prompts">
+          <div class="prompt-item" onclick="window.setPrompt('I want flexibility training')">
+            <i class="fas fa-person-walking"></i> "I want flexibility training"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Give me a strength workout routine')">
+            <i class="fas fa-dumbbell"></i> "Give me a strength workout routine"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('I need cardio exercises for beginners')">
+            <i class="fas fa-heart-pulse"></i> "I need cardio exercises for beginners"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Show me proper push-up form')">
+            <i class="fas fa-person"></i> "Show me proper push-up form"
+          </div>
+          <div class="prompt-item" onclick="window.setPrompt('Create a full body workout plan')">
+            <i class="fas fa-calendar-alt"></i> "Create a full body workout plan"
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-star"></i> What the AI Can Do</h3>
+        <ul class="feature-list">
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Step-by-step exercise routines</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Proper form instructions</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Suggested sets and rest times</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Customized workouts for your goals</li>
+          <li><i class="fas fa-check-circle" style="color: #00b894;"></i> Exercise modifications and alternatives</li>
+        </ul>
+      </div>
+      
+      <div class="card ai-tip-card">
+        <h3><i class="fas fa-comment-dots"></i> Pro Tips</h3>
+        <p>Be specific about your goals! Try mentioning:</p>
+        <ul class="tip-list">
+          <li>• Your fitness level (beginner, intermediate, advanced)</li>
+          <li>• Available equipment (none, dumbbells, resistance bands)</li>
+          <li>• Time available (15 min, 30 min, 1 hour)</li>
+          <li>• Target areas (full body, upper body, core, legs)</li>
+        </ul>
+      </div>
+    </div>
+  `;
+  
+  // Initialize Chatbase AI
+  initChatbaseAI();
+}
+
+function setPrompt(prompt) {
+  // Try to set the prompt in Chatbase if available
+  const chatbaseIframe = document.querySelector('iframe[src*="chatbase"]');
+  if (chatbaseIframe) {
+    // Focus on the chat widget
+    chatbaseIframe.contentWindow.postMessage({ type: 'setPrompt', prompt: prompt }, '*');
+  }
+  
+  // Open chatbase if closed
+  if (window.chatbase && window.chatbase("getState") !== "open") {
+    window.chatbase("open");
+  }
+  
+  showToast('Click the chat widget to send your question!', false);
+}
+
 // Chatbase AI Integration
 function initChatbaseAI() {
   if (window.chatbase && window.chatbase("getState") === "initialized") return;
