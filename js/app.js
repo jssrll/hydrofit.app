@@ -1130,7 +1130,7 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// AI EXERCISE GUIDE PAGE
+// AI EXERCISE GUIDE PAGE - FIXED
 // ========================================
 
 function renderAIGuide() {
@@ -1145,23 +1145,28 @@ function renderAIGuide() {
       
       <div class="card ai-info-card">
         <h3><i class="fas fa-lightbulb"></i> How to Use</h3>
-        <p>Click the chat widget in the bottom right corner and try asking:</p>
+        <p>Click the chat widget <i class="fas fa-comment-dots" style="color: #00b4d8;"></i> in the bottom right corner and try asking:</p>
         <div class="example-prompts">
-          <div class="prompt-item" onclick="window.setPrompt('I want flexibility training')">
+          <div class="prompt-item" onclick="window.openChatAndAsk('I want flexibility training')">
             <i class="fas fa-person-walking"></i> "I want flexibility training"
           </div>
-          <div class="prompt-item" onclick="window.setPrompt('Give me a strength workout routine')">
+          <div class="prompt-item" onclick="window.openChatAndAsk('Give me a strength workout routine')">
             <i class="fas fa-dumbbell"></i> "Give me a strength workout routine"
           </div>
-          <div class="prompt-item" onclick="window.setPrompt('I need cardio exercises for beginners')">
+          <div class="prompt-item" onclick="window.openChatAndAsk('I need cardio exercises for beginners')">
             <i class="fas fa-heart-pulse"></i> "I need cardio exercises for beginners"
           </div>
-          <div class="prompt-item" onclick="window.setPrompt('Show me proper push-up form')">
+          <div class="prompt-item" onclick="window.openChatAndAsk('Show me proper push-up form')">
             <i class="fas fa-person"></i> "Show me proper push-up form"
           </div>
-          <div class="prompt-item" onclick="window.setPrompt('Create a full body workout plan')">
+          <div class="prompt-item" onclick="window.openChatAndAsk('Create a full body workout plan')">
             <i class="fas fa-calendar-alt"></i> "Create a full body workout plan"
           </div>
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+          <button class="btn" onclick="window.openChatWidget()" style="background: white; color: #667eea;">
+            <i class="fas fa-comment"></i> Open AI Chat
+          </button>
         </div>
       </div>
       
@@ -1186,6 +1191,13 @@ function renderAIGuide() {
           <li>• Target areas (full body, upper body, core, legs)</li>
         </ul>
       </div>
+      
+      <div class="card" id="aiStatusCard">
+        <h3><i class="fas fa-info-circle"></i> AI Status</h3>
+        <div id="aiStatus">
+          <p><i class="fas fa-spinner fa-spin"></i> Loading AI assistant...</p>
+        </div>
+      </div>
     </div>
   `;
   
@@ -1193,37 +1205,132 @@ function renderAIGuide() {
   initChatbaseAI();
 }
 
-function setPrompt(prompt) {
-  // Try to set the prompt in Chatbase if available
-  const chatbaseIframe = document.querySelector('iframe[src*="chatbase"]');
-  if (chatbaseIframe) {
-    // Focus on the chat widget
-    chatbaseIframe.contentWindow.postMessage({ type: 'setPrompt', prompt: prompt }, '*');
-  }
-  
-  // Open chatbase if closed
-  if (window.chatbase && window.chatbase("getState") !== "open") {
-    window.chatbase("open");
-  }
-  
-  showToast('Click the chat widget to send your question!', false);
-}
-
-// Chatbase AI Integration
+// Fixed Chatbase AI Integration
 function initChatbaseAI() {
-  if (window.chatbase && window.chatbase("getState") === "initialized") return;
+  const statusEl = document.getElementById('aiStatus');
   
-  window.chatbaseConfig = { chatbotId: "Zqs29nX4-jV3VlilBTsjp" };
+  // Check if already loaded
+  if (window.chatbase && window.chatbase("getState") === "initialized") {
+    if (statusEl) {
+      statusEl.innerHTML = '<p style="color: #00b894;"><i class="fas fa-check-circle"></i> AI Assistant is ready! Click the chat icon <i class="fas fa-comment-dots"></i> in the bottom right.</p>';
+    }
+    return;
+  }
   
+  // Remove any existing chatbase scripts
+  const existingScript = document.getElementById('chatbase-script');
+  if (existingScript) {
+    existingScript.remove();
+  }
+  
+  // Set Chatbase configuration
+  window.chatbaseConfig = {
+    chatbotId: "Zqs29nX4-jV3VlilBTsjp",
+    domain: "www.chatbase.co"
+  };
+  
+  // Create and append script
   const script = document.createElement('script');
   script.src = "https://www.chatbase.co/embed.min.js";
-  script.id = "Zqs29nX4-jV3VlilBTsjp";
+  script.id = "chatbase-script";
   script.defer = true;
+  
   script.onload = () => {
     console.log('✅ Chatbase AI loaded');
+    if (statusEl) {
+      statusEl.innerHTML = '<p style="color: #00b894;"><i class="fas fa-check-circle"></i> AI Assistant is ready! Click the chat icon <i class="fas fa-comment-dots"></i> in the bottom right.</p>';
+    }
+    showToast('AI Assistant loaded! Click the chat icon to start.', false);
+  };
+  
+  script.onerror = () => {
+    console.error('❌ Failed to load Chatbase AI');
+    if (statusEl) {
+      statusEl.innerHTML = `
+        <p style="color: #d63031;"><i class="fas fa-exclamation-triangle"></i> AI Assistant failed to load.</p>
+        <button class="btn btn-outline" onclick="window.retryLoadAI()" style="margin-top: 12px;">
+          <i class="fas fa-sync-alt"></i> Retry Loading AI
+        </button>
+        <p style="margin-top: 12px; font-size: 0.85rem; color: #64748b;">
+          Make sure you have a stable internet connection.
+        </p>
+      `;
+    }
   };
   
   document.body.appendChild(script);
+  
+  // Set timeout for loading
+  setTimeout(() => {
+    if (statusEl && statusEl.innerHTML.includes('spinner')) {
+      statusEl.innerHTML = `
+        <p style="color: #fdcb6e;"><i class="fas fa-clock"></i> AI Assistant is taking longer than expected...</p>
+        <button class="btn btn-outline" onclick="window.retryLoadAI()" style="margin-top: 12px;">
+          <i class="fas fa-sync-alt"></i> Retry Loading
+        </button>
+      `;
+    }
+  }, 5000);
+}
+
+// Retry loading AI
+function retryLoadAI() {
+  const statusEl = document.getElementById('aiStatus');
+  if (statusEl) {
+    statusEl.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Loading AI assistant...</p>';
+  }
+  
+  // Remove existing script
+  const existingScript = document.getElementById('chatbase-script');
+  if (existingScript) {
+    existingScript.remove();
+  }
+  
+  // Try loading again
+  initChatbaseAI();
+}
+
+// Open chat widget
+function openChatWidget() {
+  if (window.chatbase) {
+    try {
+      window.chatbase("open");
+      showToast('Chat widget opened!', false);
+    } catch(e) {
+      // If chatbase is not ready, show message
+      showToast('AI Assistant is still loading. Please wait a moment.', true);
+    }
+  } else {
+    showToast('AI Assistant is loading. Please wait...', true);
+    initChatbaseAI();
+  }
+}
+
+// Open chat and ask a question
+function openChatAndAsk(prompt) {
+  if (window.chatbase) {
+    try {
+      window.chatbase("open");
+      // Note: Chatbase may not support programmatic message sending
+      // User will need to type or paste the prompt
+      showToast(`Type or paste: "${prompt}"`, false);
+      
+      // Copy to clipboard
+      navigator.clipboard?.writeText(prompt).then(() => {
+        showToast('Prompt copied to clipboard! Paste it in the chat.', false);
+      });
+    } catch(e) {
+      showToast('Click the chat icon and type your question!', false);
+    }
+  } else {
+    showToast('AI Assistant is loading. Please wait...', true);
+    initChatbaseAI();
+  }
+}
+
+// Set prompt (legacy function)
+function setPrompt(prompt) {
+  openChatAndAsk(prompt);
 }
 
 // ========================================
@@ -1442,6 +1549,11 @@ window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
 window.refreshAssessments = refreshAssessments;
+window.setPrompt = setPrompt;
+// Add these to your window exports
+window.openChatWidget = openChatWidget;
+window.openChatAndAsk = openChatAndAsk;
+window.retryLoadAI = retryLoadAI;
 window.setPrompt = setPrompt;
 
 initAuth();
