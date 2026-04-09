@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH ADVANCED RANKINGS
+// HYDROFIT - COMPLETE WITH RANKINGS
 // ========================================
 
 let currentTab = "dashboard";
@@ -9,6 +9,7 @@ let assessments = [];
 
 // Custom Confirm Dialog
 function showCustomConfirm(message, onConfirm) {
+  // Create overlay
   const overlay = document.createElement('div');
   overlay.style.cssText = `
     position: fixed;
@@ -25,6 +26,7 @@ function showCustomConfirm(message, onConfirm) {
     animation: fadeIn 0.2s ease;
   `;
   
+  // Create dialog
   const dialog = document.createElement('div');
   dialog.style.cssText = `
     background: white;
@@ -56,6 +58,7 @@ function showCustomConfirm(message, onConfirm) {
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
   
+  // Add animation styles
   const style = document.createElement('style');
   style.textContent = `
     @keyframes fadeIn {
@@ -69,6 +72,7 @@ function showCustomConfirm(message, onConfirm) {
   `;
   document.head.appendChild(style);
   
+  // Handle buttons
   document.getElementById('customConfirmCancel').onclick = () => {
     overlay.style.opacity = '0';
     setTimeout(() => overlay.remove(), 200);
@@ -82,6 +86,7 @@ function showCustomConfirm(message, onConfirm) {
     }, 200);
   };
   
+  // Close on overlay click
   overlay.onclick = (e) => {
     if (e.target === overlay) {
       overlay.style.opacity = '0';
@@ -119,6 +124,7 @@ function closeSidebar() {
   if (overlay) overlay.remove();
 }
 
+// Loading indicator functions
 function showLoading(containerId) {
   const container = document.getElementById(containerId);
   if (container) {
@@ -539,23 +545,6 @@ function getGradeColor(grade) {
   return colors[grade] || '#64748b';
 }
 
-// Calculate normalized value based on unit
-function normalizeValue(value, unit) {
-  // Convert everything to a comparable base (seconds equivalent)
-  if (unit === 'reps') {
-    return value * 2; // 1 rep ≈ 2 seconds effort
-  } else if (unit === 'seconds') {
-    return value;
-  } else if (unit === 'minutes') {
-    return value * 60;
-  } else if (unit === 'meters') {
-    return value / 10; // 10 meters ≈ 1 second
-  } else if (unit === 'laps') {
-    return value * 120; // 1 lap ≈ 2 minutes
-  }
-  return value;
-}
-
 function calculateRating(exercise, value, unit, intensity) {
   let baseScore = 0;
   
@@ -581,32 +570,6 @@ function calculateRating(exercise, value, unit, intensity) {
   else grade = 'Needs Improvement';
   
   return { rating, grade };
-}
-
-// Calculate advanced score for rankings (includes duration and intensity)
-function calculateAdvancedScore(value, unit, intensity, rating) {
-  const normalizedValue = normalizeValue(value, unit);
-  
-  // Weight factors:
-  // - Duration/Volume: 40%
-  // - Intensity: 30%
-  // - Rating (form/quality): 30%
-  
-  let volumeScore = 0;
-  if (normalizedValue >= 600) volumeScore = 100; // 10+ minutes
-  else if (normalizedValue >= 300) volumeScore = 85; // 5+ minutes
-  else if (normalizedValue >= 180) volumeScore = 70; // 3+ minutes
-  else if (normalizedValue >= 120) volumeScore = 55; // 2+ minutes
-  else if (normalizedValue >= 60) volumeScore = 40; // 1+ minute
-  else volumeScore = 25; // < 1 minute
-  
-  const intensityScore = intensity * 10; // 1-10 becomes 10-100
-  const ratingScore = parseFloat(rating) * 10; // 0-10 becomes 0-100
-  
-  // Calculate weighted total
-  const totalScore = (volumeScore * 0.4) + (intensityScore * 0.3) + (ratingScore * 0.3);
-  
-  return Math.round(totalScore);
 }
 
 async function addAssessment() {
@@ -992,7 +955,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE - WITH DURATION & INTENSITY
+// RANKING PAGE
 // ========================================
 
 function renderRanking() {
@@ -1002,32 +965,6 @@ function renderRanking() {
     <div class="ranking-banner">
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png" alt="Exercise Rankings Banner" style="width: 100%; border-radius: 20px; margin-bottom: 20px;">
     </div>
-    
-    <!-- Scoring System Info -->
-    <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #023e8a, #00b4d8); color: white;">
-      <h3 style="color: white; margin-bottom: 12px;"><i class="fas fa-calculator"></i> Ranking Score Formula</h3>
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
-        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
-          <i class="fas fa-clock" style="font-size: 1.5rem; margin-bottom: 6px;"></i>
-          <p style="font-weight: 600;">Duration/Volume</p>
-          <p style="font-size: 0.85rem; opacity: 0.9;">40% of score</p>
-        </div>
-        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
-          <i class="fas fa-fire" style="font-size: 1.5rem; margin-bottom: 6px;"></i>
-          <p style="font-weight: 600;">Intensity</p>
-          <p style="font-size: 0.85rem; opacity: 0.9;">30% of score</p>
-        </div>
-        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
-          <i class="fas fa-star" style="font-size: 1.5rem; margin-bottom: 6px;"></i>
-          <p style="font-weight: 600;">Form/Rating</p>
-          <p style="font-size: 0.85rem; opacity: 0.9;">30% of score</p>
-        </div>
-      </div>
-      <p style="margin-top: 12px; font-size: 0.8rem; opacity: 0.8; text-align: center;">
-        <i class="fas fa-info-circle"></i> Higher duration and intensity = Better ranking
-      </p>
-    </div>
-    
     <div id="rankingsContainer">
       <div class="loading-placeholder">
         <i class="fas fa-spinner fa-spin"></i> Loading rankings...
@@ -1060,7 +997,6 @@ async function loadRankings() {
   
   const exerciseRankings = {};
   
-  // Group and calculate advanced scores
   result.assessments.forEach(a => {
     if (!exerciseRankings[a.exercise]) {
       exerciseRankings[a.exercise] = [];
@@ -1070,13 +1006,6 @@ async function loadRankings() {
       e => e.schoolId === a.schoolId
     );
     
-    const advancedScore = calculateAdvancedScore(
-      parseFloat(a.value),
-      a.unit,
-      parseInt(a.intensity),
-      parseFloat(a.rating)
-    );
-    
     const entry = {
       schoolId: a.schoolId,
       studentName: a.studentName || 'Student',
@@ -1084,34 +1013,25 @@ async function loadRankings() {
       grade: a.grade,
       value: parseFloat(a.value),
       unit: a.unit,
-      intensity: parseInt(a.intensity),
-      date: a.date,
-      advancedScore: advancedScore
+      date: a.date
     };
     
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
-      // Keep the best advanced score
-      if (advancedScore > exerciseRankings[a.exercise][existingIndex].advancedScore) {
+      if (parseFloat(a.rating) > exerciseRankings[a.exercise][existingIndex].rating) {
         exerciseRankings[a.exercise][existingIndex] = entry;
       }
     }
   });
   
-  // Sort by advanced score (descending)
   for (const exercise in exerciseRankings) {
-    exerciseRankings[exercise].sort((a, b) => b.advancedScore - a.advancedScore);
+    exerciseRankings[exercise].sort((a, b) => b.rating - a.rating);
   }
-  
-  // Sort exercises alphabetically
-  const sortedExercises = Object.keys(exerciseRankings).sort();
   
   let html = '';
   
-  for (const exercise of sortedExercises) {
-    const rankings = exerciseRankings[exercise];
-    
+  for (const [exercise, rankings] of Object.entries(exerciseRankings)) {
     html += `
       <div class="card ranking-card" style="margin-bottom: 24px;">
         <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
@@ -1127,10 +1047,9 @@ async function loadRankings() {
             <tr>
               <th>Rank</th>
               <th>Student</th>
-              <th>Score</th>
-              <th>Performance</th>
-              <th>Intensity</th>
               <th>Rating</th>
+              <th>Grade</th>
+              <th>Performance</th>
             </tr>
           </thead>
           <tbody>
@@ -1145,9 +1064,6 @@ async function loadRankings() {
       
       const isCurrentUser = r.schoolId === currentUser.schoolId;
       
-      // Format value display
-      let valueDisplay = `${r.value} ${r.unit}`;
-      
       html += `
         <tr style="${isCurrentUser ? 'background: #e0f2fe; font-weight: 600;' : ''}">
           <td>
@@ -1157,19 +1073,9 @@ async function loadRankings() {
             ${escapeHtml(r.studentName)}
             ${isCurrentUser ? ' <span style="color: var(--primary); font-size: 0.75rem;">(You)</span>' : ''}
           </td>
-          <td style="font-weight: 700; color: ${r.advancedScore >= 70 ? '#00b894' : r.advancedScore >= 50 ? '#fdcb6e' : '#64748b'};">
-            ${r.advancedScore}
-          </td>
-          <td style="color: #64748b;">${valueDisplay}</td>
-          <td style="color: #64748b;">
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <div style="width: 40px; height: 6px; background: #e0e7ff; border-radius: 3px; overflow: hidden;">
-                <div style="width: ${r.intensity * 10}%; height: 100%; background: ${r.intensity >= 7 ? '#00b894' : r.intensity >= 4 ? '#fdcb6e' : '#e17055'}; border-radius: 3px;"></div>
-              </div>
-              ${r.intensity}/10
-            </div>
-          </td>
-          <td style="font-weight: 600; color: ${getGradeColor(r.grade)};">${r.rating} (${r.grade})</td>
+          <td style="font-weight: 700; color: ${getGradeColor(r.grade)};">${r.rating}</td>
+          <td style="color: ${getGradeColor(r.grade)};">${r.grade}</td>
+          <td style="color: #64748b;">${r.value} ${r.unit}</td>
         </tr>
       `;
     });
@@ -1177,7 +1083,7 @@ async function loadRankings() {
     if (rankings.length > 10) {
       html += `
         <tr>
-          <td colspan="6" style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 12px;">
+          <td colspan="5" style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 12px;">
             ... and ${rankings.length - 10} more participants
           </td>
         </tr>
@@ -1408,4 +1314,4 @@ window.refreshAssessments = refreshAssessments;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete with Advanced Rankings");
+console.log("✅ HydroFit Loaded - Complete");
