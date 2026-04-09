@@ -762,3 +762,152 @@ label {
     z-index: 199;
   }
 }
+
+/* Add to existing style.css */
+
+/* Role Toggle Buttons */
+.role-toggle, .reg-role-toggle {
+  transition: all 0.2s ease;
+}
+
+.role-toggle:hover, .reg-role-toggle:hover {
+  transform: translateY(-1px);
+}
+
+/* Teacher Dashboard Specific */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.stat-card i {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.stat-card .stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--darker);
+}
+
+.stat-card .stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Student List Table */
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.student-table th {
+  background: var(--primary);
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.student-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.student-table tr:hover {
+  background: #f8fafc;
+}
+
+/* Attendance Status Badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-present {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-absent {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-late {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+/* Class Selector */
+.class-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.class-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--primary);
+  background: white;
+  color: var(--primary);
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.class-btn:hover, .class-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* QR Scanner */
+#qr-reader {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+#qr-reader video {
+  border-radius: 16px;
+}
+
+#qr-reader__dashboard {
+  padding: 10px !important;
+}
+
+#qr-reader__scan_region {
+  min-height: 250px;
+}
+
+/* User Role Badge */
+#userRoleBadge {
+  background: var(--primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
