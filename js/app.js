@@ -1,10 +1,11 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH SHEETS SYNC
+// HYDROFIT - COMPLETE WITH RANKINGS
 // ========================================
 
 let currentTab = "dashboard";
 let currentUser = null;
 let isLoading = false;
+let assessments = [];
 
 // Toast notification function
 function showToast(message, isError = false) {
@@ -28,7 +29,6 @@ function updateUserStats() {
   }
 }
 
-// Close sidebar function
 function closeSidebar() {
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
@@ -386,10 +386,8 @@ async function renderProfile() {
 }
 
 // ========================================
-// FITNESS ASSESSMENT SYSTEM WITH SHEETS SYNC
+// ASSESSMENT SYSTEM
 // ========================================
-
-let assessments = [];
 
 async function loadAssessments() {
   if (!currentUser) return;
@@ -726,7 +724,7 @@ function updateProgressComparison() {
   progressDiv.innerHTML = html;
 }
 
-function renderAssignment() {
+function renderAssessment() {
   const container = document.getElementById("tabContent");
   
   const exerciseTypes = [
@@ -743,9 +741,8 @@ function renderAssignment() {
   ];
   
   container.innerHTML = `
-    <div class="fitness-header">
-      <h2><i class="fas fa-clipboard-list"></i> Fitness Assessment System</h2>
-      <p>Tracks physical performance and compares results over time</p>
+    <div class="fitness-banner">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png" alt="Fitness Assessment Banner">
     </div>
 
     <div class="card">
@@ -836,20 +833,158 @@ function renderAssignment() {
 }
 
 // ========================================
-// RANKING
+// RANKING PAGE - EXERCISE RANKINGS
 // ========================================
 
 function renderRanking() {
   const container = document.getElementById("tabContent");
+  
   container.innerHTML = `
-    <div class="card">
-      <div style="text-align: center; padding: 40px 20px;">
-        <i class="fas fa-trophy" style="font-size: 3.5rem; color: #00b4d8; margin-bottom: 16px;"></i>
-        <h3 style="color: #1a1a1a; margin-bottom: 8px;">Rankings Coming Soon</h3>
-        <p style="color: #64748b;">Compete with classmates and climb the leaderboard.</p>
+    <div class="ranking-section">
+      <h2 style="margin-bottom: 20px; color: var(--darker);">
+        <i class="fas fa-trophy" style="color: #fdcb6e;"></i> Exercise Rankings
+      </h2>
+      <p style="color: #64748b; margin-bottom: 24px;">Compare your performance with others on each exercise</p>
+    </div>
+    <div id="rankingsContainer">
+      <div class="loading-placeholder">
+        <i class="fas fa-spinner fa-spin"></i> Loading rankings...
       </div>
     </div>
   `;
+  
+  loadRankings();
+}
+
+async function loadRankings() {
+  if (!currentUser) return;
+  
+  // Get all assessments for ranking
+  const result = await callAPI('getAllAssessments', {});
+  
+  const container = document.getElementById('rankingsContainer');
+  
+  if (!result.success || !result.assessments || result.assessments.length === 0) {
+    container.innerHTML = `
+      <div class="card">
+        <div style="text-align: center; padding: 40px 20px;">
+          <i class="fas fa-trophy" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 16px;"></i>
+          <p style="color: #64748b;">No assessments available for ranking yet.</p>
+          <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 8px;">Complete assessments to see rankings!</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  // Group assessments by exercise
+  const exerciseRankings = {};
+  
+  result.assessments.forEach(a => {
+    if (!exerciseRankings[a.exercise]) {
+      exerciseRankings[a.exercise] = [];
+    }
+    
+    // Check if user already has an entry for this exercise
+    const existingIndex = exerciseRankings[a.exercise].findIndex(
+      e => e.schoolId === a.schoolId
+    );
+    
+    const entry = {
+      schoolId: a.schoolId,
+      studentName: a.studentName || 'Student',
+      rating: parseFloat(a.rating),
+      grade: a.grade,
+      value: parseFloat(a.value),
+      unit: a.unit,
+      date: a.date
+    };
+    
+    if (existingIndex === -1) {
+      exerciseRankings[a.exercise].push(entry);
+    } else {
+      // Keep the best rating
+      if (parseFloat(a.rating) > exerciseRankings[a.exercise][existingIndex].rating) {
+        exerciseRankings[a.exercise][existingIndex] = entry;
+      }
+    }
+  });
+  
+  // Sort each exercise ranking by rating (descending)
+  for (const exercise in exerciseRankings) {
+    exerciseRankings[exercise].sort((a, b) => b.rating - a.rating);
+  }
+  
+  // Generate HTML
+  let html = '';
+  
+  for (const [exercise, rankings] of Object.entries(exerciseRankings)) {
+    html += `
+      <div class="card ranking-card" style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-medal" style="color: #fdcb6e;"></i>
+          ${escapeHtml(exercise)}
+          <span style="font-size: 0.8rem; color: #64748b; margin-left: auto;">
+            ${rankings.length} participant${rankings.length !== 1 ? 's' : ''}
+          </span>
+        </h3>
+        
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Student</th>
+              <th>Rating</th>
+              <th>Grade</th>
+              <th>Performance</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    rankings.slice(0, 10).forEach((r, index) => {
+      const rank = index + 1;
+      let rankClass = 'rank-other';
+      if (rank === 1) rankClass = 'rank-1';
+      else if (rank === 2) rankClass = 'rank-2';
+      else if (rank === 3) rankClass = 'rank-3';
+      
+      const isCurrentUser = r.schoolId === currentUser.schoolId;
+      
+      html += `
+        <tr style="${isCurrentUser ? 'background: #e0f2fe; font-weight: 600;' : ''}">
+          <td>
+            <span class="rank-badge ${rankClass}">${rank}</span>
+          </td>
+          <td>
+            ${escapeHtml(r.studentName)}
+            ${isCurrentUser ? ' <span style="color: var(--primary); font-size: 0.75rem;">(You)</span>' : ''}
+          </td>
+          <td style="font-weight: 700; color: ${getGradeColor(r.grade)};">${r.rating}</td>
+          <td style="color: ${getGradeColor(r.grade)};">${r.grade}</td>
+          <td style="color: #64748b;">${r.value} ${r.unit}</td>
+        </tr>
+      `;
+    });
+    
+    if (rankings.length > 10) {
+      html += `
+        <tr>
+          <td colspan="5" style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 12px;">
+            ... and ${rankings.length - 10} more participants
+          </td>
+        </tr>
+      `;
+    }
+    
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
 }
 
 // ========================================
@@ -880,13 +1015,13 @@ function switchTab(tab) {
     renderProfile().then(() => isLoading = false);
     return;
   }
-  else if (tab === 'assignment') { 
+  else if (tab === 'assessment') { 
     updatePageTitle('Fitness Assessment'); 
-    renderAssignment(); 
+    renderAssessment(); 
     isLoading = false;
   }
   else if (tab === 'ranking') { 
-    updatePageTitle('Ranking'); 
+    updatePageTitle('Rankings'); 
     renderRanking(); 
     isLoading = false;
   }
@@ -1065,4 +1200,4 @@ window.loadAssessments = loadAssessments;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete with Sheets Sync");
+console.log("✅ HydroFit Loaded - Complete with Rankings");

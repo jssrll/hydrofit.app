@@ -3,6 +3,6 @@
 // ========================================
 
 // YOUR WORKING WEB APP URL
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0--ABdDcGXcOcR7jjN3k1qRj8HjxFKFhkzFvNwhsMgwtp3T6zlLC6OgD5_XmO5uyesg/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpbwNfrZ-w3CaOC4zUUw8yasNKDC4Veaz0vIO7eFY8L5dWOY3v1yhQF12BqzDPEnMSoA/exec";
 
 console.log("✅ HydroFit Config Loaded");
