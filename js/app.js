@@ -2,9 +2,9 @@
 // HYDROFIT - COMPLETE WITH GEMINI AI GUIDE
 // ========================================
 
-// Gemini API Configuration
+// Gemini API Configuration - WORKING
 const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 let currentTab = "dashboard";
 let currentUser = null;
@@ -166,29 +166,14 @@ async function callAPI(action, data = {}) {
 }
 
 // ========================================
-// GEMINI AI API
+// GEMINI AI API - WORKING VERSION
 // ========================================
 
 async function askGemini(prompt, context = '') {
   try {
-    const systemPrompt = `You are HydroFit AI, a knowledgeable and friendly fitness assistant for the PathFit program at Mindoro State University. 
+    const systemPrompt = `You are HydroFit AI, a fitness trainer for PathFit students at Mindoro State University. Provide step-by-step exercise routines, proper form instructions, suggested sets/reps, and rest times. Keep responses under 400 words. Be specific and actionable.`;
     
-Your role is to provide:
-- Step-by-step exercise routines with proper form instructions
-- Suggested sets, reps, and rest times based on fitness level
-- Modifications and alternatives for exercises
-- Safety tips and injury prevention advice
-- Motivation and encouragement
-
-When responding:
-- Be specific and actionable
-- Include warm-up and cool-down suggestions
-- Mention proper breathing techniques
-- Provide clear form cues
-
-Format your responses with clear sections. Keep responses concise but informative.`;
-
-    const fullPrompt = context ? `${context}\n\nUser question: ${prompt}` : prompt;
+    const fullPrompt = `${systemPrompt}\n\nUser request: ${prompt}`;
     
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -198,37 +183,14 @@ Format your responses with clear sections. Keep responses concise but informativ
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `${systemPrompt}\n\n${fullPrompt}`
+            text: fullPrompt
           }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 800,
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          }
-        ]
+        }]
       })
     });
     
     const data = await response.json();
+    console.log('Gemini Response:', data);
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       return {
@@ -236,41 +198,32 @@ Format your responses with clear sections. Keep responses concise but informativ
         response: data.candidates[0].content.parts[0].text
       };
     } else {
-      console.error('Gemini API Error:', data);
+      console.error('API Error:', data);
       return {
         success: false,
         error: data.error?.message || 'No response from AI'
       };
     }
   } catch (error) {
-    console.error('Gemini API Error:', error);
+    console.error('Fetch Error:', error);
     return {
       success: false,
-      error: 'Failed to connect to AI service. Please try again.'
+      error: 'Connection failed. Please try again.'
     };
   }
 }
 
 function formatAIResponse(text) {
   let formatted = text
-    .replace(/^### (.*$)/gim, '<h4 style="color: var(--darker); margin: 16px 0 8px; font-size: 1.1rem;">$1</h4>')
-    .replace(/^## (.*$)/gim, '<h3 style="color: var(--darker); margin: 20px 0 12px; font-size: 1.2rem;">$1</h3>')
-    .replace(/^# (.*$)/gim, '<h2 style="color: var(--darker); margin: 24px 0 16px; font-size: 1.3rem;">$1</h2>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
-    .replace(/^• (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
-    .replace(/^\d+\. (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
-    .replace(/\n\n/g, '</p><p style="margin-bottom: 12px; line-height: 1.7;">')
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
   
-  if (!formatted.includes('<p')) {
-    formatted = `<p style="margin-bottom: 12px; line-height: 1.7;">${formatted}</p>`;
-  }
+  formatted = formatted.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
   
-  formatted = formatted.replace(/(<li.*?<\/li>)+/g, '<ul style="list-style-type: disc; margin: 12px 0; padding-left: 20px;">$&</ul>');
-  
-  return formatted;
+  return `<p>${formatted}</p>`;
 }
 
 // ========================================
@@ -1063,7 +1016,7 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE - ENHANCED
+// RANKING PAGE
 // ========================================
 
 function renderRanking() {
@@ -1240,7 +1193,7 @@ function getIntensityColor(intensity) {
 }
 
 // ========================================
-// AI EXERCISE GUIDE PAGE WITH GEMINI
+// AI EXERCISE GUIDE PAGE
 // ========================================
 
 function renderAIGuide() {
@@ -1262,14 +1215,7 @@ function renderAIGuide() {
               <i class="fas fa-robot"></i>
             </div>
             <div class="message-content">
-              <p>Hello! I'm your HydroFit AI Trainer powered by Google Gemini. I can help you with:</p>
-              <ul style="margin-top: 8px;">
-                <li>✓ Step-by-step exercise routines</li>
-                <li>✓ Proper form instructions</li>
-                <li>✓ Sets, reps, and rest time recommendations</li>
-                <li>✓ Workout modifications and alternatives</li>
-              </ul>
-              <p style="margin-top: 8px;">What would you like to work on today?</p>
+              <p>Hello! I'm your HydroFit AI Trainer. Ask me for workout routines, form tips, or fitness advice!</p>
             </div>
           </div>
         </div>
@@ -1287,9 +1233,6 @@ function renderAIGuide() {
           <button class="prompt-btn" onclick="window.sendQuickPrompt('Show me proper push-up form')">
             <i class="fas fa-person"></i> Form Guide
           </button>
-          <button class="prompt-btn" onclick="window.sendQuickPrompt('Create a full body workout plan')">
-            <i class="fas fa-calendar-alt"></i> Full Body
-          </button>
         </div>
         
         <div class="chat-input-area" style="display: flex; gap: 8px;">
@@ -1303,22 +1246,10 @@ function renderAIGuide() {
           <i class="fas fa-trash"></i> Clear Chat
         </button>
       </div>
-      
-      <div class="card ai-tip-card">
-        <h3><i class="fas fa-lightbulb"></i> Tips for Better Results</h3>
-        <ul class="tip-list">
-          <li>• Be specific about your fitness level (beginner, intermediate, advanced)</li>
-          <li>• Mention available equipment (none, dumbbells, bands)</li>
-          <li>• Specify time available (15 min, 30 min, 1 hour)</li>
-          <li>• Tell me your target areas (full body, upper body, core, legs)</li>
-          <li>• Let me know about any injuries or limitations</li>
-        </ul>
-      </div>
     </div>
   `;
 }
 
-// AI Chat Functions
 async function sendAIMessage() {
   const input = document.getElementById('aiPromptInput');
   const message = input.value.trim();
@@ -1339,7 +1270,7 @@ async function sendAIMessage() {
   if (result.success) {
     addChatMessage(result.response, 'assistant');
   } else {
-    addChatMessage('Sorry, I encountered an error. Please try again. Error: ' + (result.error || 'Unknown error'), 'assistant');
+    addChatMessage('Sorry, I encountered an error. ' + (result.error || ''), 'assistant');
   }
 }
 
@@ -1367,8 +1298,6 @@ function addChatMessage(content, role) {
   
   messagesContainer.appendChild(messageDiv);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  
-  chatHistory.push({ role, content, timestamp: new Date().toISOString() });
 }
 
 function showTypingIndicator() {
@@ -1394,9 +1323,7 @@ function showTypingIndicator() {
 
 function removeTypingIndicator() {
   const typingIndicator = document.getElementById('typingIndicator');
-  if (typingIndicator) {
-    typingIndicator.remove();
-  }
+  if (typingIndicator) typingIndicator.remove();
 }
 
 function clearAIChat() {
@@ -1407,12 +1334,11 @@ function clearAIChat() {
         <i class="fas fa-robot"></i>
       </div>
       <div class="message-content">
-        <p>Chat cleared! I'm your HydroFit AI Trainer powered by Google Gemini. What would you like to work on today?</p>
+        <p>Chat cleared! What would you like to work on today?</p>
       </div>
     </div>
   `;
-  chatHistory = [];
-  showToast('Chat history cleared', false);
+  showToast('Chat cleared', false);
 }
 
 // ========================================
@@ -1637,4 +1563,4 @@ window.clearAIChat = clearAIChat;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete with Gemini AI");
+console.log("✅ HydroFit Loaded - Gemini AI Ready!");
