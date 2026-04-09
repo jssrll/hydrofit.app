@@ -4,17 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>HydroFit | Academic Fitness Tracker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app-container">
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="logo-area">
-      <i class="fas fa-tint"></i>
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/images%20(4).jpg?updatedAt=1775655891511" alt="HydroFit Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
       <span>Hydro<span class="light">Fit</span></span>
     </div>
     <nav class="nav-menu">
@@ -45,12 +44,10 @@
       <h2 id="pageTitle">Dashboard</h2>
       <div class="user-stats">
         <span id="userNameDisplay">Student</span>
-        <span><i class="fas fa-tint"></i> <span id="hydrationPoints">0</span> HP</span>
       </div>
     </div>
 
     <div class="tab-content" id="tabContent">
-      <!-- Dynamic content will be loaded here -->
       <div class="loading-placeholder">
         <i class="fas fa-spinner fa-spin"></i> Loading...
       </div>
@@ -58,28 +55,48 @@
   </main>
 </div>
 
-<!-- LOGIN / REGISTER MODAL -->
+<!-- LOGIN MODAL -->
 <div id="authModal" class="modal" style="display: flex;">
   <div class="modal-content">
     <div class="modal-header">
-      <i class="fas fa-tint"></i>
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/images%20(4).jpg?updatedAt=1775655891511" alt="HydroFit Logo" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 12px;">
       <h2>HydroFit</h2>
       <p>Academic Fitness Tracker</p>
     </div>
     <div class="modal-body" id="authFormContainer">
       <!-- Login Form -->
       <div id="loginForm">
-        <input type="text" id="loginPhone" class="modal-input" placeholder="Phone Number" autocomplete="off">
+        <input type="text" id="loginSchoolId" class="modal-input" placeholder="School ID (e.g., MCC2025-00001)" autocomplete="off">
         <input type="password" id="loginPassword" class="modal-input" placeholder="Password">
         <button class="modal-btn" id="loginBtn">Login</button>
         <div class="modal-link">No account? <span id="showRegister">Register here</span></div>
       </div>
-      <!-- Register Form (hidden initially) -->
+      <!-- Register Form -->
       <div id="registerForm" style="display: none;">
-        <input type="text" id="regFullName" class="modal-input" placeholder="Full Name">
-        <input type="text" id="regPhone" class="modal-input" placeholder="Phone Number">
+        <input type="text" id="regFullName" class="modal-input" placeholder="Full name (e.g., Dela Cruz, Juan M.)">
+        <input type="text" id="regSchoolId" class="modal-input" placeholder="School ID (e.g., MCC2025-00001)">
+        <input type="email" id="regEmail" class="modal-input" placeholder="Email address">
+        <select id="regProgram" class="modal-input">
+          <option value="">Select Program</option>
+          <option value="BSIT">BSIT</option>
+          <option value="BSED">BSED</option>
+          <option value="BSHM">BSHM</option>
+          <option value="BSTM">BSTM</option>
+          <option value="BS PSYCHOLOGY">BS PSYCHOLOGY</option>
+          <option value="BSCRIM">BSCRIM</option>
+          <option value="BTLED">BTLED</option>
+          <option value="BTVTED">BTVTED</option>
+        </select>
+        <select id="regYearLevel" class="modal-input">
+          <option value="">Select Year Level</option>
+          <option value="1">1st Year</option>
+          <option value="2">2nd Year</option>
+          <option value="3">3rd Year</option>
+          <option value="4">4th Year</option>
+        </select>
+        <input type="text" id="regSection" class="modal-input" placeholder="Section (e.g., F1)">
         <input type="password" id="regPassword" class="modal-input" placeholder="Password">
-        <input type="text" id="regStudentId" class="modal-input" placeholder="Student ID">
+        <input type="password" id="regConfirmPassword" class="modal-input" placeholder="Confirm Password">
         <button class="modal-btn" id="registerBtn">Register</button>
         <div class="modal-link">Already have an account? <span id="showLogin">Login here</span></div>
       </div>
@@ -87,26 +104,10 @@
   </div>
 </div>
 
-<!-- QR SCANNER MODAL -->
-<div id="qrModal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 500px;">
-    <div class="modal-header">
-      <i class="fas fa-qrcode"></i>
-      <h2>QR Attendance</h2>
-      <p>Scan class QR code to mark attendance</p>
-    </div>
-    <div class="modal-body">
-      <div id="qr-reader" style="width: 100%;"></div>
-      <div id="qr-result"></div>
-      <button class="modal-btn" id="closeQrModal">Close</button>
-    </div>
-  </div>
-</div>
-
 <!-- TOAST NOTIFICATION -->
 <div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
 
-<script src="js/data.js"></script>
+<script src="js/config.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
