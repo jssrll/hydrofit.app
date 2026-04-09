@@ -2,134 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>HYDROFIT | Gamified Fitness Suite</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>HydroFit | Academic Fitness Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="app-container">
-    <aside class="sidebar">
-      <div class="logo-area">
-        <i class="fas fa-water"></i>
-        <span>HYDRO<span class="light">FIT</span></span>
-      </div>
-      <nav class="nav-menu">
-        <button class="nav-btn teacher-only" data-tab="teacher-dashboard" style="display: none;"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
-        <button class="nav-btn active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
-        <button class="nav-btn" data-tab="profile"><i class="fas fa-user-circle"></i> My Profile</button>
-        <button class="nav-btn" data-tab="ranking"><i class="fas fa-trophy"></i> Ranking</button>
-        <button class="nav-btn" data-tab="activity"><i class="fas fa-clipboard-list"></i> Activity</button>
-        <button class="nav-btn" data-tab="movement"><i class="fas fa-play-circle"></i> Movement Library</button>
-        <button class="nav-btn" data-tab="workout"><i class="fas fa-dumbbell"></i> Workout Plans</button>
-        <button class="nav-btn" data-tab="timer"><i class="fas fa-hourglass-half"></i> Exercise Timer</button>
-        <button class="nav-btn" data-tab="warmup"><i class="fas fa-sun"></i> Warmup Gen</button>
-        <button class="nav-btn" data-tab="injury"><i class="fas fa-shield-alt"></i> Injury Guide</button>
-        <button class="nav-btn" data-tab="attendance"><i class="fas fa-user-check"></i> Class Tracker</button>
-        <button class="nav-btn" data-tab="goals"><i class="fas fa-bullseye"></i> Goal Planner</button>
-        <button class="nav-btn" data-tab="calorie"><i class="fas fa-apple-alt"></i> Calorie Tracker</button>
-        <button class="nav-btn" data-tab="bmi"><i class="fas fa-weight-scale"></i> BMI Tracker</button>
-        <button class="nav-btn" data-tab="recovery"><i class="fas fa-bed"></i> Recovery Rest</button>
-      </nav>
-      <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    </aside>
+<div class="app-container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo-area">
+      <i class="fas fa-tint"></i>
+      <span>Hydro<span class="light">Fit</span></span>
+    </div>
+    <nav class="nav-menu">
+      <button class="nav-btn active" data-tab="dashboard">
+        <i class="fas fa-chalkboard-user"></i> Dashboard
+      </button>
+      <button class="nav-btn" data-tab="profile">
+        <i class="fas fa-user-circle"></i> My Profile
+      </button>
+      <button class="nav-btn" data-tab="assignment">
+        <i class="fas fa-pen-ruler"></i> Assignment
+      </button>
+      <button class="nav-btn" data-tab="ranking">
+        <i class="fas fa-trophy"></i> Ranking
+      </button>
+    </nav>
+    <button class="logout-btn" id="logoutBtn">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </aside>
 
-    <main class="main-panel">
-      <header class="top-bar">
-        <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
-        <h2 id="active-title">HYDROFIT Dashboard</h2>
-      </header>
-      <div id="tab-content" class="tab-content">
-        <div class="loading-placeholder">Loading...</div>
+  <!-- MAIN PANEL -->
+  <main class="main-panel">
+    <div class="top-bar">
+      <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="user-stats">
+        <span id="userNameDisplay">Student</span>
+        <span><i class="fas fa-tint"></i> <span id="hydrationPoints">0</span> HP</span>
       </div>
-    </main>
-  </div>
+    </div>
 
-  <!-- Login Modal -->
-  <div id="loginModal" class="modal" style="display: flex;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <i class="fas fa-water"></i>
-        <h2>HYDROFIT</h2>
-        <p>Login to continue</p>
+    <div class="tab-content" id="tabContent">
+      <!-- Dynamic content will be loaded here -->
+      <div class="loading-placeholder">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
       </div>
-      <div class="modal-body">
-        <input type="text" id="loginSchoolId" placeholder="School ID" class="modal-input">
-        <input type="password" id="loginPassword" placeholder="Password" class="modal-input">
-        <button id="loginBtn" class="modal-btn">Login</button>
-        <p class="modal-link">Don't have an account? <span id="showRegister">Register here</span></p>
+    </div>
+  </main>
+</div>
+
+<!-- LOGIN / REGISTER MODAL -->
+<div id="authModal" class="modal" style="display: flex;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <i class="fas fa-tint"></i>
+      <h2>HydroFit</h2>
+      <p>Academic Fitness Tracker</p>
+    </div>
+    <div class="modal-body" id="authFormContainer">
+      <!-- Login Form -->
+      <div id="loginForm">
+        <input type="text" id="loginPhone" class="modal-input" placeholder="Phone Number" autocomplete="off">
+        <input type="password" id="loginPassword" class="modal-input" placeholder="Password">
+        <button class="modal-btn" id="loginBtn">Login</button>
+        <div class="modal-link">No account? <span id="showRegister">Register here</span></div>
+      </div>
+      <!-- Register Form (hidden initially) -->
+      <div id="registerForm" style="display: none;">
+        <input type="text" id="regFullName" class="modal-input" placeholder="Full Name">
+        <input type="text" id="regPhone" class="modal-input" placeholder="Phone Number">
+        <input type="password" id="regPassword" class="modal-input" placeholder="Password">
+        <input type="text" id="regStudentId" class="modal-input" placeholder="Student ID">
+        <button class="modal-btn" id="registerBtn">Register</button>
+        <div class="modal-link">Already have an account? <span id="showLogin">Login here</span></div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Register Modal -->
-  <div id="registerModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <i class="fas fa-water"></i>
-        <h2>Create Account</h2>
-      </div>
-      <div class="modal-body">
-        <input type="text" id="regFullName" placeholder="Full Name (Last, First Middle)" class="modal-input">
-        <input type="text" id="regSchoolId" placeholder="School ID" class="modal-input">
-        <input type="text" id="regSubject" placeholder="Subject (e.g., Pathfit)" class="modal-input">
-        <select id="regProgram" class="modal-input">
-          <option value="">Select Program</option>
-          <option>BSIT</option>
-          <option>BSCRIM</option>
-          <option>BSHM</option>
-          <option>BSTM</option>
-          <option>BSED</option>
-          <option>BS Psychology</option>
-          <option>BS English</option>
-          <option>BTLED</option>
-        </select>
-        <select id="regYearLevel" class="modal-input">
-          <option value="">Select Year Level</option>
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-        </select>
-        <input type="text" id="regSection" placeholder="Section (e.g., F1)" class="modal-input">
-        <input type="password" id="regPassword" placeholder="Password" class="modal-input">
-        <input type="password" id="regConfirmPassword" placeholder="Confirm Password" class="modal-input">
-        <button id="registerBtn" class="modal-btn">Register</button>
-        <p class="modal-link">Already have an account? <span id="showLogin">Login here</span></p>
-      </div>
+<!-- QR SCANNER MODAL -->
+<div id="qrModal" class="modal" style="display: none;">
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header">
+      <i class="fas fa-qrcode"></i>
+      <h2>QR Attendance</h2>
+      <p>Scan class QR code to mark attendance</p>
+    </div>
+    <div class="modal-body">
+      <div id="qr-reader" style="width: 100%;"></div>
+      <div id="qr-result"></div>
+      <button class="modal-btn" id="closeQrModal">Close</button>
     </div>
   </div>
+</div>
 
-  <!-- Profile Modal for QR Code -->
-  <div id="profileModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 400px;">
-      <div class="modal-header">
-        <i class="fas fa-qrcode"></i>
-        <h2>Your QR Code</h2>
-      </div>
-      <div class="modal-body text-center">
-        <div id="qrCodeContainer"></div>
-        <p id="qrUserInfo"></p>
-        <button class="modal-btn" id="closeProfileModal">Close</button>
-      </div>
-    </div>
-  </div>
+<!-- TOAST NOTIFICATION -->
+<div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
 
-  <audio id="alertSound" preload="auto" style="display:none;">
-    <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-  </audio>
-
-  <audio id="loudBell" preload="auto" style="display:none;">
-    <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-  </audio>
-
-  <script src="js/config.js"></script>
-  <script src="js/sheets-integration.js"></script>
-  <script src="js/chatbase-ai.js"></script>
-  <script src="js/app.js"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
