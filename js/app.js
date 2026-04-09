@@ -3,7 +3,7 @@
 // ========================================
 
 // Gemini API Configuration
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with your actual API key
+const GEMINI_API_KEY = 'AIzaSyD7-73edNgz8cbOq1_bnnEu8P89EMrLQJI';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 let currentTab = "dashboard";
@@ -186,8 +186,7 @@ When responding:
 - Mention proper breathing techniques
 - Provide clear form cues
 
-Format your responses with clear sections using markdown-style formatting.
-Keep responses under 500 words unless specifically asked for more detail.`;
+Format your responses with clear sections. Keep responses concise but informative.`;
 
     const fullPrompt = context ? `${context}\n\nUser question: ${prompt}` : prompt;
     
@@ -206,7 +205,7 @@ Keep responses under 500 words unless specifically asked for more detail.`;
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 800,
         },
         safetySettings: [
           {
@@ -237,6 +236,7 @@ Keep responses under 500 words unless specifically asked for more detail.`;
         response: data.candidates[0].content.parts[0].text
       };
     } else {
+      console.error('Gemini API Error:', data);
       return {
         success: false,
         error: data.error?.message || 'No response from AI'
@@ -246,36 +246,28 @@ Keep responses under 500 words unless specifically asked for more detail.`;
     console.error('Gemini API Error:', error);
     return {
       success: false,
-      error: 'Failed to connect to AI service'
+      error: 'Failed to connect to AI service. Please try again.'
     };
   }
 }
 
 function formatAIResponse(text) {
-  // Convert markdown-style to HTML
   let formatted = text
-    // Headers
     .replace(/^### (.*$)/gim, '<h4 style="color: var(--darker); margin: 16px 0 8px; font-size: 1.1rem;">$1</h4>')
     .replace(/^## (.*$)/gim, '<h3 style="color: var(--darker); margin: 20px 0 12px; font-size: 1.2rem;">$1</h3>')
     .replace(/^# (.*$)/gim, '<h2 style="color: var(--darker); margin: 24px 0 16px; font-size: 1.3rem;">$1</h2>')
-    // Bold
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // Italic
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // Lists
     .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
     .replace(/^• (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
     .replace(/^\d+\. (.*$)/gim, '<li style="margin-left: 20px; padding: 4px 0;">$1</li>')
-    // Line breaks
     .replace(/\n\n/g, '</p><p style="margin-bottom: 12px; line-height: 1.7;">')
     .replace(/\n/g, '<br>');
   
-  // Wrap in paragraph if not already
   if (!formatted.includes('<p')) {
     formatted = `<p style="margin-bottom: 12px; line-height: 1.7;">${formatted}</p>`;
   }
   
-  // Wrap lists in ul
   formatted = formatted.replace(/(<li.*?<\/li>)+/g, '<ul style="list-style-type: disc; margin: 12px 0; padding-left: 20px;">$&</ul>');
   
   return formatted;
@@ -1264,7 +1256,6 @@ function renderAIGuide() {
       <div class="card ai-chat-card">
         <h3><i class="fas fa-comments"></i> Chat with AI Trainer</h3>
         
-        <!-- Chat Messages Container -->
         <div class="chat-messages" id="chatMessages" style="max-height: 400px; overflow-y: auto; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 16px;">
           <div class="chat-message assistant">
             <div class="message-avatar">
@@ -1283,7 +1274,6 @@ function renderAIGuide() {
           </div>
         </div>
         
-        <!-- Quick Prompts -->
         <div class="quick-prompts" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
           <button class="prompt-btn" onclick="window.sendQuickPrompt('I want flexibility training')">
             <i class="fas fa-person-walking"></i> Flexibility
@@ -1302,7 +1292,6 @@ function renderAIGuide() {
           </button>
         </div>
         
-        <!-- Input Area -->
         <div class="chat-input-area" style="display: flex; gap: 8px;">
           <input type="text" id="aiPromptInput" class="form-control" placeholder="Ask me anything about fitness..." style="flex: 1;" onkeypress="if(event.key==='Enter') window.sendAIMessage()">
           <button class="btn" onclick="window.sendAIMessage()" style="padding: 10px 24px;">
@@ -1339,26 +1328,18 @@ async function sendAIMessage() {
     return;
   }
   
-  // Clear input
   input.value = '';
-  
-  // Add user message to chat
   addChatMessage(message, 'user');
-  
-  // Show typing indicator
   showTypingIndicator();
   
-  // Get AI response
   const result = await askGemini(message);
   
-  // Remove typing indicator
   removeTypingIndicator();
   
   if (result.success) {
     addChatMessage(result.response, 'assistant');
   } else {
-    addChatMessage('Sorry, I encountered an error. Please try again.', 'assistant');
-    console.error('AI Error:', result.error);
+    addChatMessage('Sorry, I encountered an error. Please try again. Error: ' + (result.error || 'Unknown error'), 'assistant');
   }
 }
 
@@ -1387,7 +1368,6 @@ function addChatMessage(content, role) {
   messagesContainer.appendChild(messageDiv);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
   
-  // Save to history
   chatHistory.push({ role, content, timestamp: new Date().toISOString() });
 }
 
