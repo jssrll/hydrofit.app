@@ -129,9 +129,10 @@ body {
   color: white;
 }
 
-/* Old logout button - hidden */
+/* Hide any old logout button in sidebar */
+.sidebar .logout-btn,
 .logout-btn {
-  display: none;
+  display: none !important;
 }
 
 /* FIXED MAIN PANEL */
@@ -144,9 +145,10 @@ body {
   margin-left: 280px;
   height: 100vh;
   transition: background 0.3s ease;
+  position: relative;
 }
 
-/* FIXED HEADER */
+/* STICKY HEADER - Won't overlap content */
 .top-bar {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
@@ -155,14 +157,15 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 280px;
+  left: 0;
   right: 0;
   z-index: 50;
   height: var(--header-height);
   border-bottom: 1px solid rgba(0,180,216,0.1);
   transition: background 0.3s ease, border-color 0.3s ease;
+  flex-shrink: 0;
 }
 
 .mobile-menu-btn {
@@ -208,11 +211,10 @@ body {
   gap: 6px;
 }
 
-/* Tab Content */
+/* Tab Content - No margin-top needed with sticky header */
 .tab-content {
   padding: 24px;
   flex: 1;
-  margin-top: var(--header-height);
 }
 
 /* Cards */
@@ -1115,7 +1117,7 @@ body.compact-mode {
   --header-height: 55px;
 }
 
-/* Mobile Responsive */
+/* Mobile Responsive - FIXED */
 @media (max-width: 768px) {
   :root {
     --header-height: 60px;
@@ -1152,7 +1154,10 @@ body.compact-mode {
   }
   
   .top-bar {
+    position: sticky;
+    top: 0;
     left: 0;
+    right: 0;
     padding: 0 16px;
   }
   
@@ -1234,6 +1239,26 @@ body.compact-mode {
   body.compact-mode {
     --header-height: 50px;
   }
+  
+  /* Settings page mobile fixes */
+  .settings-item {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .settings-item-info {
+    min-width: 100%;
+  }
+  
+  .settings-item .toggle-switch,
+  .settings-item .btn-sm {
+    margin-left: 28px;
+  }
+  
+  .settings-item div[style*="max-width"] {
+    max-width: 100% !important;
+    margin-left: 28px;
+  }
 }
 
 /* Tablet Responsive */
@@ -1255,5 +1280,41 @@ body.compact-mode {
   
   .sidebar .nav-btn {
     padding: 8px 16px;
+  }
+  
+  .settings-container h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .top-bar h2 {
+    font-size: 1rem;
+  }
+  
+  .user-stats span {
+    font-size: 0.75rem;
+  }
+  
+  .user-stats i {
+    display: none;
+  }
+  
+  .user-stats {
+    padding: 5px 10px;
+  }
+  
+  .tab-content {
+    padding: 12px 8px;
+  }
+  
+  .card {
+    padding: 16px;
+  }
+  
+  .settings-item-title {
+    font-size: 0.9rem;
   }
 }
