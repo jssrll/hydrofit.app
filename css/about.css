@@ -352,3 +352,52 @@
     padding: 14px;
   }
 }
+
+/* iOS Install Guide */
+.ios-install {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid #00b4d8;
+  transition: all 0.3s ease;
+}
+
+.ios-install h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--darker);
+}
+
+.ios-install h4 i {
+  color: #00b4d8;
+}
+
+.ios-install p {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.ios-install p i {
+  margin: 0 4px;
+  color: var(--primary);
+}
+
+/* Version and Tagline text color fix */
+.about-hero .version,
+.about-hero .tagline {
+  color: white !important;
+  opacity: 0.95;
+}
+
+/* Download button states */
+.download-btn {
+  transition: all 0.3s ease;
+}
+
+.download-btn:disabled {
+  opacity: 0.8;
+  cursor: default;
+}

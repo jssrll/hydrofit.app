@@ -8,18 +8,14 @@ function renderAbout() {
   const container = document.getElementById("tabContent");
   
   container.innerHTML = `
-    <div class="page-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="HydroFit Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
-    </div>
-
     <!-- App Info Card -->
     <div class="card about-hero">
       <div class="about-logo">
         <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/N%20(2).png" alt="HydroFit Logo" style="width:80px;height:80px;border-radius:20px">
       </div>
       <h2>HydroFit</h2>
-      <p class="version">Version 1.0.0</p>
-      <p class="tagline">Academic Fitness Tracker for PathFit Class</p>
+      <p class="version" style="color:white;">Version 1.0.0</p>
+      <p class="tagline" style="color:white;">Academic Fitness Tracker for PathFit Class</p>
     </div>
 
     <!-- Download Section -->
@@ -28,7 +24,7 @@ function renderAbout() {
         <i class="fas fa-download"></i>
       </div>
       <h3>Get the Full Experience</h3>
-      <p>Download HydroFit as an app on your device for faster access and offline support.</p>
+      <p>Install HydroFit as an app on your device for faster access and offline support.</p>
       
       <div class="download-benefits">
         <div class="benefit-item">
@@ -44,8 +40,8 @@ function renderAbout() {
           <span>Full Screen Mode</span>
         </div>
         <div class="benefit-item">
-          <i class="fas fa-bell"></i>
-          <span>Push Notifications</span>
+          <i class="fas fa-home"></i>
+          <span>Home Screen Icon</span>
         </div>
       </div>
       
@@ -68,7 +64,7 @@ function renderAbout() {
           <div class="step-number">1</div>
           <div class="step-content">
             <h4>Click "Install HydroFit App"</h4>
-            <p>Click the download button above to start installation</p>
+            <p>Click the install button above to start installation</p>
           </div>
         </div>
         <div class="step">
@@ -91,59 +87,10 @@ function renderAbout() {
         <h4><i class="fas fa-ellipsis-v"></i> Alternative Method</h4>
         <p>Tap the menu (⋮) in your browser and select "Install App" or "Add to Home Screen"</p>
       </div>
-    </div>
-
-    <!-- About the App -->
-    <div class="card">
-      <h3><i class="fas fa-info-circle"></i> About HydroFit</h3>
-      <p>HydroFit is an academic fitness tracking web application designed specifically for the PathFit program at Mindoro State University. Its purpose is to help students monitor their physical activity, track hydration goals, and stay engaged with their fitness journey throughout the semester.</p>
-      <p>The platform was created to support the PathFit curriculum by providing a simple and modern digital tool where students can log their progress, view assessments, and check their rankings—all in one place.</p>
-    </div>
-
-    <!-- Features -->
-    <div class="card">
-      <h3><i class="fas fa-star"></i> Key Features</h3>
-      <div class="features-grid">
-        <div class="feature">
-          <i class="fas fa-clipboard-check"></i>
-          <h4>Fitness Assessment</h4>
-          <p>Track 50+ exercises with auto-rating system</p>
-        </div>
-        <div class="feature">
-          <i class="fas fa-trophy"></i>
-          <h4>Ranking System</h4>
-          <p>Compete with classmates on the leaderboard</p>
-        </div>
-        <div class="feature">
-          <i class="fas fa-heart-pulse"></i>
-          <h4>Heart Rate Logger</h4>
-          <p>Monitor cardiovascular performance</p>
-        </div>
-        <div class="feature">
-          <i class="fas fa-weight-scale"></i>
-          <h4>BMI Tracker</h4>
-          <p>Track body composition changes</p>
-        </div>
-        <div class="feature">
-          <i class="fas fa-clock"></i>
-          <h4>Exercise Timer</h4>
-          <p>Interval and countdown timers</p>
-        </div>
-        <div class="feature">
-          <i class="fas fa-video"></i>
-          <h4>Movement Library</h4>
-          <p>Video demonstrations for all exercises</p>
-        </div>
-        <div class="feature">
-          <i class="fas fa-shield-heart"></i>
-          <h4>Injury Prevention</h4>
-          <p>Safety tips and proper form guides</p>
-        </div>
-        <div class="feature">
-          <i class="fas fa-bed"></i>
-          <h4>Recovery Tracker</h4>
-          <p>Monitor rest and sleep quality</p>
-        </div>
+      
+      <div class="ios-install">
+        <h4><i class="fab fa-apple"></i> iOS / Safari Users</h4>
+        <p>Tap the Share button <i class="fas fa-share"></i> and select "Add to Home Screen"</p>
       </div>
     </div>
 
@@ -178,37 +125,6 @@ function renderAbout() {
       </p>
     </div>
 
-    <!-- Technical Info -->
-    <div class="card">
-      <h3><i class="fas fa-cog"></i> Technical Information</h3>
-      <div class="tech-info">
-        <div class="tech-item">
-          <span class="label">Platform:</span>
-          <span class="value">Web App (PWA)</span>
-        </div>
-        <div class="tech-item">
-          <span class="label">Version:</span>
-          <span class="value">1.0.0</span>
-        </div>
-        <div class="tech-item">
-          <span class="label">Database:</span>
-          <span class="value">Google Sheets API</span>
-        </div>
-        <div class="tech-item">
-          <span class="label">Storage:</span>
-          <span class="value">Cloud + Local</span>
-        </div>
-        <div class="tech-item">
-          <span class="label">Offline Mode:</span>
-          <span class="value">Supported</span>
-        </div>
-        <div class="tech-item">
-          <span class="label">Last Updated:</span>
-          <span class="value">April 11, 2026</span>
-        </div>
-      </div>
-    </div>
-
     <!-- Contact -->
     <div class="card">
       <h3><i class="fas fa-envelope"></i> Contact & Support</h3>
@@ -228,6 +144,11 @@ function renderAbout() {
   
   // Listen for install prompt
   listenForInstallPrompt();
+  
+  // Check if already installed
+  setTimeout(() => {
+    checkIfInstalled();
+  }, 500);
 }
 
 function listenForInstallPrompt() {
@@ -235,92 +156,145 @@ function listenForInstallPrompt() {
     e.preventDefault();
     deferredPrompt = e;
     
-    // Enable download button
+    console.log('✅ Install prompt captured - ready to install');
+    
+    // Enable and update download button
     const downloadBtn = document.getElementById('downloadAppBtn');
     if (downloadBtn) {
       downloadBtn.style.opacity = '1';
       downloadBtn.disabled = false;
+      downloadBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Install HydroFit App';
     }
-    
-    console.log('✅ Install prompt available');
   });
+}
+
+function checkIfInstalled() {
+  const downloadBtn = document.getElementById('downloadAppBtn');
   
-  // Check if already installed
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    const downloadBtn = document.getElementById('downloadAppBtn');
+  // Check if already in standalone mode (installed)
+  if (window.matchMedia('(display-mode: standalone)').matches || 
+      window.navigator.standalone === true) {
     if (downloadBtn) {
       downloadBtn.innerHTML = '<i class="fas fa-check"></i> App Installed';
       downloadBtn.disabled = true;
       downloadBtn.style.background = '#00b894';
     }
+    console.log('✅ App is already installed');
+  }
+  
+  // Check if iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS && downloadBtn) {
+    downloadBtn.innerHTML = '<i class="fab fa-apple"></i> Add to Home Screen';
   }
 }
 
 async function installApp() {
   const downloadBtn = document.getElementById('downloadAppBtn');
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   
   // Check if already installed
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    showToast('HydroFit is already installed!', false);
+  if (window.matchMedia('(display-mode: standalone)').matches || 
+      window.navigator.standalone === true) {
+    showToast('HydroFit is already installed! 🎉', false);
     return;
   }
   
-  if (!deferredPrompt) {
-    // Show manual instructions
-    showToast('Tap the menu (⋮) and select "Install App" or "Add to Home Screen"', false);
+  // iOS special handling
+  if (isIOS) {
+    showToast('Tap Share button then "Add to Home Screen"', false);
     
-    // Show alternative guide
+    // Highlight iOS instructions
+    const iosGuide = document.querySelector('.ios-install');
+    if (iosGuide) {
+      iosGuide.style.background = '#f0f9ff';
+      iosGuide.style.border = '2px solid #00b4d8';
+      iosGuide.style.transition = 'all 0.3s ease';
+      setTimeout(() => {
+        iosGuide.style.background = '';
+        iosGuide.style.border = '';
+      }, 3000);
+    }
+    return;
+  }
+  
+  // Check if we have the install prompt
+  if (!deferredPrompt) {
+    // Try to trigger install manually
+    console.log('No deferred prompt, showing manual instructions');
+    showToast('Use browser menu (⋮) → "Install App"', false);
+    
+    // Highlight alternative guide
     const alternativeGuide = document.querySelector('.alternative-install');
     if (alternativeGuide) {
       alternativeGuide.style.background = '#f0f9ff';
       alternativeGuide.style.border = '2px solid #00b4d8';
+      alternativeGuide.style.transition = 'all 0.3s ease';
       setTimeout(() => {
         alternativeGuide.style.background = '';
         alternativeGuide.style.border = '';
-      }, 2000);
+      }, 3000);
     }
     return;
   }
   
   try {
+    downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
+    downloadBtn.disabled = true;
+    
     // Show the install prompt
-    deferredPrompt.prompt();
+    await deferredPrompt.prompt();
     
     // Wait for user response
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      console.log('✅ User accepted install');
-      showToast('Installing HydroFit...', false);
+      console.log('✅ User accepted installation');
+      showToast('Installing HydroFit... Welcome! 🎉', false);
       
       downloadBtn.innerHTML = '<i class="fas fa-check"></i> App Installed';
-      downloadBtn.disabled = true;
       downloadBtn.style.background = '#00b894';
+      
+      // Check again after a delay
+      setTimeout(() => {
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+          console.log('✅ App is now running in standalone mode');
+        }
+      }, 2000);
     } else {
-      console.log('❌ User dismissed install');
+      console.log('❌ User dismissed installation');
       showToast('Installation cancelled. You can install later.', true);
+      
+      downloadBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Install HydroFit App';
+      downloadBtn.disabled = false;
     }
     
+    // Clear the deferred prompt
     deferredPrompt = null;
+    
   } catch (error) {
     console.error('Install error:', error);
-    showToast('Could not install. Try using the browser menu.', true);
+    showToast('Could not install automatically. Use browser menu.', true);
+    
+    downloadBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Install HydroFit App';
+    downloadBtn.disabled = false;
   }
 }
 
-// Check if app is installable
-function checkInstallable() {
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+// Manual install trigger (for browsers that don't support beforeinstallprompt)
+function manualInstallGuide() {
+  const userAgent = navigator.userAgent.toLowerCase();
   
-  if (isStandalone) {
-    return 'installed';
-  } else if (isIOS) {
-    return 'ios-manual';
-  } else if (deferredPrompt) {
-    return 'installable';
+  if (userAgent.includes('chrome')) {
+    return 'Click the menu (⋮) → "Install HydroFit"';
+  } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+    return 'Tap Share → "Add to Home Screen"';
+  } else if (userAgent.includes('edg')) {
+    return 'Click menu (⋯) → "Apps" → "Install HydroFit"';
+  } else if (userAgent.includes('firefox')) {
+    return 'Firefox: Tap menu → "Install"';
   } else {
-    return 'manual';
+    return 'Use browser menu to "Add to Home Screen"';
   }
 }
 
