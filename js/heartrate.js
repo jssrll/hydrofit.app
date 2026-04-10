@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - HEART RATE LOGGER
+// HYDROFIT - HEART RATE LOGGER (SHEETS SYNC)
 // ========================================
 
 let hrRecords = [];
@@ -9,6 +9,14 @@ function getHRInterpretation(bpm) {
   if (bpm < 100) return { text: 'Normal', color: '#00b894', advice: 'Healthy resting heart rate' };
   if (bpm < 120) return { text: 'Elevated', color: '#e17055', advice: 'Slightly above normal' };
   return { text: 'High', color: '#d63031', advice: 'Significantly elevated' };
+}
+
+function getChangeInterpretation(diff) {
+  if (diff > 30) return { text: 'Significant increase - intense workout', color: '#e17055' };
+  if (diff > 15) return { text: 'Moderate increase - good workout', color: '#fdcb6e' };
+  if (diff > 5) return { text: 'Mild increase - light activity', color: '#00b894' };
+  if (diff >= 0) return { text: 'Minimal change - well conditioned', color: '#00b894' };
+  return { text: 'Heart rate decreased - good recovery', color: '#00b894' };
 }
 
 function renderHeartRate() {
@@ -37,7 +45,7 @@ function renderHeartRate() {
       
       <div class="form-row">
         <div class="form-group">
-          <label>Exercise Type (Optional)</label>
+          <label>Exercise Type</label>
           <input type="text" id="hrExercise" class="form-control" placeholder="e.g., Running, Push-ups">
         </div>
         <div class="form-group">
@@ -67,11 +75,35 @@ function renderHeartRate() {
       </div>
     </div>
 
+    <!-- Heart Rate Zones -->
+    <div class="card tips-card">
+      <h4><i class="fas fa-chart-pie"></i> Heart Rate Zones</h4>
+      <div class="hr-zones">
+        <div class="zone-bar"></div>
+        <div class="zone-labels">
+          <span>Rest</span>
+          <span>Fat Burn</span>
+          <span>Cardio</span>
+          <span>Peak</span>
+        </div>
+      </div>
+      <ul style="margin-top:16px">
+        <li><i class="fas fa-check-circle"></i> Rest: 60-100 BPM</li>
+        <li><i class="fas fa-check-circle"></i> Fat Burn: 100-130 BPM</li>
+        <li><i class="fas fa-check-circle"></i> Cardio: 130-160 BPM</li>
+        <li><i class="fas fa-check-circle"></i> Peak: 160+ BPM</li>
+      </ul>
+    </div>
+
     <!-- Trends Chart -->
     <div class="card">
       <h3><i class="fas fa-chart-line"></i> Heart Rate Trends</h3>
       <div id="hrChartContainer" style="position:relative;height:250px;">
         <canvas id="hrChart" style="width:100%;height:100%"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><span class="legend-dot before"></span> Before Exercise</div>
+        <div class="legend-item"><span class="legend-dot after"></span> After Exercise</div>
       </div>
     </div>
 
@@ -79,15 +111,15 @@ function renderHeartRate() {
     <div class="card">
       <h3><i class="fas fa-history"></i> Record History</h3>
       <div id="hrHistory">
-        <div style="text-align:center;padding:20px;color:#64748b">
-          <i class="fas fa-calendar-alt" style="font-size:2rem;margin-bottom:12px"></i>
+        <div class="empty-state">
+          <i class="fas fa-calendar-alt"></i>
           <p>No records yet</p>
+          <p class="empty-hint">Data syncs with Google Sheets</p>
         </div>
       </div>
     </div>
   `;
   
-  // Live interpretation on input
   document.getElementById('hrBefore')?.addEventListener('input', updateHRInterpretation);
   document.getElementById('hrAfter')?.addEventListener('input', updateHRInterpretation);
   
@@ -103,44 +135,28 @@ function updateHRInterpretation() {
   const beforeInterp = getHRInterpretation(before);
   const afterInterp = getHRInterpretation(after);
   const diff = after - before;
-  const recoveryRate = diff > 0 ? 'increased' : 'decreased';
-  
-  let recoveryColor = '#64748b';
-  let recoveryText = '';
-  if (diff > 30) {
-    recoveryColor = '#e17055';
-    recoveryText = 'Significant increase - intense workout';
-  } else if (diff > 15) {
-    recoveryColor = '#fdcb6e';
-    recoveryText = 'Moderate increase - good workout';
-  } else if (diff > 5) {
-    recoveryColor = '#00b894';
-    recoveryText = 'Mild increase - light activity';
-  } else {
-    recoveryColor = '#00b894';
-    recoveryText = 'Minimal change - well conditioned';
-  }
+  const changeInterp = getChangeInterpretation(diff);
   
   const interpDiv = document.getElementById('hrInterpretation');
   interpDiv.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:center">
-      <div style="padding:16px;background:#f8fafc;border-radius:16px">
-        <div style="font-size:0.8rem;color:#64748b;margin-bottom:8px">BEFORE</div>
-        <div style="font-size:2.5rem;font-weight:700;color:${beforeInterp.color}">${before}</div>
-        <div style="font-size:1rem;font-weight:600;color:${beforeInterp.color}">${beforeInterp.text}</div>
-        <div style="font-size:0.8rem;color:#94a3b8;margin-top:8px">${beforeInterp.advice}</div>
+    <div class="interpretation-grid">
+      <div class="interpretation-card">
+        <div class="interpretation-label"><i class="fas fa-heart" style="color:#d63031"></i> BEFORE</div>
+        <div class="interpretation-value" style="color:${beforeInterp.color}">${before}</div>
+        <div class="interpretation-text" style="color:${beforeInterp.color}">${beforeInterp.text}</div>
+        <div class="interpretation-advice">${beforeInterp.advice}</div>
       </div>
-      <div style="padding:16px;background:#f8fafc;border-radius:16px">
-        <div style="font-size:0.8rem;color:#64748b;margin-bottom:8px">AFTER</div>
-        <div style="font-size:2.5rem;font-weight:700;color:${afterInterp.color}">${after}</div>
-        <div style="font-size:1rem;font-weight:600;color:${afterInterp.color}">${afterInterp.text}</div>
-        <div style="font-size:0.8rem;color:#94a3b8;margin-top:8px">${afterInterp.advice}</div>
+      <div class="interpretation-card">
+        <div class="interpretation-label"><i class="fas fa-heart" style="color:#00b894"></i> AFTER</div>
+        <div class="interpretation-value" style="color:${afterInterp.color}">${after}</div>
+        <div class="interpretation-text" style="color:${afterInterp.color}">${afterInterp.text}</div>
+        <div class="interpretation-advice">${afterInterp.advice}</div>
       </div>
     </div>
-    <div style="margin-top:16px;padding:12px;background:#f0f9ff;border-radius:12px;text-align:center">
-      <span style="color:#64748b">Change: </span>
-      <span style="font-weight:700;color:${recoveryColor}">${diff > 0 ? '+' : ''}${diff} BPM</span>
-      <span style="color:#94a3b8;margin-left:8px">(${recoveryText})</span>
+    <div class="interpretation-change">
+      <span class="change-label">Change:</span>
+      <span class="change-value" style="color:${changeInterp.color}">${diff > 0 ? '+' : ''}${diff} BPM</span>
+      <span class="change-description">(${changeInterp.text})</span>
     </div>
   `;
 }
@@ -157,43 +173,55 @@ async function saveHRRecord() {
     return;
   }
   
-  const record = {
-    id: 'HR' + Date.now(),
+  const diff = after - before;
+  const changeInterp = getChangeInterpretation(diff);
+  const interpretation = changeInterp.text;
+  
+  const btn = document.querySelector('button[onclick="saveHRRecord()"]');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  
+  const result = await callAPI('saveHeartRate', {
+    schoolId: window.currentUser.schoolId,
+    date,
+    exercise,
     before,
     after,
-    exercise,
-    date,
-    notes,
-    diff: after - before
-  };
+    difference: diff,
+    interpretation,
+    notes
+  });
   
-  // Store in localStorage
-  const stored = localStorage.getItem('hydrofit_hr_' + window.currentUser.schoolId);
-  let records = stored ? JSON.parse(stored) : [];
-  records.unshift(record);
-  localStorage.setItem('hydrofit_hr_' + window.currentUser.schoolId, JSON.stringify(records));
+  btn.disabled = false;
+  btn.innerHTML = originalText;
   
-  showToast('Heart rate record saved!', false);
-  document.getElementById('hrBefore').value = '';
-  document.getElementById('hrAfter').value = '';
-  document.getElementById('hrExercise').value = '';
-  document.getElementById('hrNotes').value = '';
-  document.getElementById('hrInterpretation').innerHTML = `
-    <div style="text-align:center;padding:20px;color:#64748b">
-      <i class="fas fa-heart" style="font-size:2rem;margin-bottom:12px"></i>
-      <p>Enter heart rate values to see interpretation</p>
-    </div>
-  `;
-  
-  loadHRRecords();
+  if (result.success) {
+    showToast('Heart rate record saved to Sheets!', false);
+    document.getElementById('hrBefore').value = '';
+    document.getElementById('hrAfter').value = '';
+    document.getElementById('hrExercise').value = '';
+    document.getElementById('hrNotes').value = '';
+    document.getElementById('hrInterpretation').innerHTML = `
+      <div style="text-align:center;padding:20px;color:#64748b">
+        <i class="fas fa-heart" style="font-size:2rem;margin-bottom:12px"></i>
+        <p>Enter heart rate values to see interpretation</p>
+      </div>
+    `;
+    loadHRRecords();
+  } else {
+    showToast(result.error || 'Failed to save', true);
+  }
 }
 
-function loadHRRecords() {
-  const stored = localStorage.getItem('hydrofit_hr_' + window.currentUser.schoolId);
-  hrRecords = stored ? JSON.parse(stored) : [];
+async function loadHRRecords() {
+  const result = await callAPI('getHeartRate', { schoolId: window.currentUser.schoolId });
   
-  updateHRHistory();
-  drawHRChart();
+  if (result.success && result.records) {
+    hrRecords = result.records;
+    updateHRHistory();
+    drawHRChart();
+  }
 }
 
 function updateHRHistory() {
@@ -201,31 +229,39 @@ function updateHRHistory() {
   
   if (hrRecords.length === 0) {
     historyDiv.innerHTML = `
-      <div style="text-align:center;padding:20px;color:#64748b">
-        <i class="fas fa-calendar-alt" style="font-size:2rem;margin-bottom:12px"></i>
+      <div class="empty-state">
+        <i class="fas fa-calendar-alt"></i>
         <p>No records yet</p>
+        <p class="empty-hint">Data syncs with Google Sheets</p>
       </div>
     `;
     return;
   }
   
   let html = '<div class="history-list">';
-  hrRecords.slice(0, 10).forEach(r => {
-    const diffColor = r.diff > 20 ? '#e17055' : r.diff > 10 ? '#fdcb6e' : '#00b894';
+  hrRecords.slice(0, 15).forEach(r => {
+    const diff = parseInt(r.difference) || 0;
+    const diffClass = diff > 20 ? 'positive' : diff > 10 ? 'neutral' : 'negative';
+    const diffSign = diff > 0 ? '+' : '';
+    
     html += `
-      <div class="history-item" style="display:flex;justify-content:space-between;align-items:center;padding:14px 12px;border-bottom:1px solid #e0e7ff">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#d63031,#00b894);display:flex;align-items:center;justify-content:center">
-            <span style="font-size:0.9rem;font-weight:700;color:white">${r.before}→${r.after}</span>
+      <div class="history-item">
+        <div class="history-item-left">
+          <div class="hr-badge">
+            <span>${r.before}→${r.after}</span>
           </div>
-          <div>
-            <div style="font-weight:600;color:#1a1a1a">${r.exercise}</div>
-            <div style="font-size:0.75rem;color:#94a3b8">${new Date(r.date).toLocaleDateString()}</div>
+          <div class="history-details">
+            <h5>${escapeHtml(r.exercise)}</h5>
+            <div class="history-meta">
+              <span><i class="fas fa-calendar"></i> ${new Date(r.date).toLocaleDateString()}</span>
+              <span><i class="fas fa-cloud" style="color:#00b894" title="Synced to Sheets"></i></span>
+            </div>
+            ${r.notes ? `<div style="font-size:0.75rem;color:#94a3b8;margin-top:4px">${escapeHtml(r.notes)}</div>` : ''}
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <span style="font-size:0.9rem;font-weight:600;color:${diffColor}">${r.diff > 0 ? '+' : ''}${r.diff} BPM</span>
-          <button onclick="deleteHRRecord('${r.id}')" style="background:none;border:none;color:#d63031;cursor:pointer;padding:6px">
+        <div class="history-item-right">
+          <span class="hr-change ${diffClass}">${diffSign}${diff} BPM</span>
+          <button class="delete-btn" onclick="deleteHRRecord('${r.id}')" title="Delete">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -234,9 +270,17 @@ function updateHRHistory() {
   });
   html += '</div>';
   
-  if (hrRecords.length > 10) {
-    html += `<p style="text-align:center;margin-top:16px;color:#64748b">Showing last 10 of ${hrRecords.length} records</p>`;
+  if (hrRecords.length > 15) {
+    html += `<p style="text-align:center;margin-top:16px;color:#64748b;font-size:0.85rem">Showing last 15 of ${hrRecords.length} records</p>`;
   }
+  
+  html += `
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-outline" onclick="loadHRRecords()" style="flex:1">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+  `;
   
   historyDiv.innerHTML = html;
 }
@@ -275,7 +319,7 @@ function drawHRChart() {
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   
-  const allValues = chartData.flatMap(r => [r.before, r.after]);
+  const allValues = chartData.flatMap(r => [parseInt(r.before), parseInt(r.after)]);
   const maxHR = Math.max(...allValues) + 10;
   const minHR = Math.max(40, Math.min(...allValues) - 10);
   
@@ -297,41 +341,74 @@ function drawHRChart() {
   }
   
   // Draw lines
-  ['before', 'after'].forEach((type, idx) => {
+  ['before', 'after'].forEach((type) => {
     ctx.beginPath();
     ctx.strokeStyle = type === 'before' ? '#d63031' : '#00b894';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     
     chartData.forEach((r, i) => {
       const x = padding.left + (i / (chartData.length - 1)) * chartWidth;
-      const y = padding.top + chartHeight - ((r[type] - minHR) / (maxHR - minHR)) * chartHeight;
+      const y = padding.top + chartHeight - ((parseInt(r[type]) - minHR) / (maxHR - minHR)) * chartHeight;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
     ctx.stroke();
+    
+    // Data points
+    chartData.forEach((r, i) => {
+      const x = padding.left + (i / (chartData.length - 1)) * chartWidth;
+      const y = padding.top + chartHeight - ((parseInt(r[type]) - minHR) / (maxHR - minHR)) * chartHeight;
+      
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = type === 'before' ? '#d63031' : '#00b894';
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
   });
   
-  // Legend
-  ctx.font = 'bold 11px Inter, sans-serif';
-  ctx.fillStyle = '#d63031';
-  ctx.fillText('Before', width - 120, 20);
-  ctx.fillStyle = '#00b894';
-  ctx.fillText('After', width - 60, 20);
+  // Date labels
+  ctx.font = '10px Inter, sans-serif';
+  ctx.fillStyle = '#94a3b8';
+  ctx.textAlign = 'center';
+  const dateInterval = Math.max(1, Math.floor(chartData.length / 5));
+  chartData.forEach((r, i) => {
+    if (i % dateInterval === 0 || i === chartData.length - 1) {
+      const x = padding.left + (i / (chartData.length - 1)) * chartWidth;
+      const dateStr = new Date(r.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      ctx.fillText(dateStr, x, height - 20);
+    }
+  });
   
   ctx.strokeStyle = '#e0e7ff';
   ctx.lineWidth = 1;
   ctx.strokeRect(padding.left, padding.top, chartWidth, chartHeight);
+  
+  ctx.font = 'bold 11px Inter, sans-serif';
+  ctx.fillStyle = '#d63031';
+  ctx.textAlign = 'left';
+  ctx.fillText('Before', padding.left + 5, padding.top - 8);
+  ctx.fillStyle = '#00b894';
+  ctx.fillText('After', padding.left + 80, padding.top - 8);
 }
 
-function deleteHRRecord(id) {
-  if (!confirm('Delete this record?')) return;
+async function deleteHRRecord(id) {
+  if (!confirm('Delete this heart rate record?')) return;
   
-  hrRecords = hrRecords.filter(r => r.id !== id);
-  localStorage.setItem('hydrofit_hr_' + window.currentUser.schoolId, JSON.stringify(hrRecords));
+  const result = await callAPI('deleteHeartRate', { hrId: id });
   
-  updateHRHistory();
-  drawHRChart();
-  showToast('Record deleted', false);
+  if (result.success) {
+    hrRecords = hrRecords.filter(r => r.id !== id);
+    updateHRHistory();
+    drawHRChart();
+    showToast('Record deleted', false);
+  } else {
+    showToast(result.error || 'Failed to delete', true);
+  }
 }
 
-console.log("✅ Heart Rate Logger Loaded");
+console.log("✅ Heart Rate Logger Loaded with Sheets Sync");
