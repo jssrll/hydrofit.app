@@ -401,3 +401,135 @@
   opacity: 0.8;
   cursor: default;
 }
+
+/* Simple Steps */
+.simple-steps {
+  margin-bottom: 20px;
+}
+
+.simple-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 16px;
+}
+
+.step-icon {
+  font-size: 2rem;
+  width: 50px;
+  text-align: center;
+}
+
+.step-text h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: var(--darker);
+}
+
+.step-text p {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.tip-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fef9e7;
+  border-radius: 12px;
+  border-left: 4px solid #fdcb6e;
+}
+
+.tip-box i {
+  font-size: 1.5rem;
+  color: #fdcb6e;
+}
+
+.tip-box span {
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+
+/* Copy Link Button */
+.copy-link-btn {
+  width: 100%;
+  padding: 14px;
+  background: white;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.copy-link-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Share Card */
+.share-card {
+  text-align: center;
+}
+
+.share-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.share-btn {
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.share-btn:nth-child(1) {
+  background: #ea4335;
+  color: white;
+}
+
+.share-btn:nth-child(2) {
+  background: #25d366;
+  color: white;
+}
+
+.share-btn:nth-child(3) {
+  background: #0084ff;
+  color: white;
+}
+
+.share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+  .share-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .simple-step {
+    flex-direction: column;
+    text-align: center;
+  }
+}
