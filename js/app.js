@@ -27,6 +27,8 @@ function switchTab(tab) {
     'bmi': () => { updatePageTitle('BMI Tracker'); renderBMI(); window.isLoading = false; },
     'heartrate': () => { updatePageTitle('Heart Rate Logger'); renderHeartRate(); window.isLoading = false; },
     'movement': () => { updatePageTitle('Movement Library'); renderMovementLibrary(); window.isLoading = false; },
+    'injury': () => { updatePageTitle('Injury Prevention'); renderInjuryGuide(); window.isLoading = false; },
+    'recovery': () => { updatePageTitle('Recovery Tracker'); renderRecoveryTracker(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
   
