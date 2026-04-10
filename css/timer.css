@@ -1,0 +1,187 @@
+/* timer.css - Exercise Timer Styles */
+.timer-banner {
+  margin-bottom: 20px;
+}
+
+.timer-banner img {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.timer-mode-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.timer-mode-btn {
+  flex: 1;
+  padding: 12px;
+  background: #f0f9ff;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.timer-mode-btn i {
+  font-size: 1.1rem;
+}
+
+.timer-mode-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.timer-display-large {
+  font-size: 4rem;
+  font-weight: 800;
+  text-align: center;
+  font-family: 'Inter', monospace;
+  background: linear-gradient(135deg, var(--darker), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding: 20px;
+  margin: 20px 0;
+  letter-spacing: 4px;
+}
+
+.timer-inputs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.timer-input-group {
+  flex: 1;
+  text-align: center;
+}
+
+.timer-input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.timer-input {
+  width: 100%;
+  padding: 12px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  background: white;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.timer-control-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-success {
+  background: #00b894;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #00a381;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,184,148,0.3);
+}
+
+.btn-warning {
+  background: #fdcb6e;
+  color: #1a1a1a;
+}
+
+.btn-warning:hover {
+  background: #f0b73e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(253,203,110,0.3);
+}
+
+.btn-danger {
+  background: #d63031;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c02626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(214,48,49,0.3);
+}
+
+.interval-settings {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.interval-row {
+  flex: 1;
+}
+
+.interval-row label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--dark);
+  font-size: 0.8rem;
+}
+
+.quick-timers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.quick-timer-btn {
+  padding: 12px;
+  background: #f0f9ff;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-timer-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,180,216,0.2);
+}

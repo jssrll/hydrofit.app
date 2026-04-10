@@ -1,0 +1,32 @@
+/* variables.css - CSS Variables */
+:root {
+  --primary: #00b4d8;
+  --primary-dark: #0096c7;
+  --secondary: #48cae4;
+  --accent: #90e0ef;
+  --dark: #023e8a;
+  --darker: #03045e;
+  --light: #f0f9ff;
+  --gray: #caf0f8;
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --danger: #d63031;
+  --card-bg: rgba(255,255,255,0.98);
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 20px rgba(0,0,0,0.12);
+  --header-height: 65px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+  min-height: 100vh;
+  color: #1a1a1a;
+  overflow: hidden;
+}

@@ -1,0 +1,83 @@
+/* assessment.css - Fitness Assessment Styles */
+.assessment-banner {
+  margin-bottom: 20px;
+}
+
+.assessment-banner img {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.fitness-header {
+  margin-bottom: 20px;
+}
+
+.fitness-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--darker);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fitness-header p {
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 8px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e0e7ff;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+input[type="range"] {
+  width: calc(100% - 50px);
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.history-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-item {
+  transition: background 0.2s ease;
+}
+
+.history-item:hover {
+  background: #f0f9ff;
+}

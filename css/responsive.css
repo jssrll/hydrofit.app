@@ -1,0 +1,177 @@
+/* responsive.css - Mobile & Tablet Responsive Styles */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 60px;
+  }
+  
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    height: 100vh;
+    z-index: 200;
+  }
+  
+  .sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  }
+  
+  .main-panel {
+    margin-left: 0;
+  }
+  
+  .top-bar {
+    left: 0;
+    padding: 0 16px;
+  }
+  
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .top-bar h2 {
+    font-size: 1.1rem;
+  }
+  
+  .user-stats {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .tab-content {
+    padding: 16px 12px;
+  }
+  
+  .slideshow-container {
+    height: 180px;
+  }
+  
+  .welcome-card {
+    padding: 20px 16px;
+  }
+  
+  .welcome-card h2 {
+    font-size: 1.4rem;
+  }
+  
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .fitness-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .modal-content {
+    width: 95%;
+  }
+  
+  #sidebarOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
+  }
+
+  .assessment-banner img {
+    max-height: 150px;
+  }
+
+  .podium-container {
+    gap: 10px;
+  }
+  
+  .podium-item {
+    min-width: 100px;
+    padding: 15px 10px;
+  }
+  
+  .podium-avatar {
+    font-size: 2rem;
+  }
+  
+  .podium-name {
+    font-size: 0.8rem;
+  }
+  
+  .podium-score {
+    font-size: 1rem;
+  }
+  
+  .first-place {
+    transform: scale(1.02);
+  }
+  
+  .user-rank-content {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem;
+  }
+  
+  .ranking-table th,
+  .ranking-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+
+  .timer-display-large {
+    font-size: 3rem;
+    letter-spacing: 2px;
+  }
+  
+  .interval-settings {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .quick-timers {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .timer-banner img,
+  .ranking-banner img {
+    max-height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .podium-item {
+    min-width: 80px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
