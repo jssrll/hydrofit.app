@@ -2,15 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=yes">
+  
+  <!-- ======================================== -->
+  <!-- FAVICON & PWA CONFIGURATION              -->
+  <!-- ======================================== -->
+  
+  <!-- Standard Favicon -->
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  
+  <!-- Android Chrome Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="assets/site.webmanifest">
+  
+  <!-- Theme Colors -->
+  <meta name="theme-color" content="#00b4d8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HydroFit">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Academic Fitness Tracker for PathFit Class - Mindoro State University">
+  <meta name="keywords" content="fitness, academic, pathfit, mindoro, university, tracker, hydrofit">
+  <meta name="author" content="HydroFit Team">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:title" content="HydroFit | Academic Fitness Tracker">
+  <meta property="og:description" content="Your Academic Fitness Tracker for PathFit Class">
+  <meta property="og:image" content="assets/android-chrome-512x512.png">
+  <meta property="og:url" content="https://hydrofit.app">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  
   <title>HydroFit | Academic Fitness Tracker</title>
+  
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
+  
 </head>
 <body>
 <div class="app-container">
-  <!-- SIDEBAR -->
+  <!-- ======================================== -->
+  <!-- SIDEBAR NAVIGATION                       -->
+  <!-- ======================================== -->
   <aside class="sidebar" id="sidebar">
     <div class="logo-area">
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/N%20(2).png" alt="HydroFit Logo">
@@ -26,39 +76,42 @@
       <button class="nav-btn" data-tab="assignment">
         <i class="fas fa-clipboard-list"></i> Fitness Assessment
       </button>
-      <button class="nav-btn" data-tab="ranking">
-        <i class="fas fa-trophy"></i> Ranking
-      </button>
       <button class="nav-btn" data-tab="timer">
         <i class="fas fa-clock"></i> Exercise Timer
       </button>
       <button class="nav-btn" data-tab="heartrate">
         <i class="fas fa-heart-pulse"></i> Heart Rate
       </button>
+      <button class="nav-btn" data-tab="bmi">
+        <i class="fas fa-weight-scale"></i> BMI Tracker
+      </button>
       <button class="nav-btn" data-tab="movement">
         <i class="fas fa-video"></i> Movement Demo
+      </button>
+      <button class="nav-btn" data-tab="bodyparts">
+        <i class="fas fa-person-walking"></i> Body Parts
       </button>
       <button class="nav-btn" data-tab="bodytype">
         <i class="fas fa-user-tag"></i> Body Type
       </button>
-      <button class="nav-btn" data-tab="bodyparts">
-        <i class="fas fa-person-walking"></i> Body Parts Trainer
-      </button>
-      <button class="nav-btn" data-tab="bmi">
-        <i class="fas fa-weight-scale"></i> BMI Tracker
-      </button>
       <button class="nav-btn" data-tab="injury">
-        <i class="fas fa-shield"></i> Injury Prevention
+        <i class="fas fa-shield-heart"></i> Injury Prevention
       </button>
       <button class="nav-btn" data-tab="recovery">
-        <i class="fas fa-bed"></i> Recovery Tracker
+        <i class="fas fa-bed"></i> Recovery
       </button>
-      <button class="logout-btn" id="logoutBtn">
-        <i class="fas fa-sign-out-alt"></i> Logout
+      <button class="nav-btn" data-tab="ranking">
+        <i class="fas fa-trophy"></i> Ranking
       </button>
+    </nav>
+    <button class="logout-btn" id="logoutBtn">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
   </aside>
 
-  <!-- MAIN PANEL -->
+  <!-- ======================================== -->
+  <!-- MAIN PANEL                               -->
+  <!-- ======================================== -->
   <main class="main-panel">
     <div class="top-bar">
       <button class="mobile-menu-btn" id="mobileMenuBtn">
@@ -78,7 +131,9 @@
   </main>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- ======================================== -->
+<!-- LOGIN/REGISTER MODAL                     -->
+<!-- ======================================== -->
 <div id="authModal" class="modal" style="display: flex;">
   <div class="modal-content">
     <div class="modal-header">
@@ -127,26 +182,61 @@
   </div>
 </div>
 
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
+<!-- ======================================== -->
+<!-- TOAST NOTIFICATION                        -->
+<!-- ======================================== -->
+<div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
 
-  <!-- Load all JavaScript modules -->
-  <script src="js/config.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/dashboard.js"></script>
-  <script src="js/profile.js"></script>
-  <script src="js/assessment.js"></script>
-  <script src="js/timer.js"></script>
-  <script src="js/ranking.js"></script>
-  <script src="js/bmi.js"></script>
-  <script src="js/heartrate.js"></script>
-  <script src="js/movement.js"></script>
-  <script src="js/injury.js"></script>
-  <script src="js/recovery.js"></script>
-  <script src="js/bodytype.js"></script>
-  <script src="js/bodyparts.js"></script>
-  <script src="js/app.js"></script>
+<!-- ======================================== -->
+<!-- JAVASCRIPT MODULES                        -->
+<!-- ======================================== -->
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/assessment.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/ranking.js"></script>
+<script src="js/bmi.js"></script>
+<script src="js/heartrate.js"></script>
+<script src="js/movement.js"></script>
+<script src="js/injury.js"></script>
+<script src="js/recovery.js"></script>
+<script src="js/bodytype.js"></script>
+<script src="js/bodyparts.js"></script>
+<script src="js/app.js"></script>
+
+<!-- ======================================== -->
+<!-- PWA SERVICE WORKER REGISTRATION           -->
+<!-- ======================================== -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('✅ ServiceWorker registered with scope: ', registration.scope);
+        })
+        .catch(error => {
+          console.log('❌ ServiceWorker registration failed: ', error);
+        });
+    });
+  }
+  
+  // Check if app is installed as PWA
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('📱 HydroFit is running as installed PWA');
+  }
+  
+  // Handle install prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('📲 Install prompt available');
+  });
+</script>
+
 </body>
 </html>
