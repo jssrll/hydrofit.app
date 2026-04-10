@@ -7,94 +7,6 @@ let currentUser = null;
 let isLoading = false;
 let assessments = [];
 
-// Custom Confirm Dialog
-function showCustomConfirm(message, onConfirm) {
-  // Create overlay
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease;
-  `;
-  
-  // Create dialog
-  const dialog = document.createElement('div');
-  dialog.style.cssText = `
-    background: white;
-    border-radius: 24px;
-    padding: 28px;
-    max-width: 380px;
-    width: 90%;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    animation: slideIn 0.3s ease;
-    text-align: center;
-  `;
-  
-  dialog.innerHTML = `
-    <div style="font-size: 3rem; color: #d63031; margin-bottom: 16px;">
-      <i class="fas fa-exclamation-triangle"></i>
-    </div>
-    <h3 style="color: #1a1a1a; margin-bottom: 12px; font-size: 1.3rem;">Confirm Delete</h3>
-    <p style="color: #64748b; margin-bottom: 24px; line-height: 1.5;">${message}</p>
-    <div style="display: flex; gap: 12px;">
-      <button id="customConfirmCancel" style="flex: 1; padding: 12px; border: 2px solid #e0e7ff; background: white; border-radius: 12px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s;">
-        Cancel
-      </button>
-      <button id="customConfirmOk" style="flex: 1; padding: 12px; border: none; background: #d63031; color: white; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-        Delete All
-      </button>
-    </div>
-  `;
-  
-  overlay.appendChild(dialog);
-  document.body.appendChild(overlay);
-  
-  // Add animation styles
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes slideIn {
-      from { transform: translateY(-20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Handle buttons
-  document.getElementById('customConfirmCancel').onclick = () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => overlay.remove(), 200);
-  };
-  
-  document.getElementById('customConfirmOk').onclick = () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => {
-      overlay.remove();
-      onConfirm();
-    }, 200);
-  };
-  
-  // Close on overlay click
-  overlay.onclick = (e) => {
-    if (e.target === overlay) {
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.remove(), 200);
-    }
-  };
-}
-
 // Toast notification function
 function showToast(message, isError = false) {
   const toast = document.getElementById("toast");
@@ -122,31 +34,6 @@ function closeSidebar() {
   const overlay = document.getElementById("sidebarOverlay");
   if (sidebar) sidebar.classList.remove("open");
   if (overlay) overlay.remove();
-}
-
-// Loading indicator functions
-function showLoading(containerId) {
-  const container = document.getElementById(containerId);
-  if (container) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 20px;">
-        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--primary);"></i>
-        <p style="color: #64748b; margin-top: 8px;">Loading...</p>
-      </div>
-    `;
-  }
-}
-
-function showButtonLoading(btn) {
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-  return originalText;
-}
-
-function restoreButton(btn, originalText) {
-  btn.disabled = false;
-  btn.innerHTML = originalText;
 }
 
 // ========================================
@@ -469,6 +356,9 @@ async function renderProfile() {
         <p style="color: #64748b; font-size: 0.85rem;">
           <i class="fas fa-id-card"></i> ${userData.schoolId}
         </p>
+        <p style="color: #64748b; font-size: 0.8rem; margin-top: 4px;">
+          <i class="fas fa-envelope"></i> ${escapeHtml(userData.email)}
+        </p>
         <button class="btn btn-outline" onclick="window.downloadQRCode()" style="margin-top: 16px; width: 100%;">
           <i class="fas fa-download"></i> Download QR Code
         </button>
@@ -502,8 +392,6 @@ async function renderProfile() {
 async function loadAssessments() {
   if (!currentUser) return;
   
-  showLoading('assessmentHistory');
-  
   const result = await callAPI('getAssessments', { schoolId: currentUser.schoolId });
   
   if (result.success && result.assessments) {
@@ -528,9 +416,6 @@ async function loadAssessments() {
     if (assessments.length > 0) {
       updateRatingDisplay(assessments[0]);
     }
-  } else {
-    updateAssessmentHistory();
-    updateProgressComparison();
   }
 }
 
@@ -588,7 +473,9 @@ async function addAssessment() {
   const ratingData = calculateRating(exercise, repetitions, unit, intensity);
   
   const btn = document.querySelector('button[onclick="window.addAssessment()"]');
-  const originalText = showButtonLoading(btn);
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
   
   const result = await callAPI('saveAssessment', {
     schoolId: currentUser.schoolId,
@@ -602,7 +489,8 @@ async function addAssessment() {
     notes
   });
   
-  restoreButton(btn, originalText);
+  btn.disabled = false;
+  btn.innerHTML = originalText;
   
   if (result.success) {
     const assessment = {
@@ -630,76 +518,61 @@ async function addAssessment() {
     document.getElementById('intensity').value = 5;
     document.getElementById('intensityValue').innerText = 5;
     
-    showToast('Assessment saved!', false);
+    showToast('Assessment saved to Sheets!', false);
   } else {
     showToast(result.error || 'Failed to save assessment', true);
   }
 }
 
 async function deleteAssessment(assessmentId) {
-  showCustomConfirm('Are you sure you want to delete this assessment?', async () => {
-    const result = await callAPI('deleteAssessment', { assessmentId });
+  if (!confirm('Delete this assessment?')) return;
+  
+  const result = await callAPI('deleteAssessment', { assessmentId });
+  
+  if (result.success) {
+    assessments = assessments.filter(a => a.id !== assessmentId);
+    updateAssessmentHistory();
+    updateProgressComparison();
     
-    if (result.success) {
-      assessments = assessments.filter(a => a.id !== assessmentId);
-      updateAssessmentHistory();
-      updateProgressComparison();
-      
-      if (assessments.length > 0) {
-        updateRatingDisplay(assessments[0]);
-      } else {
-        document.getElementById('ratingDisplay').innerHTML = `
-          <div style="text-align: center; padding: 20px; color: #64748b;">
-            <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 12px;"></i>
-            <p>Complete an assessment to see your rating</p>
-          </div>
-        `;
-      }
-      
-      showToast('Assessment deleted', false);
+    if (assessments.length > 0) {
+      updateRatingDisplay(assessments[0]);
     } else {
-      showToast(result.error || 'Failed to delete', true);
-    }
-  });
-}
-
-async function clearAllAssessments() {
-  showCustomConfirm('Are you sure you want to delete ALL assessment history? This action cannot be undone.', async () => {
-    const btn = document.querySelector('button[onclick="window.clearAllAssessments()"]');
-    const originalText = btn ? showButtonLoading(btn) : '';
-    
-    const result = await callAPI('clearAllAssessments', { schoolId: currentUser.schoolId });
-    
-    if (btn) restoreButton(btn, originalText);
-    
-    if (result.success) {
-      assessments = [];
-      
       document.getElementById('ratingDisplay').innerHTML = `
         <div style="text-align: center; padding: 20px; color: #64748b;">
           <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 12px;"></i>
           <p>Complete an assessment to see your rating</p>
         </div>
       `;
-      
-      updateAssessmentHistory();
-      updateProgressComparison();
-      
-      showToast('All assessments cleared', false);
-    } else {
-      showToast(result.error || 'Failed to clear assessments', true);
     }
-  });
+    
+    showToast('Assessment deleted', false);
+  } else {
+    showToast(result.error || 'Failed to delete', true);
+  }
 }
 
-async function refreshAssessments() {
-  const btn = document.querySelector('button[onclick="window.refreshAssessments()"]');
-  const originalText = showButtonLoading(btn);
+async function clearAllAssessments() {
+  if (!confirm('Are you sure you want to clear ALL assessment history? This cannot be undone.')) return;
   
-  await loadAssessments();
+  const result = await callAPI('clearAllAssessments', { schoolId: currentUser.schoolId });
   
-  restoreButton(btn, originalText);
-  showToast('Data refreshed!', false);
+  if (result.success) {
+    assessments = [];
+    
+    document.getElementById('ratingDisplay').innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #64748b;">
+        <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 12px;"></i>
+        <p>Complete an assessment to see your rating</p>
+      </div>
+    `;
+    
+    updateAssessmentHistory();
+    updateProgressComparison();
+    
+    showToast('All assessments cleared from Sheets', false);
+  } else {
+    showToast(result.error || 'Failed to clear assessments', true);
+  }
 }
 
 function updateRatingDisplay(assessment) {
@@ -716,6 +589,9 @@ function updateRatingDisplay(assessment) {
       <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 12px;">
         <i class="fas fa-calendar"></i> ${new Date(assessment.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
       </div>
+      <p style="margin-top: 12px; font-size: 0.75rem; color: #94a3b8;">
+        <i class="fas fa-cloud-check"></i> Synced to Google Sheets
+      </p>
     </div>
   `;
 }
@@ -729,6 +605,7 @@ function updateAssessmentHistory() {
       <div style="text-align: center; padding: 20px; color: #64748b;">
         <i class="fas fa-calendar-alt" style="font-size: 2rem; margin-bottom: 12px;"></i>
         <p>No assessments recorded yet</p>
+        <p style="font-size: 0.85rem; margin-top: 8px;">Data syncs with Google Sheets</p>
       </div>
     `;
     return;
@@ -745,6 +622,7 @@ function updateAssessmentHistory() {
           </div>
           <div style="font-size: 0.75rem; color: #94a3b8;">
             ${new Date(a.date).toLocaleDateString()}
+            <i class="fas fa-cloud" style="margin-left: 8px; color: #00b894;" title="Synced to Sheets"></i>
           </div>
         </div>
         <div style="text-align: right; display: flex; align-items: center; gap: 12px;">
@@ -768,7 +646,7 @@ function updateAssessmentHistory() {
       <button class="btn btn-outline" onclick="window.clearAllAssessments()" style="flex: 1;">
         <i class="fas fa-trash"></i> Clear All
       </button>
-      <button class="btn btn-outline" onclick="window.refreshAssessments()" style="flex: 1;">
+      <button class="btn btn-outline" onclick="window.loadAssessments()" style="flex: 1;">
         <i class="fas fa-sync-alt"></i> Refresh
       </button>
     </div>
@@ -933,9 +811,9 @@ function renderAssessment() {
     <div class="card">
       <h3><i class="fas fa-history"></i> Assessment History</h3>
       <div id="assessmentHistory">
-        <div style="text-align: center; padding: 20px;">
-          <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--primary);"></i>
-          <p style="color: #64748b; margin-top: 8px;">Loading...</p>
+        <div style="text-align: center; padding: 20px; color: #64748b;">
+          <i class="fas fa-calendar-alt" style="font-size: 2rem; margin-bottom: 12px;"></i>
+          <p>No assessments recorded yet</p>
         </div>
       </div>
     </div>
@@ -945,7 +823,7 @@ function renderAssessment() {
       <div id="progressComparison">
         <div style="text-align: center; padding: 20px; color: #64748b;">
           <i class="fas fa-chart-simple" style="font-size: 2rem; margin-bottom: 12px;"></i>
-          <p>Complete at least 2 assessments to compare progress</p>
+          <p>Track multiple assessments to see progress</p>
         </div>
       </div>
     </div>
@@ -955,15 +833,18 @@ function renderAssessment() {
 }
 
 // ========================================
-// RANKING PAGE
+// RANKING PAGE - EXERCISE RANKINGS
 // ========================================
 
 function renderRanking() {
   const container = document.getElementById("tabContent");
   
   container.innerHTML = `
-    <div class="ranking-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png" alt="Exercise Rankings Banner" style="width: 100%; border-radius: 20px; margin-bottom: 20px;">
+    <div class="ranking-section">
+      <h2 style="margin-bottom: 20px; color: var(--darker);">
+        <i class="fas fa-trophy" style="color: #fdcb6e;"></i> Exercise Rankings
+      </h2>
+      <p style="color: #64748b; margin-bottom: 24px;">Compare your performance with others on each exercise</p>
     </div>
     <div id="rankingsContainer">
       <div class="loading-placeholder">
@@ -978,6 +859,7 @@ function renderRanking() {
 async function loadRankings() {
   if (!currentUser) return;
   
+  // Get all assessments for ranking
   const result = await callAPI('getAllAssessments', {});
   
   const container = document.getElementById('rankingsContainer');
@@ -995,6 +877,7 @@ async function loadRankings() {
     return;
   }
   
+  // Group assessments by exercise
   const exerciseRankings = {};
   
   result.assessments.forEach(a => {
@@ -1002,6 +885,7 @@ async function loadRankings() {
       exerciseRankings[a.exercise] = [];
     }
     
+    // Check if user already has an entry for this exercise
     const existingIndex = exerciseRankings[a.exercise].findIndex(
       e => e.schoolId === a.schoolId
     );
@@ -1019,16 +903,19 @@ async function loadRankings() {
     if (existingIndex === -1) {
       exerciseRankings[a.exercise].push(entry);
     } else {
+      // Keep the best rating
       if (parseFloat(a.rating) > exerciseRankings[a.exercise][existingIndex].rating) {
         exerciseRankings[a.exercise][existingIndex] = entry;
       }
     }
   });
   
+  // Sort each exercise ranking by rating (descending)
   for (const exercise in exerciseRankings) {
     exerciseRankings[exercise].sort((a, b) => b.rating - a.rating);
   }
   
+  // Generate HTML
   let html = '';
   
   for (const [exercise, rankings] of Object.entries(exerciseRankings)) {
@@ -1136,100 +1023,6 @@ function switchTab(tab) {
   else if (tab === 'ranking') { 
     updatePageTitle('Rankings'); 
     renderRanking(); 
-    isLoading = false;
-  }
-}
-
-// ========================================
-// SETTINGS PAGE
-// ========================================
-
-function renderSettings() {
-  const container = document.getElementById("tabContent");
-  
-  container.innerHTML = `
-    <div class="welcome-card">
-      <h2><i class="fas fa-cog"></i> Settings</h2>
-      <p>Manage your account preferences</p>
-    </div>
-
-    <div class="card">
-      <h3><i class="fas fa-user-circle"></i> Account Settings</h3>
-      <div style="margin-top: 20px;">
-        <div class="info-item" style="background: #f8fafc; margin-bottom: 16px;">
-          <label>School ID</label>
-          <p style="color: #1a1a1a;">${currentUser?.schoolId || 'N/A'}</p>
-        </div>
-        <div class="info-item" style="background: #f8fafc; margin-bottom: 16px;">
-          <label>Email</label>
-          <p style="color: #1a1a1a;">${currentUser?.email || 'N/A'}</p>
-        </div>
-        <div class="info-item" style="background: #f8fafc; margin-bottom: 16px;">
-          <label>Program</label>
-          <p style="color: #1a1a1a;">${currentUser?.program || 'N/A'}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><i class="fas fa-palette"></i> Appearance</h3>
-      <p style="color: #64748b; margin: 16px 0;">Theme settings coming soon!</p>
-    </div>
-
-    <div class="card">
-      <h3><i class="fas fa-bell"></i> Notifications</h3>
-      <p style="color: #64748b; margin: 16px 0;">Notification settings coming soon!</p>
-    </div>
-
-    <div class="card">
-      <h3><i class="fas fa-info-circle"></i> About</h3>
-      <p style="color: #64748b; margin: 16px 0;">
-        <strong>HydroFit v1.0.0</strong><br>
-        Academic Fitness Tracker for PathFit<br>
-        Mindoro State University
-      </p>
-    </div>
-  `;
-}
-
-// Update switchTab function to include settings
-function switchTab(tab) {
-  if (isLoading) return;
-  isLoading = true;
-  currentTab = tab;
-  
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.getAttribute('data-tab') === tab) {
-      btn.classList.add('active');
-    }
-  });
-  
-  closeSidebar();
-  
-  if (tab === 'dashboard') { 
-    updatePageTitle('Dashboard'); 
-    renderDashboard(); 
-    isLoading = false;
-  }
-  else if (tab === 'profile') { 
-    updatePageTitle('My Profile'); 
-    renderProfile().then(() => isLoading = false);
-    return;
-  }
-  else if (tab === 'assessment') { 
-    updatePageTitle('Fitness Assessment'); 
-    renderAssessment(); 
-    isLoading = false;
-  }
-  else if (tab === 'ranking') { 
-    updatePageTitle('Rankings'); 
-    renderRanking(); 
-    isLoading = false;
-  }
-  else if (tab === 'settings') { 
-    updatePageTitle('Settings'); 
-    renderSettings(); 
     isLoading = false;
   }
 }
@@ -1404,8 +1197,7 @@ window.addAssessment = addAssessment;
 window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
-window.refreshAssessments = refreshAssessments;
 
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete");
+console.log("✅ HydroFit Loaded - Complete with Rankings");
