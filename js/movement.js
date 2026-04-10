@@ -21,7 +21,7 @@ const exerciseLibrary = [
   { name: 'Bench Press', videoId: 'rT7DgCr-3pg', instructions: 'Lie on bench with feet flat. Grip bar slightly wider than shoulders. Lower bar to chest, then press up. Keep elbows at 45° angle.' },
   { name: 'Bicep Curl', videoId: 'ykJmrZ5v0Oo', instructions: 'Stand holding weights at sides, palms forward. Curl weights toward shoulders keeping elbows stationary. Squeeze biceps at top. Lower with control.' },
   { name: 'Tricep Dip', videoId: '0326dy_-CzM', instructions: 'Sit on edge of bench, hands beside hips. Slide forward, lower body by bending elbows to 90°. Push back up. Keep shoulders down.' },
-  { name: 'Running', videoId: 'k0Q1Qe7h6tY', instructions: 'Maintain upright posture with slight forward lean. Land midfoot, keep cadence quick. Arms swing front to back, not across body. Breathe rhythmically.' }
+  { name: 'Running', videoId: 'brFHyOtTwH4', instructions: 'Maintain upright posture with slight forward lean. Land midfoot, keep cadence quick. Arms swing front to back, not across body. Breathe rhythmically.' }
 ];
 
 let currentVideoIndex = 0;
