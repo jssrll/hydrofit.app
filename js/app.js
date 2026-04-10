@@ -1141,6 +1141,100 @@ function switchTab(tab) {
 }
 
 // ========================================
+// SETTINGS PAGE
+// ========================================
+
+function renderSettings() {
+  const container = document.getElementById("tabContent");
+  
+  container.innerHTML = `
+    <div class="welcome-card">
+      <h2><i class="fas fa-cog"></i> Settings</h2>
+      <p>Manage your account preferences</p>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-user-circle"></i> Account Settings</h3>
+      <div style="margin-top: 20px;">
+        <div class="info-item" style="background: #f8fafc; margin-bottom: 16px;">
+          <label>School ID</label>
+          <p style="color: #1a1a1a;">${currentUser?.schoolId || 'N/A'}</p>
+        </div>
+        <div class="info-item" style="background: #f8fafc; margin-bottom: 16px;">
+          <label>Email</label>
+          <p style="color: #1a1a1a;">${currentUser?.email || 'N/A'}</p>
+        </div>
+        <div class="info-item" style="background: #f8fafc; margin-bottom: 16px;">
+          <label>Program</label>
+          <p style="color: #1a1a1a;">${currentUser?.program || 'N/A'}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-palette"></i> Appearance</h3>
+      <p style="color: #64748b; margin: 16px 0;">Theme settings coming soon!</p>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-bell"></i> Notifications</h3>
+      <p style="color: #64748b; margin: 16px 0;">Notification settings coming soon!</p>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-info-circle"></i> About</h3>
+      <p style="color: #64748b; margin: 16px 0;">
+        <strong>HydroFit v1.0.0</strong><br>
+        Academic Fitness Tracker for PathFit<br>
+        Mindoro State University
+      </p>
+    </div>
+  `;
+}
+
+// Update switchTab function to include settings
+function switchTab(tab) {
+  if (isLoading) return;
+  isLoading = true;
+  currentTab = tab;
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.getAttribute('data-tab') === tab) {
+      btn.classList.add('active');
+    }
+  });
+  
+  closeSidebar();
+  
+  if (tab === 'dashboard') { 
+    updatePageTitle('Dashboard'); 
+    renderDashboard(); 
+    isLoading = false;
+  }
+  else if (tab === 'profile') { 
+    updatePageTitle('My Profile'); 
+    renderProfile().then(() => isLoading = false);
+    return;
+  }
+  else if (tab === 'assessment') { 
+    updatePageTitle('Fitness Assessment'); 
+    renderAssessment(); 
+    isLoading = false;
+  }
+  else if (tab === 'ranking') { 
+    updatePageTitle('Rankings'); 
+    renderRanking(); 
+    isLoading = false;
+  }
+  else if (tab === 'settings') { 
+    updatePageTitle('Settings'); 
+    renderSettings(); 
+    isLoading = false;
+  }
+}
+
+// ========================================
 // AUTHENTICATION
 // ========================================
 

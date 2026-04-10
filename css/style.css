@@ -1,4 +1,4 @@
-/* style.css - HYDROFIT with Fixed Header */
+/* style.css - HYDROFIT with Fixed Header - FIXED */
 :root {
   --primary: #00b4d8;
   --primary-dark: #0096c7;
@@ -128,8 +128,9 @@ body {
   color: white;
 }
 
+/* Logout button - moved inside nav-menu for mobile visibility */
 .logout-btn {
-  margin: 20px;
+  margin: 20px 12px;
   padding: 12px;
   background: rgba(214, 48, 49, 0.9);
   border: none;
@@ -220,7 +221,7 @@ body {
   gap: 6px;
 }
 
-/* Tab Content */
+/* Tab Content - FIXED spacing from header */
 .tab-content {
   padding: 24px;
   flex: 1;
@@ -903,10 +904,12 @@ input[type="range"] {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+    padding-bottom: 20px;
   }
   
+  /* Logout button inside sidebar for mobile */
   .sidebar .logout-btn {
-    margin: 16px 20px 20px 20px;
+    margin: 10px 12px 20px 12px;
     flex-shrink: 0;
   }
   
@@ -932,8 +935,10 @@ input[type="range"] {
     font-size: 0.8rem;
   }
   
+  /* FIXED: Added proper padding-top to prevent header overlap */
   .tab-content {
     padding: 16px 12px;
+    padding-top: calc(var(--header-height) + 16px);
   }
   
   .slideshow-container {
@@ -1007,7 +1012,7 @@ input[type="range"] {
   }
   
   .sidebar .logout-btn {
-    margin: 12px 20px 16px 20px;
+    margin: 8px 12px 12px 12px;
     padding: 10px;
   }
 }
