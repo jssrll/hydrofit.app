@@ -29,6 +29,8 @@ function switchTab(tab) {
     'movement': () => { updatePageTitle('Movement Library'); renderMovementLibrary(); window.isLoading = false; },
     'injury': () => { updatePageTitle('Injury Prevention'); renderInjuryGuide(); window.isLoading = false; },
     'recovery': () => { updatePageTitle('Recovery Tracker'); renderRecoveryTracker(); window.isLoading = false; },
+    'bodytype': () => { updatePageTitle('Body Type'); renderBodyType(); window.isLoading = false; },
+    'bodyparts': () => { updatePageTitle('Body Parts Trainer'); renderBodyParts(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
   

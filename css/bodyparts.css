@@ -1,0 +1,451 @@
+/* ======================================== */
+/* BODY PARTS FOCUS TRAINER STYLES          */
+/* ======================================== */
+
+/* Page Banner */
+.page-banner {
+  margin-bottom: 20px;
+}
+
+.page-banner img {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+/* Body Part Selector */
+.body-part-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.part-option {
+  text-align: center;
+  padding: 24px 16px;
+  border: 2px solid #e0e7ff;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+}
+
+.part-option:hover {
+  border-color: var(--primary);
+  background: #f0f9ff;
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.part-option.active {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 8px 20px rgba(0, 180, 216, 0.3);
+}
+
+.part-option i {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  display: block;
+  color: var(--primary);
+  transition: color 0.2s ease;
+}
+
+.part-option:hover i {
+  transform: scale(1.1);
+}
+
+.part-option.active i {
+  color: white;
+}
+
+.part-option span {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1a1a1a;
+  letter-spacing: 0.5px;
+  transition: color 0.2s ease;
+}
+
+.part-option.active span {
+  color: white;
+}
+
+/* Difficulty Filter */
+.difficulty-filter {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 12px 24px;
+  border: 2px solid #e0e7ff;
+  border-radius: 40px;
+  background: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex: 0 1 auto;
+}
+
+.filter-btn:hover {
+  border-color: var(--primary);
+  background: #f0f9ff;
+  transform: scale(1.02);
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
+}
+
+/* Exercise Table */
+.exercise-table {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr 0.8fr 1fr;
+  padding: 16px 16px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 14px 14px 0 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr 0.8fr 1fr;
+  padding: 16px 16px;
+  border-bottom: 1px solid #e0e7ff;
+  align-items: center;
+  background: white;
+  transition: background 0.2s ease;
+}
+
+.table-row:hover {
+  background: #f0f9ff;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+  border-radius: 0 0 14px 14px;
+}
+
+.exercise-name {
+  font-weight: 700;
+  color: var(--darker);
+  font-size: 1rem;
+}
+
+.difficulty-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  width: fit-content;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  color: #1a1a1a;
+}
+
+.empty-hint {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+/* Workout Summary */
+.summary-stats {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f0f9ff, #ffffff);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 180, 216, 0.1);
+}
+
+.summary-stat {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+/* How To Use Section */
+.how-to-use {
+  background: #f8fafc;
+  padding: 24px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  border-left: 4px solid var(--primary);
+}
+
+.how-to-use h4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--darker);
+  margin-bottom: 20px;
+}
+
+.how-to-use h4 i {
+  color: var(--primary);
+}
+
+.steps-list {
+  padding-left: 24px;
+  margin: 0;
+}
+
+.steps-list li {
+  padding: 10px 0;
+  color: #1a1a1a;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.steps-list li strong {
+  color: var(--primary-dark);
+}
+
+/* Workout Tips */
+.workout-tips {
+  background: linear-gradient(135deg, #fff5e6, #ffffff);
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(253, 203, 110, 0.2);
+}
+
+.workout-tips h4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--darker);
+  margin-bottom: 20px;
+}
+
+.workout-tips h4 i {
+  color: #fdcb6e;
+}
+
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tips-list li {
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1a1a1a;
+  line-height: 1.5;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tips-list li:last-child {
+  border-bottom: none;
+}
+
+.tips-list li::before {
+  content: '💡';
+  font-size: 1.2rem;
+  margin-right: 4px;
+}
+
+/* Animation for table rows */
+@keyframes fadeInRow {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.table-row {
+  animation: fadeInRow 0.3s ease forwards;
+}
+
+.table-row:nth-child(1) { animation-delay: 0.05s; }
+.table-row:nth-child(2) { animation-delay: 0.1s; }
+.table-row:nth-child(3) { animation-delay: 0.15s; }
+.table-row:nth-child(4) { animation-delay: 0.2s; }
+.table-row:nth-child(5) { animation-delay: 0.25s; }
+.table-row:nth-child(n+6) { animation-delay: 0.3s; }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .body-part-selector {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .part-option {
+    padding: 18px 12px;
+  }
+  
+  .part-option i {
+    font-size: 2rem;
+  }
+  
+  .difficulty-filter {
+    justify-content: center;
+  }
+  
+  .filter-btn {
+    padding: 10px 18px;
+    font-size: 0.85rem;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 1.5fr 1fr 0.8fr 1fr;
+    padding: 12px 10px;
+    font-size: 0.85rem;
+    gap: 6px;
+  }
+  
+  .exercise-name {
+    font-size: 0.9rem;
+  }
+  
+  .difficulty-badge {
+    padding: 4px 8px;
+    font-size: 0.65rem;
+  }
+  
+  .summary-stats {
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px;
+  }
+  
+  .stat-number {
+    font-size: 2.5rem;
+  }
+  
+  .page-banner img {
+    max-height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .body-part-selector {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 1.2fr 0.9fr 0.7fr 0.9fr;
+    padding: 10px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .difficulty-badge {
+    padding: 3px 6px;
+    font-size: 0.6rem;
+  }
+  
+  .filter-btn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+  
+  .how-to-use,
+  .workout-tips {
+    padding: 16px;
+  }
+  
+  .steps-list li {
+    font-size: 0.9rem;
+  }
+}
+
+/* Tablet Optimization */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .body-part-selector {
+    gap: 12px;
+  }
+  
+  .part-option {
+    padding: 20px 12px;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 2fr 1fr 0.8fr 1fr;
+  }
+}
+
+/* Loading State */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
