@@ -24,7 +24,14 @@ const exerciseLibrary = [
   { name: 'Running', videoId: 'brFHyOtTwH4', instructions: 'Maintain upright posture with slight forward lean. Land midfoot, keep cadence quick. Arms swing front to back, not across body. Breathe rhythmically.' }
 ];
 
+// Alternative video IDs for exercises (fallback if main video fails)
+const alternativeVideos = {
+  'Butt Kicks': ['e0mKtC9A8iA', 'cY-5B2Fb4oM', '1mF7hA8JwXk'],
+  'Torso Twists': ['ZMRUxMOc4Eo', '9ZQEQvQdZ0E', '3rWpQvB8sYc']
+};
+
 let currentVideoIndex = 0;
+let videoRetryCount = {};
 
 function renderMovementLibrary() {
   const container = document.getElementById("tabContent");
@@ -67,18 +74,22 @@ function renderMovementLibrary() {
     </div>
   `;
   
+  // Reset retry counts
+  videoRetryCount = {};
   displayFeaturedExercise(0);
   displayExerciseGrid();
 }
 
-function displayFeaturedExercise(index) {
+function displayFeaturedExercise(index, retryVideoId = null) {
   const exercise = exerciseLibrary[index];
   const container = document.getElementById('featuredVideo');
+  const videoId = retryVideoId || exercise.videoId;
   
   container.innerHTML = `
     <div class="featured-video-container">
       <iframe 
-        src="https://www.youtube.com/embed/${exercise.videoId}?rel=0&modestbranding=1" 
+        id="featuredVideoIframe"
+        src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1" 
         frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
@@ -90,6 +101,9 @@ function displayFeaturedExercise(index) {
       <button class="btn btn-outline" onclick="previousExercise()" ${index === 0 ? 'disabled' : ''}>
         <i class="fas fa-chevron-left"></i> Previous
       </button>
+      <button class="btn btn-outline" onclick="tryAlternativeVideo('${exercise.name}', ${index})" style="background:#fdcb6e;border-color:#fdcb6e;color:#1a1a1a">
+        <i class="fas fa-video"></i> Try Alternative
+      </button>
       <button class="btn btn-outline" onclick="nextExercise()" ${index === exerciseLibrary.length - 1 ? 'disabled' : ''}>
         Next <i class="fas fa-chevron-right"></i>
       </button>
@@ -99,13 +113,39 @@ function displayFeaturedExercise(index) {
   currentVideoIndex = index;
 }
 
+function tryAlternativeVideo(exerciseName, index) {
+  const alternatives = alternativeVideos[exerciseName];
+  if (!alternatives) {
+    showToast('No alternative videos available', true);
+    return;
+  }
+  
+  if (!videoRetryCount[exerciseName]) {
+    videoRetryCount[exerciseName] = 0;
+  }
+  
+  videoRetryCount[exerciseName]++;
+  
+  if (videoRetryCount[exerciseName] >= alternatives.length) {
+    videoRetryCount[exerciseName] = 0;
+    showToast('No more alternative videos available', true);
+    return;
+  }
+  
+  const nextVideoId = alternatives[videoRetryCount[exerciseName]];
+  displayFeaturedExercise(index, nextVideoId);
+  showToast(`Loading alternative video ${videoRetryCount[exerciseName] + 1}/${alternatives.length}`, false);
+}
+
 function nextExercise() {
+  videoRetryCount = {};
   if (currentVideoIndex < exerciseLibrary.length - 1) {
     displayFeaturedExercise(currentVideoIndex + 1);
   }
 }
 
 function previousExercise() {
+  videoRetryCount = {};
   if (currentVideoIndex > 0) {
     displayFeaturedExercise(currentVideoIndex - 1);
   }
