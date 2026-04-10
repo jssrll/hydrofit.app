@@ -23,8 +23,117 @@ const injuryGuide = [
       'Slouch or hunch shoulders',
       'Overextend arms',
       'Hold your breath'
+    ]
+  },
+  {
+    exercise: 'Arm Circles',
+    commonInjuries: ['Shoulder impingement', 'Rotator cuff strain', 'Neck tension'],
+    properForm: [
+      'Arms extended at shoulder height',
+      'Keep shoulders relaxed and down',
+      'Maintain straight posture',
+      'Controlled circular motion'
     ],
-    icon: '🏃'
+    dos: [
+      'Start with small circles',
+      'Keep core engaged',
+      'Breathe steadily',
+      'Reverse direction halfway'
+    ],
+    donts: [
+      'Hunch shoulders up',
+      'Make jerky movements',
+      'Lock your elbows',
+      'Hold your breath'
+    ]
+  },
+  {
+    exercise: 'High Knees',
+    commonInjuries: ['Knee strain', 'Hip flexor tightness', 'Ankle sprains'],
+    properForm: [
+      'Lift knees to hip height',
+      'Land on balls of feet',
+      'Keep chest up and back straight',
+      'Pump arms in rhythm'
+    ],
+    dos: [
+      'Engage core throughout',
+      'Maintain quick but controlled pace',
+      'Land softly with each step',
+      'Keep shoulders relaxed'
+    ],
+    donts: [
+      'Lean back or slouch',
+      'Stomp feet heavily',
+      'Let knees collapse inward',
+      'Hold tension in shoulders'
+    ]
+  },
+  {
+    exercise: 'Butt Kicks',
+    commonInjuries: ['Hamstring strain', 'Knee hyperextension', 'Ankle sprains'],
+    properForm: [
+      'Kick heels toward glutes',
+      'Keep thighs perpendicular to ground',
+      'Maintain upright posture',
+      'Quick, light steps'
+    ],
+    dos: [
+      'Keep core engaged',
+      'Land on balls of feet',
+      'Maintain steady rhythm',
+      'Stay relaxed in upper body'
+    ],
+    donts: [
+      'Kick too hard or fast',
+      'Lean forward excessively',
+      'Lock knees when landing',
+      'Hold breath during movement'
+    ]
+  },
+  {
+    exercise: 'Neck Rotation',
+    commonInjuries: ['Neck strain', 'Cervical spine irritation', 'Tension headaches'],
+    properForm: [
+      'Sit or stand with spine straight',
+      'Move slowly and controlled',
+      'Keep shoulders relaxed and down',
+      'Breathe deeply throughout'
+    ],
+    dos: [
+      'Move within comfortable range',
+      'Keep chin slightly tucked',
+      'Stop if you feel pain',
+      'Do equal rotations both directions'
+    ],
+    donts: [
+      'Roll head backward forcefully',
+      'Rush through movements',
+      'Shrug shoulders up',
+      'Hold your breath'
+    ]
+  },
+  {
+    exercise: 'Torso Twists',
+    commonInjuries: ['Lower back strain', 'Spinal disc irritation', 'Oblique pulls'],
+    properForm: [
+      'Keep hips stable and facing forward',
+      'Rotate from waist, not hips',
+      'Maintain tall spine',
+      'Move within comfortable range'
+    ],
+    dos: [
+      'Engage core throughout',
+      'Keep knees slightly bent',
+      'Breathe out as you twist',
+      'Keep movements controlled'
+    ],
+    donts: [
+      'Force the rotation',
+      'Move hips with torso',
+      'Hold your breath',
+      'Bounce at end range'
+    ]
   },
   {
     exercise: 'Push-Ups',
@@ -32,7 +141,7 @@ const injuryGuide = [
     properForm: [
       'Hands shoulder-width apart',
       'Body in straight line',
-      'Elbows at 45° angle',
+      'Elbows at 45-degree angle',
       'Core engaged throughout'
     ],
     dos: [
@@ -46,8 +155,51 @@ const injuryGuide = [
       'Flare elbows wide',
       'Drop head forward',
       'Rush through reps'
+    ]
+  },
+  {
+    exercise: 'Sit-Ups',
+    commonInjuries: ['Lower back strain', 'Neck pain', 'Hip flexor tightness'],
+    properForm: [
+      'Knees bent, feet flat on floor',
+      'Support head without pulling',
+      'Curl up using abdominal muscles',
+      'Keep lower back pressed to floor'
     ],
-    icon: '💪'
+    dos: [
+      'Exhale on the way up',
+      'Keep chin off chest',
+      'Move in controlled manner',
+      'Engage core throughout'
+    ],
+    donts: [
+      'Pull on neck with hands',
+      'Use momentum to swing up',
+      'Arch lower back off floor',
+      'Hold breath during movement'
+    ]
+  },
+  {
+    exercise: 'Crunches',
+    commonInjuries: ['Neck strain', 'Lower back discomfort', 'Abdominal muscle pulls'],
+    properForm: [
+      'Lie on back with knees bent',
+      'Hands behind head for support',
+      'Lift shoulders slightly off ground',
+      'Keep lower back pressed down'
+    ],
+    dos: [
+      'Focus on contracting abs',
+      'Keep movements small and controlled',
+      'Breathe out as you lift',
+      'Keep neck relaxed'
+    ],
+    donts: [
+      'Pull head forward with hands',
+      'Lift entire back off floor',
+      'Hold breath during crunch',
+      'Tuck chin to chest'
+    ]
   },
   {
     exercise: 'Squats',
@@ -69,15 +221,14 @@ const injuryGuide = [
       'Round lower back',
       'Lift heels off ground',
       'Look down at feet'
-    ],
-    icon: '🦵'
+    ]
   },
   {
     exercise: 'Lunges',
     commonInjuries: ['Knee instability', 'Hip flexor strain', 'Ankle sprains'],
     properForm: [
       'Step forward with control',
-      'Front knee at 90°',
+      'Front knee at 90 degrees',
       'Back knee hovers above ground',
       'Torso upright'
     ],
@@ -92,8 +243,7 @@ const injuryGuide = [
       'Lean torso forward',
       'Bang back knee on ground',
       'Take too narrow stance'
-    ],
-    icon: '🚶'
+    ]
   },
   {
     exercise: 'Plank',
@@ -114,9 +264,30 @@ const injuryGuide = [
       'Sag hips or pike up',
       'Hold breath',
       'Drop head or look up',
-      'Push through pain'
+      'Push through sharp pain'
+    ]
+  },
+  {
+    exercise: 'Wall Sit',
+    commonInjuries: ['Knee strain', 'Lower back discomfort', 'Quadriceps fatigue'],
+    properForm: [
+      'Back flat against wall',
+      'Knees at 90-degree angle',
+      'Feet shoulder-width apart',
+      'Weight in heels'
     ],
-    icon: '📏'
+    dos: [
+      'Keep core engaged',
+      'Breathe steadily',
+      'Start with shorter holds',
+      'Keep shoulders relaxed'
+    ],
+    donts: [
+      'Let knees extend past toes',
+      'Hold breath during exercise',
+      'Arch lower back off wall',
+      'Slide down too low'
+    ]
   },
   {
     exercise: 'Burpees',
@@ -138,31 +309,7 @@ const injuryGuide = [
       'Arch lower back',
       'Lock knees on landing',
       'Rush through movements'
-    ],
-    icon: '🔥'
-  },
-  {
-    exercise: 'Running',
-    commonInjuries: ['Shin splints', 'Runner\'s knee', 'Plantar fasciitis', 'IT band syndrome'],
-    properForm: [
-      'Upright posture, slight lean',
-      'Midfoot strike',
-      'Arms swing front to back',
-      'Cadence 170-180 steps/min'
-    ],
-    dos: [
-      'Replace shoes every 400-500 miles',
-      'Increase mileage gradually (10% rule)',
-      'Warm up with dynamic stretches',
-      'Cool down with walking'
-    ],
-    donts: [
-      'Overstride (land heel first)',
-      'Run through sharp pain',
-      'Cross arms over chest',
-      'Skip rest days'
-    ],
-    icon: '🏃'
+    ]
   },
   {
     exercise: 'Deadlift',
@@ -184,15 +331,105 @@ const injuryGuide = [
       'Pull with arms',
       'Hyperextend at top',
       'Look up at ceiling'
+    ]
+  },
+  {
+    exercise: 'Bench Press',
+    commonInjuries: ['Shoulder impingement', 'Pectoral strain', 'Wrist pain'],
+    properForm: [
+      'Feet flat on floor',
+      'Shoulder blades retracted',
+      'Bar path to lower chest',
+      'Elbows at 45-degree angle'
     ],
-    icon: '🏋️'
+    dos: [
+      'Keep wrists straight',
+      'Control the descent',
+      'Drive feet into floor',
+      'Use spotter for heavy lifts'
+    ],
+    donts: [
+      'Bounce bar off chest',
+      'Flare elbows to 90 degrees',
+      'Lift head off bench',
+      'Hold breath during lift'
+    ]
+  },
+  {
+    exercise: 'Bicep Curl',
+    commonInjuries: ['Elbow strain', 'Wrist pain', 'Shoulder impingement'],
+    properForm: [
+      'Elbows at sides',
+      'Wrists straight',
+      'Full range of motion',
+      'Control both phases'
+    ],
+    dos: [
+      'Keep shoulders back and down',
+      'Squeeze biceps at top',
+      'Lower with control',
+      'Use appropriate weight'
+    ],
+    donts: [
+      'Swing weights with momentum',
+      'Let elbows drift forward',
+      'Arch back to lift',
+      'Lock elbows at bottom'
+    ]
+  },
+  {
+    exercise: 'Tricep Dip',
+    commonInjuries: ['Shoulder impingement', 'Elbow strain', 'Wrist pain'],
+    properForm: [
+      'Hands shoulder-width apart',
+      'Shoulders down and back',
+      'Elbows point backward',
+      'Controlled descent'
+    ],
+    dos: [
+      'Keep chest up',
+      'Lower to 90-degree elbow bend',
+      'Keep shoulders away from ears',
+      'Use assisted version if needed'
+    ],
+    donts: [
+      'Drop below shoulder comfort',
+      'Shrug shoulders up',
+      'Lock elbows at top',
+      'Rush through reps'
+    ]
+  },
+  {
+    exercise: 'Running',
+    commonInjuries: ['Shin splints', 'Runner\'s knee', 'Plantar fasciitis', 'IT band syndrome'],
+    properForm: [
+      'Upright posture, slight lean',
+      'Midfoot strike',
+      'Arms swing front to back',
+      'Cadence 170-180 steps/min'
+    ],
+    dos: [
+      'Replace shoes every 400-500 miles',
+      'Increase mileage gradually (10% rule)',
+      'Warm up with dynamic stretches',
+      'Cool down with walking'
+    ],
+    donts: [
+      'Overstride (land heel first)',
+      'Run through sharp pain',
+      'Cross arms over chest',
+      'Skip rest days'
+    ]
   }
 ];
 
-let currentInjuryIndex = 0;
-
 function renderInjuryGuide() {
   const container = document.getElementById("tabContent");
+  
+  let options = '';
+  injuryGuide.forEach((ex, i) => {
+    options += `<option value="${i}" ${i === 0 ? 'selected' : ''}>${ex.exercise}</option>`;
+  });
   
   container.innerHTML = `
     <div class="page-banner">
@@ -200,39 +437,39 @@ function renderInjuryGuide() {
     </div>
 
     <!-- Exercise Selector -->
-    <div class="card">
+    <div class="card exercise-selector-card">
       <h3><i class="fas fa-shield-heart"></i> Select Exercise</h3>
       <select id="injuryExerciseSelect" class="form-control" onchange="selectInjuryExercise()">
-        ${injuryGuide.map((ex, i) => `<option value="${i}" ${i === 0 ? 'selected' : ''}>${ex.icon} ${ex.exercise}</option>`).join('')}
+        ${options}
       </select>
     </div>
 
     <!-- Injury Information -->
-    <div class="card" id="injuryDetails">
+    <div class="card injury-details-card" id="injuryDetails">
       <!-- Will be populated by JS -->
     </div>
 
     <!-- General Safety Tips -->
-    <div class="card tips-card">
+    <div class="card safety-tips-card">
       <h3><i class="fas fa-lightbulb"></i> General Safety Tips</h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px">
+      <div class="safety-tips-grid">
         <div class="tip-item">
-          <i class="fas fa-temperature-high" style="color:#e17055;font-size:1.5rem"></i>
+          <i class="fas fa-temperature-high" style="color:#e17055;font-size:2rem"></i>
           <h4>Always Warm Up</h4>
           <p>5-10 minutes of light cardio and dynamic stretches before exercise</p>
         </div>
         <div class="tip-item">
-          <i class="fas fa-droplet" style="color:#00b4d8;font-size:1.5rem"></i>
+          <i class="fas fa-droplet" style="color:#00b4d8;font-size:2rem"></i>
           <h4>Stay Hydrated</h4>
           <p>Drink water before, during, and after exercise</p>
         </div>
         <div class="tip-item">
-          <i class="fas fa-ear-listen" style="color:#00b894;font-size:1.5rem"></i>
+          <i class="fas fa-ear-listen" style="color:#00b894;font-size:2rem"></i>
           <h4>Listen to Your Body</h4>
           <p>Stop if you feel sharp pain or discomfort</p>
         </div>
         <div class="tip-item">
-          <i class="fas fa-arrow-trend-up" style="color:#fdcb6e;font-size:1.5rem"></i>
+          <i class="fas fa-arrow-trend-up" style="color:#fdcb6e;font-size:2rem"></i>
           <h4>Progress Gradually</h4>
           <p>Increase intensity and duration slowly over time</p>
         </div>
@@ -246,7 +483,6 @@ function renderInjuryGuide() {
 function selectInjuryExercise() {
   const select = document.getElementById('injuryExerciseSelect');
   const index = parseInt(select.value);
-  currentInjuryIndex = index;
   displayInjuryDetails(index);
 }
 
@@ -255,89 +491,58 @@ function displayInjuryDetails(index) {
   const container = document.getElementById('injuryDetails');
   
   container.innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <span style="font-size:3rem">${exercise.icon}</span>
-      <h3 style="margin:0;color:var(--darker)">${exercise.exercise}</h3>
+    <div class="injury-header">
+      <div class="injury-title-section">
+        <h3 class="injury-title">${exercise.exercise}</h3>
+        <p class="injury-subtitle">Proper form and injury prevention guide</p>
+      </div>
     </div>
     
     <!-- Common Injuries -->
-    <div style="margin-bottom:24px">
-      <h4 style="color:#d63031;margin-bottom:12px"><i class="fas fa-exclamation-triangle"></i> Common Injuries</h4>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
+    <div class="common-injuries-section">
+      <h4><i class="fas fa-exclamation-triangle"></i> Common Injuries</h4>
+      <div class="injury-tags">
         ${exercise.commonInjuries.map(injury => `
-          <span style="background:#ffeaa7;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:500">${injury}</span>
+          <span class="injury-tag">${injury}</span>
         `).join('')}
       </div>
     </div>
     
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="injury-two-column">
       <!-- Proper Form -->
-      <div>
-        <h4 style="color:#00b894;margin-bottom:12px"><i class="fas fa-check-circle"></i> Proper Form</h4>
-        <ul style="list-style:none;padding:0">
+      <div class="proper-form-section">
+        <h4><i class="fas fa-check-circle"></i> Proper Form</h4>
+        <ul class="form-list">
           ${exercise.properForm.map(tip => `
-            <li style="padding:8px 0;display:flex;align-items:center;gap:8px">
-              <i class="fas fa-circle" style="font-size:0.4rem;color:#00b894"></i>
-              ${tip}
-            </li>
+            <li><i class="fas fa-circle"></i> ${tip}</li>
           `).join('')}
         </ul>
       </div>
       
       <!-- Do's -->
-      <div>
-        <h4 style="color:#00b894;margin-bottom:12px"><i class="fas fa-thumbs-up"></i> Do's</h4>
-        <ul style="list-style:none;padding:0">
+      <div class="dos-section">
+        <h4><i class="fas fa-thumbs-up"></i> Do's</h4>
+        <ul class="dos-list">
           ${exercise.dos.map(dos => `
-            <li style="padding:8px 0;display:flex;align-items:center;gap:8px">
-              <i class="fas fa-check" style="color:#00b894"></i>
-              ${dos}
-            </li>
+            <li><i class="fas fa-check"></i> ${dos}</li>
           `).join('')}
         </ul>
       </div>
     </div>
     
     <!-- Don'ts -->
-    <div style="margin-top:20px">
-      <h4 style="color:#d63031;margin-bottom:12px"><i class="fas fa-thumbs-down"></i> Don'ts</h4>
-      <ul style="list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px">
+    <div class="donts-section">
+      <h4><i class="fas fa-thumbs-down"></i> Don'ts</h4>
+      <div class="donts-grid">
         ${exercise.donts.map(dont => `
-          <li style="padding:8px 0;display:flex;align-items:center;gap:8px">
-            <i class="fas fa-times" style="color:#d63031"></i>
-            ${dont}
-          </li>
+          <div class="dont-item">
+            <i class="fas fa-times"></i>
+            <span>${dont}</span>
+          </div>
         `).join('')}
-      </ul>
-    </div>
-    
-    <!-- Navigation -->
-    <div style="display:flex;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid #e0e7ff">
-      <button class="btn btn-outline" onclick="previousInjury()" ${index === 0 ? 'disabled' : ''}>
-        <i class="fas fa-chevron-left"></i> Previous
-      </button>
-      <span style="color:#64748b">${index + 1} of ${injuryGuide.length}</span>
-      <button class="btn btn-outline" onclick="nextInjury()" ${index === injuryGuide.length - 1 ? 'disabled' : ''}>
-        Next <i class="fas fa-chevron-right"></i>
-      </button>
+      </div>
     </div>
   `;
-}
-
-function previousInjury() {
-  if (currentInjuryIndex > 0) {
-    currentInjuryIndex--;
-    document.getElementById('injuryExerciseSelect').value = currentInjuryIndex;
-    displayInjuryDetails(currentInjuryIndex);
-  }
-}
-
-function nextInjury() {
-  if (currentInjuryIndex < injuryGuide.length - 1) {
-    currentInjuryIndex++;
-    document.getElementById('injuryExerciseSelect').value = currentInjuryIndex;
-    displayInjuryDetails(currentInjuryIndex);
-  }
 }
 
 console.log("✅ Injury Prevention Guide Loaded");
