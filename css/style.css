@@ -148,7 +148,7 @@ body {
   position: relative;
 }
 
-/* STICKY HEADER - Won't overlap content */
+/* FIXED HEADER - Stays at top, content starts below it */
 .top-bar {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
@@ -157,15 +157,14 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  position: sticky;
+  position: fixed;
   top: 0;
-  left: 0;
+  left: 280px;
   right: 0;
   z-index: 50;
   height: var(--header-height);
   border-bottom: 1px solid rgba(0,180,216,0.1);
   transition: background 0.3s ease, border-color 0.3s ease;
-  flex-shrink: 0;
 }
 
 .mobile-menu-btn {
@@ -211,10 +210,11 @@ body {
   gap: 6px;
 }
 
-/* Tab Content - No margin-top needed with sticky header */
+/* Tab Content - Starts BELOW the fixed header */
 .tab-content {
   padding: 24px;
   flex: 1;
+  margin-top: var(--header-height);
 }
 
 /* Cards */
@@ -1117,7 +1117,7 @@ body.compact-mode {
   --header-height: 55px;
 }
 
-/* Mobile Responsive - FIXED */
+/* Mobile Responsive */
 @media (max-width: 768px) {
   :root {
     --header-height: 60px;
@@ -1154,10 +1154,7 @@ body.compact-mode {
   }
   
   .top-bar {
-    position: sticky;
-    top: 0;
     left: 0;
-    right: 0;
     padding: 0 16px;
   }
   

@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - COMPLETE WITH SETTINGS
+// HYDROFIT - COMPLETE WITH RANKINGS
 // ========================================
 
 let currentTab = "dashboard";
@@ -7,70 +7,9 @@ let currentUser = null;
 let isLoading = false;
 let assessments = [];
 
-// Settings state
-let settings = {
-  darkMode: false,
-  compactMode: false,
-  fontSize: 100
-};
-
-// Load settings from localStorage
-function loadSettings() {
-  const stored = localStorage.getItem('hydrofit_settings');
-  if (stored) {
-    try {
-      settings = JSON.parse(stored);
-      applySettings();
-    } catch(e) {
-      settings = { darkMode: false, compactMode: false, fontSize: 100 };
-    }
-  }
-}
-
-// Save settings to localStorage
-function saveSettings() {
-  localStorage.setItem('hydrofit_settings', JSON.stringify(settings));
-  applySettings();
-}
-
-// Apply settings to the page
-function applySettings() {
-  if (settings.darkMode) {
-    document.body.classList.add('dark-mode');
-  } else {
-    document.body.classList.remove('dark-mode');
-  }
-  
-  if (settings.compactMode) {
-    document.body.classList.add('compact-mode');
-  } else {
-    document.body.classList.remove('compact-mode');
-  }
-  
-  document.documentElement.style.fontSize = settings.fontSize + '%';
-}
-
-// Toggle dark mode
-function toggleDarkMode() {
-  settings.darkMode = !settings.darkMode;
-  saveSettings();
-}
-
-// Toggle compact mode
-function toggleCompactMode() {
-  settings.compactMode = !settings.compactMode;
-  saveSettings();
-}
-
-// Update font size
-function updateFontSize(value) {
-  settings.fontSize = parseInt(value);
-  document.getElementById('fontSizeValue').innerText = value + '%';
-  saveSettings();
-}
-
 // Custom Confirm Dialog
 function showCustomConfirm(message, onConfirm) {
+  // Create overlay
   const overlay = document.createElement('div');
   overlay.style.cssText = `
     position: fixed;
@@ -87,6 +26,7 @@ function showCustomConfirm(message, onConfirm) {
     animation: fadeIn 0.2s ease;
   `;
   
+  // Create dialog
   const dialog = document.createElement('div');
   dialog.style.cssText = `
     background: white;
@@ -103,17 +43,36 @@ function showCustomConfirm(message, onConfirm) {
     <div style="font-size: 3rem; color: #d63031; margin-bottom: 16px;">
       <i class="fas fa-exclamation-triangle"></i>
     </div>
-    <h3 style="color: #1a1a1a; margin-bottom: 12px; font-size: 1.3rem;">Confirm</h3>
+    <h3 style="color: #1a1a1a; margin-bottom: 12px; font-size: 1.3rem;">Confirm Delete</h3>
     <p style="color: #64748b; margin-bottom: 24px; line-height: 1.5;">${message}</p>
     <div style="display: flex; gap: 12px;">
-      <button id="customConfirmCancel" style="flex: 1; padding: 12px; border: 2px solid #e0e7ff; background: white; border-radius: 12px; font-weight: 600; color: #64748b; cursor: pointer;">Cancel</button>
-      <button id="customConfirmOk" style="flex: 1; padding: 12px; border: none; background: #d63031; color: white; border-radius: 12px; font-weight: 600; cursor: pointer;">Confirm</button>
+      <button id="customConfirmCancel" style="flex: 1; padding: 12px; border: 2px solid #e0e7ff; background: white; border-radius: 12px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s;">
+        Cancel
+      </button>
+      <button id="customConfirmOk" style="flex: 1; padding: 12px; border: none; background: #d63031; color: white; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+        Delete All
+      </button>
     </div>
   `;
   
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
   
+  // Add animation styles
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Handle buttons
   document.getElementById('customConfirmCancel').onclick = () => {
     overlay.style.opacity = '0';
     setTimeout(() => overlay.remove(), 200);
@@ -127,6 +86,7 @@ function showCustomConfirm(message, onConfirm) {
     }, 200);
   };
   
+  // Close on overlay click
   overlay.onclick = (e) => {
     if (e.target === overlay) {
       overlay.style.opacity = '0';
@@ -135,62 +95,7 @@ function showCustomConfirm(message, onConfirm) {
   };
 }
 
-// Custom Alert Dialog
-function showCustomAlert(title, message) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease;
-  `;
-  
-  const dialog = document.createElement('div');
-  dialog.style.cssText = `
-    background: white;
-    border-radius: 24px;
-    padding: 28px;
-    max-width: 380px;
-    width: 90%;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    animation: slideIn 0.3s ease;
-    text-align: center;
-  `;
-  
-  dialog.innerHTML = `
-    <div style="font-size: 3rem; color: var(--primary); margin-bottom: 16px;">
-      <i class="fas fa-shield-alt"></i>
-    </div>
-    <h3 style="color: #1a1a1a; margin-bottom: 12px; font-size: 1.3rem;">${title}</h3>
-    <p style="color: #64748b; margin-bottom: 24px; line-height: 1.5;">${message}</p>
-    <button id="customAlertOk" style="padding: 12px 24px; border: none; background: var(--primary); color: white; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%;">OK</button>
-  `;
-  
-  overlay.appendChild(dialog);
-  document.body.appendChild(overlay);
-  
-  document.getElementById('customAlertOk').onclick = () => {
-    overlay.style.opacity = '0';
-    setTimeout(() => overlay.remove(), 200);
-  };
-  
-  overlay.onclick = (e) => {
-    if (e.target === overlay) {
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.remove(), 200);
-    }
-  };
-}
-
-// Toast notification
+// Toast notification function
 function showToast(message, isError = false) {
   const toast = document.getElementById("toast");
   toast.style.display = "block";
@@ -219,6 +124,7 @@ function closeSidebar() {
   if (overlay) overlay.remove();
 }
 
+// Loading indicator functions
 function showLoading(containerId) {
   const container = document.getElementById(containerId);
   if (container) {
@@ -504,7 +410,7 @@ function initSlideshow() {
 }
 
 // ========================================
-// PROFILE PAGE
+// PROFILE PAGE WITH QR CODE
 // ========================================
 
 async function renderProfile() {
@@ -722,9 +628,7 @@ async function addAssessment() {
     document.getElementById('repetitions').value = '';
     document.getElementById('notes').value = '';
     document.getElementById('intensity').value = 5;
-    if (document.getElementById('intensityValue')) {
-      document.getElementById('intensityValue').innerText = 5;
-    }
+    document.getElementById('intensityValue').innerText = 5;
     
     showToast('Assessment saved!', false);
   } else {
@@ -1197,147 +1101,6 @@ async function loadRankings() {
 }
 
 // ========================================
-// SETTINGS PAGE
-// ========================================
-
-function renderSettings() {
-  const container = document.getElementById("tabContent");
-  
-  container.innerHTML = `
-    <div class="settings-container">
-      <h2 style="margin-bottom: 24px; color: var(--darker);">
-        <i class="fas fa-cog" style="color: var(--primary);"></i> Settings
-      </h2>
-      
-      <div class="card settings-card">
-        <h3><i class="fas fa-palette"></i> Appearance</h3>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-moon"></i> Dark Mode
-            </span>
-            <p class="settings-item-desc">Switch between light and dark theme</p>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="darkModeToggle" ${settings.darkMode ? 'checked' : ''} onchange="window.toggleDarkMode()">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-compress-alt"></i> Compact Mode
-            </span>
-            <p class="settings-item-desc">Reduce spacing for more content</p>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="compactModeToggle" ${settings.compactMode ? 'checked' : ''} onchange="window.toggleCompactMode()">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-text-height"></i> Font Size
-            </span>
-            <p class="settings-item-desc">Adjust text size for better readability</p>
-          </div>
-          <div style="flex: 1; max-width: 200px;">
-            <input type="range" id="fontSizeSlider" min="80" max="150" value="${settings.fontSize}" step="5" 
-                   oninput="window.updateFontSize(this.value)" style="width: 100%;">
-            <span id="fontSizeValue" style="font-weight: 600; color: var(--primary);">${settings.fontSize}%</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="card settings-card">
-        <h3><i class="fas fa-user-circle"></i> Account</h3>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-user"></i> Profile Information
-            </span>
-            <p class="settings-item-desc">View and edit your profile details</p>
-          </div>
-          <button class="btn btn-outline btn-sm" onclick="window.switchTab('profile')">
-            <i class="fas fa-arrow-right"></i> Go to Profile
-          </button>
-        </div>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-shield-alt"></i> Privacy
-            </span>
-            <p class="settings-item-desc">Manage your data and privacy settings</p>
-          </div>
-          <button class="btn btn-outline btn-sm" onclick="window.showPrivacyInfo()">
-            <i class="fas fa-info-circle"></i> View
-          </button>
-        </div>
-      </div>
-      
-      <div class="card settings-card">
-        <h3><i class="fas fa-info-circle"></i> About</h3>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-code-branch"></i> Version
-            </span>
-            <p class="settings-item-desc">HydroFit v2.0.0</p>
-          </div>
-        </div>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-calendar"></i> Release Date
-            </span>
-            <p class="settings-item-desc">April 15, 2026</p>
-          </div>
-        </div>
-        
-        <div class="settings-item">
-          <div class="settings-item-info">
-            <span class="settings-item-title">
-              <i class="fas fa-users"></i> Developers
-            </span>
-            <p class="settings-item-desc">Jessrell M. Custodio, John Daniel C. Soriano, John Roberth C. Marchina</p>
-          </div>
-        </div>
-      </div>
-      
-      <button class="btn" onclick="window.handleLogout()" style="width: 100%; padding: 14px; background: var(--danger); margin-top: 8px;">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
-    </div>
-  `;
-}
-
-function showPrivacyInfo() {
-  showCustomAlert('Privacy Information', 'Your data is stored securely in Google Sheets and is only accessible to you and authorized PathFit instructors. We do not share your information with third parties.');
-}
-
-function handleLogout() {
-  showCustomConfirm('Are you sure you want to logout?', () => {
-    localStorage.removeItem("hydrofit_user");
-    currentUser = null;
-    document.getElementById("authModal").style.display = "flex";
-    document.getElementById("loginForm").style.display = "block";
-    document.getElementById("registerForm").style.display = "none";
-    document.getElementById("loginSchoolId").value = "";
-    document.getElementById("loginPassword").value = "";
-    closeSidebar();
-    showToast("Logged out successfully", false);
-  });
-}
-
-// ========================================
 // TAB SWITCHING
 // ========================================
 
@@ -1373,11 +1136,6 @@ function switchTab(tab) {
   else if (tab === 'ranking') { 
     updatePageTitle('Rankings'); 
     renderRanking(); 
-    isLoading = false;
-  }
-  else if (tab === 'settings') { 
-    updatePageTitle('Settings'); 
-    renderSettings(); 
     isLoading = false;
   }
 }
@@ -1471,6 +1229,18 @@ document.getElementById("registerBtn")?.addEventListener("click", async (e) => {
   }
 });
 
+document.getElementById("logoutBtn")?.addEventListener("click", () => {
+  localStorage.removeItem("hydrofit_user");
+  currentUser = null;
+  document.getElementById("authModal").style.display = "flex";
+  document.getElementById("loginForm").style.display = "block";
+  document.getElementById("registerForm").style.display = "none";
+  document.getElementById("loginSchoolId").value = "";
+  document.getElementById("loginPassword").value = "";
+  closeSidebar();
+  showToast("Logged out successfully", false);
+});
+
 document.getElementById("showRegister")?.addEventListener("click", () => {
   document.getElementById("loginForm").style.display = "none";
   document.getElementById("registerForm").style.display = "block";
@@ -1541,13 +1311,7 @@ window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
 window.refreshAssessments = refreshAssessments;
-window.toggleDarkMode = toggleDarkMode;
-window.toggleCompactMode = toggleCompactMode;
-window.updateFontSize = updateFontSize;
-window.handleLogout = handleLogout;
-window.showPrivacyInfo = showPrivacyInfo;
 
-loadSettings();
 initAuth();
 
-console.log("✅ HydroFit Loaded - Complete with Settings");
+console.log("✅ HydroFit Loaded - Complete");
