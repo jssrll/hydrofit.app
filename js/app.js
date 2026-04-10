@@ -6,6 +6,7 @@ let currentTab = "dashboard";
 let currentUser = null;
 let isLoading = false;
 let assessments = [];
+let rankingData = [];
 
 // Toast notification
 function showToast(message, isError = false) {
@@ -283,13 +284,21 @@ async function renderProfile() {
   `;
 }
 
-// Fitness Assessment System
+// ========================================
+// FITNESS ASSESSMENT SYSTEM
+// ========================================
+
 const exerciseTypes = ["Jumping Jacks","Arm Circles","High Knees","Butt Kicks","Neck Rotation","Torso Twists","Push-Ups","Sit-Ups","Crunches","Squats","Lunges","Plank","Wall Sit","Burpees","Deadlift","Bench Press","Bicep Curl","Tricep Dip","Running","Jogging","Walking","Skipping Rope","Cycling","Mountain Climbers","Stair Climbing","Stretching","Toe Touch","Side Stretch","Cobra Stretch","Hamstring Stretch","Quadriceps Stretch","Shoulder Stretch","One-Leg Stand","Heel-to-Toe Walk","Balance Walk","Single-Leg Squat","Bending","Twisting","Swaying","Swinging","Pushing","Pulling","Swimming","Water Walking","Water Jogging","Aqua Jumping Jacks","Flutter Kicks","Arm Pushes in Water"];
 
 function renderAssignment() {
   const container = document.getElementById("tabContent");
+  
   container.innerHTML = `
-    <div class="fitness-header"><h2><i class="fas fa-clipboard-list"></i> Fitness Assessment System</h2><p>Tracks physical performance and compares results over time</p></div>
+    <!-- Banner Image -->
+    <div class="assessment-banner">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Fitness Assessment Banner" style="width: 100%; border-radius: 20px; box-shadow: var(--shadow);">
+    </div>
+
     <div class="card">
       <h3><i class="fas fa-plus-circle"></i> New Assessment</h3>
       <div class="form-row">
@@ -453,21 +462,215 @@ async function clearAllAssessments() {
   } else { showToast(result.error || 'Failed', true); }
 }
 
-// Ranking
-function renderRanking() {
+// ========================================
+// RANKING PAGE
+// ========================================
+
+function getRatingColor(rating) {
+  const r = parseFloat(rating);
+  if (r >= 8.5) return '#00b894';
+  if (r >= 7.0) return '#00b4d8';
+  if (r >= 5.5) return '#fdcb6e';
+  if (r >= 4.0) return '#e17055';
+  return '#d63031';
+}
+
+function getTopExercise() {
+  const exerciseCount = {};
+  rankingData.forEach(a => {
+    exerciseCount[a.exercise] = (exerciseCount[a.exercise] || 0) + 1;
+  });
+  
+  let topExercise = 'N/A';
+  let maxCount = 0;
+  for (const [ex, count] of Object.entries(exerciseCount)) {
+    if (count > maxCount) {
+      maxCount = count;
+      topExercise = ex;
+    }
+  }
+  return topExercise;
+}
+
+async function renderRanking() {
   const container = document.getElementById("tabContent");
+  container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading rankings...</div>`;
+  
+  const result = await callAPI('getAllAssessments', {});
+  
+  if (result.success && result.assessments) {
+    rankingData = result.assessments;
+    displayRankings();
+  } else {
+    container.innerHTML = `<div class="card"><p style="color:#d63031">Failed to load rankings</p></div>`;
+  }
+}
+
+function displayRankings() {
+  const container = document.getElementById("tabContent");
+  
+  const studentStats = {};
+  
+  rankingData.forEach(a => {
+    if (!studentStats[a.schoolId]) {
+      studentStats[a.schoolId] = {
+        schoolId: a.schoolId,
+        name: a.studentName,
+        totalPoints: 0,
+        assessmentCount: 0,
+        ratingSum: 0,
+        exercises: {},
+        bestRating: 0,
+        bestExercise: ''
+      };
+    }
+    
+    const rating = parseFloat(a.rating) || 0;
+    studentStats[a.schoolId].totalPoints += rating * 10;
+    studentStats[a.schoolId].assessmentCount++;
+    studentStats[a.schoolId].ratingSum += rating;
+    
+    if (!studentStats[a.schoolId].exercises[a.exercise]) {
+      studentStats[a.schoolId].exercises[a.exercise] = [];
+    }
+    studentStats[a.schoolId].exercises[a.exercise].push(rating);
+    
+    if (rating > studentStats[a.schoolId].bestRating) {
+      studentStats[a.schoolId].bestRating = rating;
+      studentStats[a.schoolId].bestExercise = a.exercise;
+    }
+  });
+  
+  const rankings = Object.values(studentStats).map(s => ({
+    ...s,
+    averageRating: s.assessmentCount > 0 ? (s.ratingSum / s.assessmentCount).toFixed(1) : '0.0'
+  }));
+  
+  rankings.sort((a, b) => b.totalPoints - a.totalPoints);
+  
+  const topThree = rankings.slice(0, 3);
+  const userRank = rankings.findIndex(r => r.schoolId === currentUser?.schoolId) + 1;
+  
   container.innerHTML = `
-    <div class="card">
-      <div style="text-align:center;padding:40px 20px">
-        <i class="fas fa-trophy" style="font-size:3.5rem;color:#fdcb6e;margin-bottom:16px"></i>
-        <h3 style="color:#1a1a1a;margin-bottom:8px">Rankings Coming Soon</h3>
-        <p style="color:#64748b">Compete with classmates and climb the leaderboard</p>
+    <div class="podium-container">
+      ${topThree.length >= 2 ? `
+        <div class="podium-item second-place">
+          <div class="podium-avatar">🥈</div>
+          <div class="podium-name">${escapeHtml(topThree[1]?.name || '---')}</div>
+          <div class="podium-score">${topThree[1]?.totalPoints || 0} pts</div>
+          <div class="podium-badge">2nd Place</div>
+        </div>
+      ` : ''}
+      ${topThree.length >= 1 ? `
+        <div class="podium-item first-place">
+          <div class="podium-avatar">👑</div>
+          <div class="podium-name">${escapeHtml(topThree[0]?.name || '---')}</div>
+          <div class="podium-score">${topThree[0]?.totalPoints || 0} pts</div>
+          <div class="podium-badge">Champion</div>
+        </div>
+      ` : ''}
+      ${topThree.length >= 3 ? `
+        <div class="podium-item third-place">
+          <div class="podium-avatar">🥉</div>
+          <div class="podium-name">${escapeHtml(topThree[2]?.name || '---')}</div>
+          <div class="podium-score">${topThree[2]?.totalPoints || 0} pts</div>
+          <div class="podium-badge">3rd Place</div>
+        </div>
+      ` : ''}
+    </div>
+    
+    ${userRank > 0 ? `
+      <div class="user-rank-card">
+        <div class="user-rank-content">
+          <i class="fas fa-user"></i>
+          <span>Your Current Rank: <strong>#${userRank}</strong> of ${rankings.length} students</span>
+          <span class="user-points">${rankings[userRank-1]?.totalPoints || 0} points</span>
+        </div>
       </div>
+    ` : ''}
+    
+    <div class="card">
+      <h3><i class="fas fa-trophy"></i> Leaderboard</h3>
+      <div class="ranking-table-container">
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Student</th>
+              <th>Assessments</th>
+              <th>Avg Rating</th>
+              <th>Best Exercise</th>
+              <th>Total Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rankings.map((r, index) => {
+              const rank = index + 1;
+              const isCurrentUser = r.schoolId === currentUser?.schoolId;
+              let rankClass = '';
+              if (rank === 1) rankClass = 'rank-1';
+              else if (rank === 2) rankClass = 'rank-2';
+              else if (rank === 3) rankClass = 'rank-3';
+              
+              return `
+                <tr class="${isCurrentUser ? 'current-user-row' : ''}">
+                  <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+                  <td>
+                    <strong>${escapeHtml(r.name)}</strong>
+                    ${isCurrentUser ? '<span class="you-badge">You</span>' : ''}
+                  </td>
+                  <td>${r.assessmentCount}</td>
+                  <td>
+                    <span style="color: ${getRatingColor(r.averageRating)}; font-weight: 600;">${r.averageRating}</span>
+                  </td>
+                  <td>
+                    ${r.bestExercise} 
+                    <span style="color: #00b894; font-size: 0.8rem;">(${r.bestRating})</span>
+                  </td>
+                  <td><strong>${Math.round(r.totalPoints)}</strong></td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <div class="stat-value">${rankings.length}</div>
+        <div class="stat-label">Total Students</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-dumbbell"></i>
+        <div class="stat-value">${rankingData.length}</div>
+        <div class="stat-label">Total Assessments</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-star"></i>
+        <div class="stat-value">${rankings.length > 0 ? (rankings.reduce((sum, r) => sum + parseFloat(r.averageRating), 0) / rankings.length).toFixed(1) : '0.0'}</div>
+        <div class="stat-label">Class Average</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-medal"></i>
+        <div class="stat-value">${getTopExercise()}</div>
+        <div class="stat-label">Most Popular Exercise</div>
+      </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="btn btn-outline" onclick="window.renderRanking()">
+        <i class="fas fa-sync-alt"></i> Refresh Rankings
+      </button>
     </div>
   `;
 }
 
-// Tab Switching
+// ========================================
+// TAB SWITCHING
+// ========================================
+
 function switchTab(tab) {
   if (isLoading) return;
   isLoading = true;
@@ -486,7 +689,10 @@ function switchTab(tab) {
   else if (tab === 'ranking') { updatePageTitle('Ranking'); renderRanking(); isLoading = false; }
 }
 
-// Auth
+// ========================================
+// AUTHENTICATION
+// ========================================
+
 async function initAuth() {
   const stored = localStorage.getItem("hydrofit_user");
   if (stored) {
@@ -592,7 +798,10 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSidebar(); });
 
-// Exports
+// ========================================
+// EXPORTS
+// ========================================
+
 window.switchTab = switchTab;
 window.downloadQRCode = downloadQRCode;
 window.printQRCode = printQRCode;
@@ -602,6 +811,7 @@ window.addAssessment = addAssessment;
 window.clearAllAssessments = clearAllAssessments;
 window.deleteAssessment = deleteAssessment;
 window.loadAssessments = loadAssessments;
+window.renderRanking = renderRanking;
 
 initAuth();
-console.log("✅ HydroFit Loaded");
+console.log("✅ HydroFit Loaded - Complete");
