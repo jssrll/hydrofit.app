@@ -120,7 +120,12 @@ function renderHeartRate() {
 
     <!-- History -->
     <div class="card">
-      <h3><i class="fas fa-history"></i> Record History</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin-bottom:0"><i class="fas fa-history"></i> Record History</h3>
+        <button class="btn btn-outline btn-sm" onclick="loadHRRecords()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
       <div id="hrHistory">
         <div class="empty-state">
           <i class="fas fa-calendar-alt"></i>
@@ -289,14 +294,6 @@ function updateHRHistory() {
   if (hrRecords.length > 15) {
     html += `<p style="text-align:center;margin-top:16px;color:#64748b;font-size:0.85rem">Showing last 15 of ${hrRecords.length} records</p>`;
   }
-  
-  html += `
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-outline" onclick="loadHRRecords()" style="flex:1">
-        <i class="fas fa-sync-alt"></i> Refresh
-      </button>
-    </div>
-  `;
   
   historyDiv.innerHTML = html;
 }

@@ -119,7 +119,7 @@ function displayExerciseGrid() {
     html += `
       <div class="exercise-card" onclick="showExerciseDetails('${ex.name}')">
         <div class="exercise-thumbnail">
-          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}" loading="lazy">
+          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}" loading="lazy" onerror="this.src='https://ik.imagekit.io/0sf7uub8b/HydroFit/exercise-placeholder.jpg'">
           <div class="play-overlay">
             <i class="fas fa-play"></i>
           </div>
@@ -159,7 +159,7 @@ function filterExercises() {
     html += `
       <div class="exercise-card" onclick="showExerciseDetails('${ex.name}')">
         <div class="exercise-thumbnail">
-          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}" loading="lazy">
+          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}" loading="lazy" onerror="this.src='https://ik.imagekit.io/0sf7uub8b/HydroFit/exercise-placeholder.jpg'">
           <div class="play-overlay">
             <i class="fas fa-play"></i>
           </div>
