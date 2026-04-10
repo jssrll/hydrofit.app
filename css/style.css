@@ -1115,7 +1115,7 @@ body.compact-mode {
   --header-height: 55px;
 }
 
-/* Mobile Responsive */
+/* Mobile Responsive - FIXED */
 @media (max-width: 768px) {
   :root {
     --header-height: 60px;
@@ -1145,6 +1145,12 @@ body.compact-mode {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+    padding-bottom: 10px;
+  }
+  
+  /* Remove old logout button styles since it's not in sidebar anymore */
+  .sidebar .logout-btn {
+    display: none;
   }
   
   .main-panel {
@@ -1234,26 +1240,71 @@ body.compact-mode {
   body.compact-mode {
     --header-height: 50px;
   }
-}
-
-/* Tablet Responsive */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .tab-content {
-    padding: 20px;
+  
+  /* Settings page mobile fixes */
+  .settings-item {
+    flex-wrap: wrap;
+    gap: 12px;
   }
   
-  .form-row {
-    gap: 12px;
+  .settings-item-info {
+    min-width: 100%;
+  }
+  
+  .settings-item .toggle-switch,
+  .settings-item .btn-sm {
+    margin-left: 28px;
+  }
+  
+  .settings-item div[style*="max-width"] {
+    max-width: 100% !important;
+    margin-left: 28px;
   }
 }
 
 /* Fix for very small screens */
 @media (max-height: 600px) {
   .sidebar .logo-area {
-    padding: 16px 20px;
+    padding: 12px 20px;
   }
   
   .sidebar .nav-btn {
     padding: 8px 16px;
+  }
+  
+  .settings-container h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .top-bar h2 {
+    font-size: 1rem;
+  }
+  
+  .user-stats span {
+    font-size: 0.75rem;
+  }
+  
+  .user-stats i {
+    display: none;
+  }
+  
+  .user-stats {
+    padding: 5px 10px;
+  }
+  
+  .tab-content {
+    padding: 12px 8px;
+  }
+  
+  .card {
+    padding: 16px;
+  }
+  
+  .settings-item-title {
+    font-size: 0.9rem;
   }
 }
