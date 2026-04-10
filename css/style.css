@@ -2,33 +2,15 @@
 /* HYDROFIT - MAIN STYLESHEET               */
 /* Imports all modular CSS files            */
 /* ======================================== */
-
-/* Variables and Base Styles */
 @import 'variables.css';
-
-/* Layout Structure */
 @import 'layout.css';
-
-/* Reusable Components */
 @import 'components.css';
-
-/* Dashboard Page */
 @import 'dashboard.css';
-
-/* Profile Page */
 @import 'profile.css';
-
-/* Fitness Assessment Page */
 @import 'assessment.css';
-
-/* Ranking Page */
 @import 'ranking.css';
-
-/* Exercise Timer Page */
 @import 'timer.css';
-
-/* Mobile & Tablet Responsive */
-@import 'responsive.css';
-
-/* BMI Page */
 @import 'bmi.css';
+@import 'heartrate.css';
+@import 'movement.css';
+@import 'responsive.css';
