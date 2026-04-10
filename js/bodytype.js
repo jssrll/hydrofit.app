@@ -27,17 +27,14 @@ function renderBodyType() {
           <div class="type-card ectomorph">
             <div class="type-icon">🏃</div>
             <h4>Ectomorph</h4>
-            <p>Thin, narrow frame, fast metabolism</p>
           </div>
           <div class="type-card mesomorph">
             <div class="type-icon">💪</div>
             <h4>Mesomorph</h4>
-            <p>Muscular, athletic, gains muscle easily</p>
           </div>
           <div class="type-card endomorph">
             <div class="type-icon">🧸</div>
             <h4>Endomorph</h4>
-            <p>Soft body, gains fat easily, wide frame</p>
           </div>
         </div>
       </div>
@@ -54,17 +51,14 @@ function renderBodyType() {
           <div class="option-card ${bodyTypeAnswers.shape === 'endomorph' ? 'selected' : ''}" onclick="selectOption('shape', 'endomorph')">
             <i class="fas fa-circle"></i>
             <span>Wide waist, soft body</span>
-            <small>→ Endomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.shape === 'mesomorph' ? 'selected' : ''}" onclick="selectOption('shape', 'mesomorph')">
             <i class="fas fa-circle"></i>
             <span>Muscular, defined</span>
-            <small>→ Mesomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.shape === 'ectomorph' ? 'selected' : ''}" onclick="selectOption('shape', 'ectomorph')">
             <i class="fas fa-circle"></i>
             <span>Thin, narrow</span>
-            <small>→ Ectomorph</small>
           </div>
         </div>
       </div>
@@ -76,17 +70,14 @@ function renderBodyType() {
           <div class="option-card ${bodyTypeAnswers.weightBehavior === 'endomorph' ? 'selected' : ''}" onclick="selectOption('weightBehavior', 'endomorph')">
             <i class="fas fa-circle"></i>
             <span>Gains fat fast</span>
-            <small>→ Endomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.weightBehavior === 'mesomorph' ? 'selected' : ''}" onclick="selectOption('weightBehavior', 'mesomorph')">
             <i class="fas fa-circle"></i>
             <span>Gains muscle fast</span>
-            <small>→ Mesomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.weightBehavior === 'ectomorph' ? 'selected' : ''}" onclick="selectOption('weightBehavior', 'ectomorph')">
             <i class="fas fa-circle"></i>
             <span>Struggles to gain weight</span>
-            <small>→ Ectomorph</small>
           </div>
         </div>
       </div>
@@ -98,17 +89,14 @@ function renderBodyType() {
           <div class="option-card ${bodyTypeAnswers.measurements === 'endomorph' ? 'selected' : ''}" onclick="selectOption('measurements', 'endomorph')">
             <i class="fas fa-circle"></i>
             <span>Larger waist</span>
-            <small>→ Endomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.measurements === 'mesomorph' ? 'selected' : ''}" onclick="selectOption('measurements', 'mesomorph')">
             <i class="fas fa-circle"></i>
             <span>Broad shoulders, small waist</span>
-            <small>→ Mesomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.measurements === 'ectomorph' ? 'selected' : ''}" onclick="selectOption('measurements', 'ectomorph')">
             <i class="fas fa-circle"></i>
             <span>Small frame</span>
-            <small>→ Ectomorph</small>
           </div>
         </div>
       </div>
@@ -120,22 +108,19 @@ function renderBodyType() {
           <div class="option-card ${bodyTypeAnswers.metabolism === 'endomorph' ? 'selected' : ''}" onclick="selectOption('metabolism', 'endomorph')">
             <i class="fas fa-circle"></i>
             <span>Slow</span>
-            <small>→ Endomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.metabolism === 'mesomorph' ? 'selected' : ''}" onclick="selectOption('metabolism', 'mesomorph')">
             <i class="fas fa-circle"></i>
             <span>Moderate</span>
-            <small>→ Mesomorph</small>
           </div>
           <div class="option-card ${bodyTypeAnswers.metabolism === 'ectomorph' ? 'selected' : ''}" onclick="selectOption('metabolism', 'ectomorph')">
             <i class="fas fa-circle"></i>
             <span>Fast</span>
-            <small>→ Ectomorph</small>
           </div>
         </div>
       </div>
 
-      <button class="btn" onclick="calculateBodyType()" style="width:100%;margin-top:20px">
+      <button class="calculate-btn" onclick="calculateBodyType()">
         <i class="fas fa-calculator"></i> Calculate My Body Type
       </button>
     </div>
