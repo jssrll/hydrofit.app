@@ -50,22 +50,28 @@
   border-bottom: 2px solid #e0e7ff;
 }
 
-.injury-icon {
-  font-size: 3.5rem;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  width: 70px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  box-shadow: var(--shadow);
+.injury-title-section {
+  flex: 1;
 }
 
 .injury-title {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--darker);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.injury-title i {
+  color: var(--primary);
+  font-size: 1.8rem;
+}
+
+.injury-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
   margin: 0;
 }
 
@@ -143,11 +149,23 @@
   color: #00b894;
 }
 
+.proper-form-section h4 i {
+  color: #00b894;
+}
+
 .dos-section h4 {
   color: #00b894;
 }
 
+.dos-section h4 i {
+  color: #00b894;
+}
+
 .donts-section h4 {
+  color: #d63031;
+}
+
+.donts-section h4 i {
   color: #d63031;
 }
 
@@ -160,20 +178,18 @@
 }
 
 .form-list li,
-.dos-list li,
-.donts-list li {
+.dos-list li {
   padding: 10px 0;
   display: flex;
   align-items: flex-start;
   gap: 10px;
   line-height: 1.5;
-  color: #333;
+  color: #1a1a1a;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .form-list li:last-child,
-.dos-list li:last-child,
-.donts-list li:last-child {
+.dos-list li:last-child {
   border-bottom: none;
 }
 
@@ -185,12 +201,6 @@
 
 .dos-list li i {
   color: #00b894;
-  font-size: 0.9rem;
-  margin-top: 3px;
-}
-
-.donts-list li i {
-  color: #d63031;
   font-size: 0.9rem;
   margin-top: 3px;
 }
@@ -219,35 +229,23 @@
 }
 
 .dont-item span {
-  color: #333;
-  font-weight: 500;
-}
-
-/* Navigation Controls */
-.injury-navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e7ff;
-}
-
-.injury-navigation .btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.injury-counter {
-  color: #64748b;
-  font-size: 0.9rem;
+  color: #1a1a1a;
   font-weight: 500;
 }
 
 /* General Safety Tips */
 .safety-tips-card {
   background: linear-gradient(135deg, #f0f9ff, #ffffff);
+}
+
+.safety-tips-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.safety-tips-card h3 i {
+  color: #fdcb6e;
 }
 
 .safety-tips-grid {
@@ -287,7 +285,7 @@
 
 .tip-item p {
   font-size: 0.9rem;
-  color: #64748b;
+  color: #1a1a1a;
   line-height: 1.6;
   margin: 0;
 }
@@ -314,15 +312,12 @@
     max-height: 150px;
   }
   
-  .injury-icon {
-    font-size: 2.5rem;
-    width: 55px;
-    height: 55px;
-    border-radius: 16px;
-  }
-  
   .injury-title {
     font-size: 1.2rem;
+  }
+  
+  .injury-title i {
+    font-size: 1.5rem;
   }
   
   .injury-tag {
@@ -341,20 +336,5 @@
   
   .donts-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .injury-navigation {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .injury-navigation .btn {
-    width: 100%;
-  }
-  
-  .injury-counter {
-    order: -1;
   }
 }

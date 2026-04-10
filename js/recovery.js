@@ -89,7 +89,7 @@ function renderRecoveryTracker() {
       <div id="recoveryRecommendation">
         <div class="recommendation-content">
           <div class="recommendation-icon">💪</div>
-          <p class="recommendation-text">Log your recovery data to get personalized recommendations</p>
+          <p class="recommendation-text" style="color: #1a1a1a;">Log your recovery data to get personalized recommendations</p>
         </div>
       </div>
     </div>
@@ -155,32 +155,41 @@ function updateRecommendation() {
   if (!restDay) return;
   
   let recommendation = '';
-  let color = '#00b894';
   let icon = '💪';
+  let bgColor = '#f0f9ff';
+  let borderColor = '#00b4d8';
   
   if (restDay === 'Yes') {
     recommendation = 'Great choice! Complete rest is essential for muscle repair and growth. Focus on hydration and nutrition today.';
     icon = '🛌';
+    bgColor = '#e8f8f5';
+    borderColor = '#00b894';
   } else if (restDay === 'Active') {
     recommendation = 'Active recovery is excellent! Try light walking, stretching, or yoga to promote blood flow without stressing muscles.';
     icon = '🚶';
-    color = '#00b4d8';
+    bgColor = '#e0f7fa';
+    borderColor = '#00b4d8';
   } else {
     if (soreness >= 5) {
       recommendation = 'High muscle soreness detected. Consider taking a rest day or light active recovery instead of intense training.';
-      color = '#e17055';
       icon = '⚠️';
+      bgColor = '#fdecea';
+      borderColor = '#e17055';
     } else if (sleepHours < 6) {
       recommendation = 'You may be sleep-deprived. Ensure proper warm-up and listen to your body. Consider a lighter workout today.';
-      color = '#fdcb6e';
       icon = '😴';
+      bgColor = '#fef9e7';
+      borderColor = '#fdcb6e';
     } else if (energy <= 2) {
       recommendation = 'Low energy detected. Focus on proper nutrition and hydration. A lighter workout may be beneficial.';
-      color = '#fdcb6e';
       icon = '🔋';
+      bgColor = '#fef9e7';
+      borderColor = '#fdcb6e';
     } else {
       recommendation = 'You seem well-rested! Ready for a productive training session. Remember to warm up properly.';
       icon = '💪';
+      bgColor = '#e8f8f5';
+      borderColor = '#00b894';
     }
   }
   
@@ -190,12 +199,22 @@ function updateRecommendation() {
   
   const recDiv = document.getElementById('recoveryRecommendation');
   recDiv.innerHTML = `
-    <div class="recommendation-content">
+    <div class="recommendation-content" style="background: ${bgColor}; border-radius: 16px; padding: 24px; border-left: 4px solid ${borderColor};">
       <div class="recommendation-icon">${icon}</div>
-      <p class="recommendation-text" style="color:${color}">${recommendation}</p>
+      <p class="recommendation-text" style="color: #1a1a1a; font-weight: 500;">${recommendation}</p>
       ${restDay === 'No' && soreness < 4 && sleepHours >= 7 ? `
-        <div class="recommendation-suggestion">
-          <i class="fas fa-dumbbell"></i> Suggested: Moderate to high intensity training
+        <div class="recommendation-suggestion" style="background: white; color: #1a1a1a;">
+          <i class="fas fa-dumbbell" style="color: #00b4d8;"></i> Suggested: Moderate to high intensity training
+        </div>
+      ` : ''}
+      ${restDay === 'Yes' ? `
+        <div class="recommendation-suggestion" style="background: white; color: #1a1a1a;">
+          <i class="fas fa-check-circle" style="color: #00b894;"></i> Focus on: Hydration, nutrition, and quality sleep
+        </div>
+      ` : ''}
+      ${restDay === 'Active' ? `
+        <div class="recommendation-suggestion" style="background: white; color: #1a1a1a;">
+          <i class="fas fa-walking" style="color: #00b4d8;"></i> Try: Light walking, stretching, foam rolling, or yoga
         </div>
       ` : ''}
     </div>
@@ -228,7 +247,6 @@ async function saveRecoveryRecord() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
   
-  // Store in localStorage as fallback if API fails
   try {
     const result = await callAPI('saveRecovery', {
       schoolId: window.currentUser.schoolId,
@@ -247,18 +265,16 @@ async function saveRecoveryRecord() {
       document.getElementById('sleepHours').value = '';
       document.getElementById('recoveryNotes').value = '';
       document.getElementById('recoveryRecommendation').innerHTML = `
-        <div class="recommendation-content">
+        <div class="recommendation-content" style="background: #f0f9ff; border-radius: 16px; padding: 24px; border-left: 4px solid #00b4d8;">
           <div class="recommendation-icon">💪</div>
-          <p class="recommendation-text">Log your recovery data to get personalized recommendations</p>
+          <p class="recommendation-text" style="color: #1a1a1a; font-weight: 500;">Log your recovery data to get personalized recommendations</p>
         </div>
       `;
       loadRecoveryRecords();
     } else {
-      // Fallback to localStorage
       saveToLocalStorage(date, restDay, sleepHours, sleepQuality, sorenessLevel, energyLevel, recoveryScore, notes);
     }
   } catch (error) {
-    // Fallback to localStorage
     saveToLocalStorage(date, restDay, sleepHours, sleepQuality, sorenessLevel, energyLevel, recoveryScore, notes);
   }
   
@@ -298,12 +314,10 @@ async function loadRecoveryRecords() {
     if (result.success && result.records) {
       recoveryRecords = result.records;
     } else {
-      // Fallback to localStorage
       const stored = localStorage.getItem('hydrofit_recovery_' + window.currentUser.schoolId);
       recoveryRecords = stored ? JSON.parse(stored) : [];
     }
   } catch (error) {
-    // Fallback to localStorage
     const stored = localStorage.getItem('hydrofit_recovery_' + window.currentUser.schoolId);
     recoveryRecords = stored ? JSON.parse(stored) : [];
   }
@@ -356,7 +370,6 @@ function updateRecoveryHistory() {
   let html = '<div class="history-list">';
   recoveryRecords.slice(0, 10).forEach(r => {
     const energyEmoji = r.energyLevel >= 4 ? '⚡' : r.energyLevel >= 3 ? '😊' : '😴';
-    const restColor = r.restDay === 'Yes' ? '#00b894' : r.restDay === 'Active' ? '#00b4d8' : '#e17055';
     const badgeClass = r.restDay === 'Yes' ? 'rest' : r.restDay === 'Active' ? 'active' : 'training';
     const badgeIcon = r.restDay === 'Yes' ? '🛌' : r.restDay === 'Active' ? '🚶' : '💪';
     
