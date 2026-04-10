@@ -20,8 +20,8 @@
   <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
   
-  <!-- Web App Manifest -->
-  <link rel="manifest" href="assets/site.webmanifest">
+  <!-- Web App Manifest - CRITICAL for Install Button -->
+  <link rel="manifest" href="manifest.json">
   
   <!-- Theme Colors -->
   <meta name="theme-color" content="#00b4d8">
@@ -29,6 +29,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HydroFit">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="HydroFit">
+  <meta name="msapplication-TileColor" content="#00b4d8">
+  <meta name="msapplication-TileImage" content="assets/android-chrome-144x144.png">
   
   <!-- SEO Meta Tags -->
   <meta name="description" content="Academic Fitness Tracker for PathFit Class - Mindoro State University">
@@ -95,7 +98,7 @@
         <i class="fas fa-user-tag"></i> Body Type
       </button>
       <button class="nav-btn" data-tab="injury">
-        <i class="fas fa-shield"></i> Injury Prevention
+        <i class="fas fa-shield-heart"></i> Injury Prevention
       </button>
       <button class="nav-btn" data-tab="recovery">
         <i class="fas fa-bed"></i> Recovery
@@ -212,33 +215,63 @@
 <script src="js/app.js"></script>
 
 <!-- ======================================== -->
-<!-- PWA SERVICE WORKER REGISTRATION           -->
+<!-- PWA SERVICE WORKER - ENABLES INSTALL      -->
 <!-- ======================================== -->
 <script>
+  // Register Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js')
         .then(registration => {
-          console.log('✅ ServiceWorker registered with scope: ', registration.scope);
+          console.log('✅ ServiceWorker registered with scope:', registration.scope);
+          
+          // Check for updates
+          registration.addEventListener('updatefound', () => {
+            console.log('🔄 Service Worker update found!');
+          });
         })
         .catch(error => {
-          console.log('❌ ServiceWorker registration failed: ', error);
+          console.log('❌ ServiceWorker registration failed:', error);
         });
     });
   }
   
-  // Check if app is installed as PWA
-  if (window.matchMedia('(display-mode: standalone)').matches) {
+  // Check if app is already installed
+  if (window.matchMedia('(display-mode: standalone)').matches || 
+      window.navigator.standalone === true) {
     console.log('📱 HydroFit is running as installed PWA');
   }
   
-  // Handle install prompt
+  // Capture install prompt for custom install button
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
+    // Stash the event so it can be triggered later
     deferredPrompt = e;
-    console.log('📲 Install prompt available');
+    console.log('📲 Install prompt captured! Ready to install.');
+    
+    // Optionally, show your own install button
+    // You can access this from about.js via window.deferredPrompt
+    window.deferredPrompt = deferredPrompt;
   });
+  
+  // Track when app is successfully installed
+  window.addEventListener('appinstalled', (evt) => {
+    console.log('✅ HydroFit was successfully installed!');
+    deferredPrompt = null;
+    window.deferredPrompt = null;
+    
+    // Show success message if on about page
+    if (typeof showToast === 'function') {
+      showToast('HydroFit installed successfully! 🎉', false);
+    }
+  });
+  
+  // Log if manifest is found
+  if (document.querySelector('link[rel="manifest"]')) {
+    console.log('✅ Manifest found');
+  }
 </script>
 
 </body>
