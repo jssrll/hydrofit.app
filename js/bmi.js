@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - BMI TRACKER
+// HYDROFIT - BMI TRACKER WITH DIGITAL CHART
 // ========================================
 
 let bmiRecords = [];
@@ -11,10 +11,10 @@ function calculateBMI(weight, heightCm) {
 }
 
 function getBMICategory(bmi) {
-  if (bmi < 18.5) return { category: 'Underweight', color: '#fdcb6e' };
-  if (bmi < 25) return { category: 'Normal Weight', color: '#00b894' };
-  if (bmi < 30) return { category: 'Overweight', color: '#e17055' };
-  return { category: 'Obese', color: '#d63031' };
+  if (bmi < 18.5) return { category: 'Underweight', color: '#fdcb6e', bgColor: 'rgba(253, 203, 110, 0.15)' };
+  if (bmi < 25) return { category: 'Normal Weight', color: '#00b894', bgColor: 'rgba(0, 184, 148, 0.15)' };
+  if (bmi < 30) return { category: 'Overweight', color: '#e17055', bgColor: 'rgba(225, 112, 85, 0.15)' };
+  return { category: 'Obese', color: '#d63031', bgColor: 'rgba(214, 48, 49, 0.15)' };
 }
 
 function renderBMI() {
@@ -81,8 +81,15 @@ function renderBMI() {
     <!-- Progress Chart -->
     <div class="card">
       <h3><i class="fas fa-chart-line"></i> Progress Chart</h3>
-      <div id="bmiChartContainer">
-        <canvas id="bmiChart" style="width:100%;height:250px"></canvas>
+      <div id="bmiChartContainer" style="position:relative;height:300px;">
+        <canvas id="bmiChart" style="width:100%;height:100%"></canvas>
+      </div>
+      <!-- Category Legend -->
+      <div style="display:flex;justify-content:center;gap:20px;margin-top:16px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#fdcb6e"></span><span style="font-size:0.75rem;color:#64748b">Underweight (&lt;18.5)</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#00b894"></span><span style="font-size:0.75rem;color:#64748b">Normal (18.5-24.9)</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#e17055"></span><span style="font-size:0.75rem;color:#64748b">Overweight (25-29.9)</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#d63031"></span><span style="font-size:0.75rem;color:#64748b">Obese (≥30)</span></div>
       </div>
     </div>
 
@@ -165,7 +172,7 @@ async function loadBMIRecords() {
     bmiRecords = result.records;
     updateBMIStatus();
     updateBMIHistory();
-    drawBMIChart();
+    drawDigitalBMIChart();
   }
 }
 
@@ -186,22 +193,50 @@ function updateBMIStatus() {
   const categoryData = getBMICategory(parseFloat(latest.bmi));
   const previous = bmiRecords[1];
   let trend = '';
+  let trendColor = '#64748b';
+  let trendIcon = '';
+  
   if (previous) {
     const diff = (parseFloat(latest.bmi) - parseFloat(previous.bmi)).toFixed(1);
-    trend = diff > 0 ? `↑ ${diff}` : diff < 0 ? `↓ ${Math.abs(diff)}` : '→ 0.0';
+    if (diff > 0) {
+      trend = `↑ ${diff}`;
+      trendColor = '#e17055';
+      trendIcon = '📈';
+    } else if (diff < 0) {
+      trend = `↓ ${Math.abs(diff)}`;
+      trendColor = '#00b894';
+      trendIcon = '📉';
+    } else {
+      trend = '→ 0.0';
+      trendColor = '#64748b';
+      trendIcon = '➡️';
+    }
   }
   
   statusDiv.innerHTML = `
     <div style="text-align:center;padding:20px">
-      <div style="font-size:3.5rem;font-weight:800;color:${categoryData.color}">${latest.bmi}</div>
-      <div style="font-size:1.2rem;font-weight:600;color:${categoryData.color};margin-bottom:8px">${latest.category}</div>
-      <div style="display:flex;justify-content:center;gap:24px;margin-top:16px">
-        <div><span style="color:#64748b">Height:</span> <strong>${latest.height} cm</strong></div>
-        <div><span style="color:#64748b">Weight:</span> <strong>${latest.weight} kg</strong></div>
-        ${trend ? `<div><span style="color:#64748b">Trend:</span> <strong style="color:${trend.includes('↓')?'#00b894':'#e17055'}">${trend}</strong></div>` : ''}
+      <div style="display:inline-block;padding:8px 20px;background:${categoryData.bgColor};border-radius:40px;margin-bottom:16px">
+        <span style="font-size:0.9rem;font-weight:600;color:${categoryData.color}">${latest.category}</span>
       </div>
-      <div style="margin-top:12px;color:#94a3b8;font-size:0.85rem">
-        <i class="fas fa-calendar"></i> ${new Date(latest.date).toLocaleDateString()}
+      <div style="font-size:4rem;font-weight:800;color:${categoryData.color};line-height:1">${latest.bmi}</div>
+      <div style="display:flex;justify-content:center;gap:32px;margin-top:20px">
+        <div style="text-align:center">
+          <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">Height</div>
+          <div style="font-size:1.2rem;font-weight:700;color:#1a1a1a">${latest.height} cm</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">Weight</div>
+          <div style="font-size:1.2rem;font-weight:700;color:#1a1a1a">${latest.weight} kg</div>
+        </div>
+        ${trend ? `
+        <div style="text-align:center">
+          <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">Trend</div>
+          <div style="font-size:1.2rem;font-weight:700;color:${trendColor}">${trendIcon} ${trend}</div>
+        </div>
+        ` : ''}
+      </div>
+      <div style="margin-top:16px;color:#94a3b8;font-size:0.85rem">
+        <i class="fas fa-calendar"></i> ${new Date(latest.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
       </div>
     </div>
   `;
@@ -224,101 +259,205 @@ function updateBMIHistory() {
   bmiRecords.slice(0, 10).forEach(r => {
     const categoryData = getBMICategory(parseFloat(r.bmi));
     html += `
-      <div class="history-item" style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #e0e7ff">
-        <div>
-          <strong>BMI: ${r.bmi}</strong>
-          <span style="margin-left:8px;color:${categoryData.color};font-size:0.85rem">${r.category}</span>
-          <div style="font-size:0.8rem;color:#64748b">${r.height} cm | ${r.weight} kg</div>
-          <div style="font-size:0.75rem;color:#94a3b8">${new Date(r.date).toLocaleDateString()}</div>
+      <div class="history-item" style="display:flex;justify-content:space-between;align-items:center;padding:14px 12px;border-bottom:1px solid #e0e7ff">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:12px;background:${categoryData.bgColor};display:flex;align-items:center;justify-content:center">
+            <span style="font-size:1.1rem;font-weight:700;color:${categoryData.color}">${r.bmi}</span>
+          </div>
+          <div>
+            <div style="font-weight:600;color:#1a1a1a">${r.height} cm / ${r.weight} kg</div>
+            <div style="font-size:0.75rem;color:#94a3b8">${new Date(r.date).toLocaleDateString()}</div>
+          </div>
         </div>
-        <button onclick="deleteBMIRecord('${r.id}')" style="background:none;border:none;color:#d63031;cursor:pointer">
-          <i class="fas fa-trash-alt"></i>
-        </button>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:0.8rem;font-weight:600;color:${categoryData.color}">${r.category}</span>
+          <button onclick="deleteBMIRecord('${r.id}')" style="background:none;border:none;color:#d63031;cursor:pointer;padding:6px">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
       </div>
     `;
   });
   html += '</div>';
   
   if (bmiRecords.length > 10) {
-    html += `<p style="text-align:center;margin-top:12px;color:#64748b">Showing last 10 of ${bmiRecords.length}</p>`;
+    html += `<p style="text-align:center;margin-top:16px;color:#64748b;font-size:0.85rem">Showing last 10 of ${bmiRecords.length} records</p>`;
   }
   
   historyDiv.innerHTML = html;
 }
 
-function drawBMIChart() {
+function drawDigitalBMIChart() {
   const canvas = document.getElementById('bmiChart');
   if (!canvas) return;
   
   const ctx = canvas.getContext('2d');
   
+  // Set canvas dimensions properly for sharp rendering
+  const container = canvas.parentElement;
+  const containerWidth = container.clientWidth;
+  
+  canvas.width = containerWidth * 2; // 2x for retina displays
+  canvas.height = 300 * 2;
+  canvas.style.width = containerWidth + 'px';
+  canvas.style.height = '300px';
+  
+  ctx.scale(2, 2); // Scale for retina
+  
+  const width = containerWidth;
+  const height = 300;
+  
   // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, width, height);
   
   if (bmiRecords.length < 2) {
-    ctx.font = '14px Inter, sans-serif';
+    ctx.font = '500 14px Inter, sans-serif';
     ctx.fillStyle = '#64748b';
     ctx.textAlign = 'center';
-    ctx.fillText('Need at least 2 records to show chart', canvas.width/2, canvas.height/2);
+    ctx.fillText('Need at least 2 records to show chart', width/2, height/2);
+    
+    // Draw decorative element
+    ctx.font = '400 40px Inter, sans-serif';
+    ctx.fillStyle = '#e0e7ff';
+    ctx.fillText('📊', width/2, height/2 - 40);
     return;
   }
   
   // Sort by date (oldest first for chart)
   const chartData = [...bmiRecords].reverse();
   
-  const padding = 40;
-  const chartWidth = canvas.width - padding * 2;
-  const chartHeight = canvas.height - padding * 2;
+  const padding = { top: 40, right: 30, bottom: 50, left: 50 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
   
   const bmiValues = chartData.map(r => parseFloat(r.bmi));
   const maxBMI = Math.max(...bmiValues) + 2;
-  const minBMI = Math.max(0, Math.min(...bmiValues) - 2);
+  const minBMI = Math.max(14, Math.min(...bmiValues) - 2);
   
-  // Draw axes
-  ctx.beginPath();
+  // Draw category zones
+  const zones = [
+    { min: 0, max: 18.5, color: 'rgba(253, 203, 110, 0.08)' },
+    { min: 18.5, max: 25, color: 'rgba(0, 184, 148, 0.08)' },
+    { min: 25, max: 30, color: 'rgba(225, 112, 85, 0.08)' },
+    { min: 30, max: 50, color: 'rgba(214, 48, 49, 0.08)' }
+  ];
+  
+  zones.forEach(zone => {
+    if (zone.max > minBMI && zone.min < maxBMI) {
+      const y1 = padding.top + chartHeight - ((Math.min(zone.max, maxBMI) - minBMI) / (maxBMI - minBMI)) * chartHeight;
+      const y2 = padding.top + chartHeight - ((Math.max(zone.min, minBMI) - minBMI) / (maxBMI - minBMI)) * chartHeight;
+      
+      ctx.fillStyle = zone.color;
+      ctx.fillRect(padding.left, y1, chartWidth, y2 - y1);
+    }
+  });
+  
+  // Draw horizontal grid lines
   ctx.strokeStyle = '#e0e7ff';
-  ctx.lineWidth = 1;
-  ctx.moveTo(padding, padding);
-  ctx.lineTo(padding, canvas.height - padding);
-  ctx.lineTo(canvas.width - padding, canvas.height - padding);
-  ctx.stroke();
+  ctx.lineWidth = 0.5;
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '11px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  
+  for (let i = 0; i <= 5; i++) {
+    const value = minBMI + (i / 5) * (maxBMI - minBMI);
+    const y = padding.top + chartHeight - (i / 5) * chartHeight;
+    
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(width - padding.right, y);
+    ctx.stroke();
+    
+    ctx.fillText(value.toFixed(1), padding.left - 8, y + 4);
+  }
   
   // Draw line
   ctx.beginPath();
   ctx.strokeStyle = '#00b4d8';
   ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  
+  // Create gradient for line
+  const gradient = ctx.createLinearGradient(padding.left, 0, width - padding.right, 0);
+  gradient.addColorStop(0, '#00b4d8');
+  gradient.addColorStop(0.5, '#48cae4');
+  gradient.addColorStop(1, '#0096c7');
+  ctx.strokeStyle = gradient;
   
   chartData.forEach((r, i) => {
-    const x = padding + (i / (chartData.length - 1)) * chartWidth;
-    const y = canvas.height - padding - ((parseFloat(r.bmi) - minBMI) / (maxBMI - minBMI)) * chartHeight;
+    const x = padding.left + (i / (chartData.length - 1)) * chartWidth;
+    const y = padding.top + chartHeight - ((parseFloat(r.bmi) - minBMI) / (maxBMI - minBMI)) * chartHeight;
     
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
   ctx.stroke();
   
-  // Draw points
+  // Draw area under line
+  ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+  ctx.lineTo(padding.left, padding.top + chartHeight);
+  ctx.closePath();
+  
+  const areaGradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
+  areaGradient.addColorStop(0, 'rgba(0, 180, 216, 0.15)');
+  areaGradient.addColorStop(1, 'rgba(0, 180, 216, 0.02)');
+  ctx.fillStyle = areaGradient;
+  ctx.fill();
+  
+  // Draw data points
   chartData.forEach((r, i) => {
-    const x = padding + (i / (chartData.length - 1)) * chartWidth;
-    const y = canvas.height - padding - ((parseFloat(r.bmi) - minBMI) / (maxBMI - minBMI)) * chartHeight;
+    const x = padding.left + (i / (chartData.length - 1)) * chartWidth;
+    const y = padding.top + chartHeight - ((parseFloat(r.bmi) - minBMI) / (maxBMI - minBMI)) * chartHeight;
     
+    const categoryData = getBMICategory(parseFloat(r.bmi));
+    
+    // Outer glow
     ctx.beginPath();
-    ctx.fillStyle = getBMICategory(parseFloat(r.bmi)).color;
-    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+    ctx.arc(x, y, 8, 0, 2 * Math.PI);
+    ctx.fillStyle = categoryData.color + '30';
+    ctx.fill();
+    
+    // Inner point
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = categoryData.color;
     ctx.fill();
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 2;
     ctx.stroke();
+    
+    // Value label
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.fillStyle = categoryData.color;
+    ctx.textAlign = 'center';
+    ctx.fillText(r.bmi, x, y - 12);
   });
   
-  // Draw labels
-  ctx.font = '11px Inter, sans-serif';
-  ctx.fillStyle = '#64748b';
+  // Draw date labels
+  ctx.font = '10px Inter, sans-serif';
+  ctx.fillStyle = '#94a3b8';
   ctx.textAlign = 'center';
   
-  // Date labels
-  ctx.fillText(chartData[0].date, padding, canvas.height - 10);
-  ctx.fillText(chartData[chartData.length-1].date, canvas.width - padding, canvas.height - 10);
+  const dateInterval = Math.max(1, Math.floor(chartData.length / 5));
+  chartData.forEach((r, i) => {
+    if (i % dateInterval === 0 || i === chartData.length - 1) {
+      const x = padding.left + (i / (chartData.length - 1)) * chartWidth;
+      const dateStr = new Date(r.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      ctx.fillText(dateStr, x, height - 20);
+    }
+  });
+  
+  // Draw border
+  ctx.strokeStyle = '#e0e7ff';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(padding.left, padding.top, chartWidth, chartHeight);
+  
+  // Draw title
+  ctx.font = 'bold 12px Inter, sans-serif';
+  ctx.fillStyle = '#1a1a1a';
+  ctx.textAlign = 'center';
+  ctx.fillText('BMI Progress Over Time', width/2, 22);
 }
 
 async function deleteBMIRecord(id) {
@@ -330,11 +469,11 @@ async function deleteBMIRecord(id) {
     bmiRecords = bmiRecords.filter(r => r.id !== id);
     updateBMIStatus();
     updateBMIHistory();
-    drawBMIChart();
+    drawDigitalBMIChart();
     showToast('Record deleted', false);
   } else {
     showToast(result.error || 'Failed to delete', true);
   }
 }
 
-console.log("✅ BMI Tracker Loaded");
+console.log("✅ BMI Tracker Loaded with Digital Chart");
