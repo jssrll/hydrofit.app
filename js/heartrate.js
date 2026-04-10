@@ -4,6 +4,14 @@
 
 let hrRecords = [];
 
+// Exercise types for dropdown
+const hrExerciseTypes = [
+  "Jumping Jacks", "Arm Circles", "High Knees", "Butt Kicks", "Neck Rotation",
+  "Torso Twists", "Push-Ups", "Sit-Ups", "Crunches", "Squats",
+  "Lunges", "Plank", "Wall Sit", "Burpees", "Deadlift",
+  "Bench Press", "Bicep Curl", "Tricep Dip", "Running"
+];
+
 function getHRInterpretation(bpm) {
   if (bpm < 60) return { text: 'Bradycardia (Low)', color: '#fdcb6e', advice: 'Below normal resting rate' };
   if (bpm < 100) return { text: 'Normal', color: '#00b894', advice: 'Healthy resting heart rate' };
@@ -46,7 +54,10 @@ function renderHeartRate() {
       <div class="form-row">
         <div class="form-group">
           <label>Exercise Type</label>
-          <input type="text" id="hrExercise" class="form-control" placeholder="e.g., Running, Push-ups">
+          <select id="hrExercise" class="form-control">
+            <option value="">Select Exercise</option>
+            ${hrExerciseTypes.map(ex => `<option value="${ex}">${ex}</option>`).join('')}
+          </select>
         </div>
         <div class="form-group">
           <label>Date</label>
@@ -164,12 +175,17 @@ function updateHRInterpretation() {
 async function saveHRRecord() {
   const before = parseInt(document.getElementById('hrBefore').value);
   const after = parseInt(document.getElementById('hrAfter').value);
-  const exercise = document.getElementById('hrExercise').value || 'General';
+  const exercise = document.getElementById('hrExercise').value;
   const date = document.getElementById('hrDate').value;
   const notes = document.getElementById('hrNotes').value;
   
   if (!before || !after) {
     showToast('Please enter heart rate values', true);
+    return;
+  }
+  
+  if (!exercise) {
+    showToast('Please select an exercise type', true);
     return;
   }
   
@@ -323,7 +339,6 @@ function drawHRChart() {
   const maxHR = Math.max(...allValues) + 10;
   const minHR = Math.max(40, Math.min(...allValues) - 10);
   
-  // Grid
   ctx.strokeStyle = '#e0e7ff';
   ctx.lineWidth = 0.5;
   ctx.fillStyle = '#94a3b8';
@@ -340,7 +355,6 @@ function drawHRChart() {
     ctx.fillText(Math.round(value), padding.left - 6, y + 3);
   }
   
-  // Draw lines
   ['before', 'after'].forEach((type) => {
     ctx.beginPath();
     ctx.strokeStyle = type === 'before' ? '#d63031' : '#00b894';
@@ -356,7 +370,6 @@ function drawHRChart() {
     });
     ctx.stroke();
     
-    // Data points
     chartData.forEach((r, i) => {
       const x = padding.left + (i / (chartData.length - 1)) * chartWidth;
       const y = padding.top + chartHeight - ((parseInt(r[type]) - minHR) / (maxHR - minHR)) * chartHeight;
@@ -371,7 +384,6 @@ function drawHRChart() {
     });
   });
   
-  // Date labels
   ctx.font = '10px Inter, sans-serif';
   ctx.fillStyle = '#94a3b8';
   ctx.textAlign = 'center';

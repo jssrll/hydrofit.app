@@ -3,18 +3,25 @@
 // ========================================
 
 const exerciseLibrary = [
-  { name: 'Jumping Jacks', videoId: 'c4DAnQ6DtF8', instructions: 'Stand with feet together, arms at sides. Jump while spreading legs and raising arms overhead. Return to start.' },
-  { name: 'Push-Ups', videoId: 'IODxDxX7oi4', instructions: 'Start in plank position. Lower body until chest nearly touches ground. Push back up.' },
-  { name: 'Squats', videoId: 'aclHkVaku9U', instructions: 'Stand with feet shoulder-width apart. Lower hips back and down. Keep chest up. Return to standing.' },
-  { name: 'Lunges', videoId: 'QOVaHwm-Q6w', instructions: 'Step forward with one leg. Lower hips until both knees bent at 90°. Push back to start.' },
-  { name: 'Plank', videoId: 'pSHjTRCQxIw', instructions: 'Hold push-up position with body in straight line. Engage core. Hold for desired time.' },
-  { name: 'Burpees', videoId: 'TU8QYVW0gDU', instructions: 'Start standing. Drop to squat, kick feet back to plank. Do push-up. Jump feet forward and leap up.' },
-  { name: 'High Knees', videoId: 'oDdkytliOqE', instructions: 'Run in place while lifting knees as high as possible. Pump arms.' },
-  { name: 'Mountain Climbers', videoId: 'nmwgirgXLYM', instructions: 'In plank position, alternate bringing knees toward chest quickly.' },
-  { name: 'Crunches', videoId: 'Xyd_fa5zoEU', instructions: 'Lie on back, knees bent. Lift shoulders off ground using abs. Lower back down.' },
-  { name: 'Jump Rope', videoId: 'u3zgHI8QnqE', instructions: 'Hold rope handles. Swing rope and jump with both feet. Keep rhythm steady.' },
-  { name: 'Arm Circles', videoId: '140RTNMciH8', instructions: 'Extend arms to sides. Make small circles forward, then backward.' },
-  { name: 'Butt Kicks', videoId: 'e0mKtC9A8iA', instructions: 'Run in place while kicking heels up toward glutes.' }
+  { name: 'Jumping Jacks', videoId: 'c4DAnQ6DtF8', instructions: 'Stand with feet together, arms at sides. Jump while spreading legs and raising arms overhead. Return to start. Repeat for desired reps.' },
+  { name: 'Arm Circles', videoId: '140RTNMciH8', instructions: 'Extend arms out to sides at shoulder height. Make small circles forward for 30 seconds, then reverse direction. Keep arms straight.' },
+  { name: 'High Knees', videoId: 'oDdkytliOqE', instructions: 'Run in place while lifting knees as high as possible toward chest. Pump arms and maintain quick pace. Keep core engaged.' },
+  { name: 'Butt Kicks', videoId: 'e0mKtC9A8iA', instructions: 'Run in place while kicking heels up toward glutes. Keep upper body steady and pump arms. Maintain quick rhythm.' },
+  { name: 'Neck Rotation', videoId: '2NOEzxAMl6I', instructions: 'Stand or sit with spine straight. Slowly rotate head in circular motion. Do 5 rotations each direction. Keep shoulders relaxed.' },
+  { name: 'Torso Twists', videoId: 'ZMRUxMOc4Eo', instructions: 'Stand with feet shoulder-width apart. Rotate torso left and right while keeping hips stable. Arms can be crossed over chest or extended.' },
+  { name: 'Push-Ups', videoId: 'IODxDxX7oi4', instructions: 'Start in plank position with hands shoulder-width apart. Lower body until chest nearly touches ground. Push back up. Keep body straight.' },
+  { name: 'Sit-Ups', videoId: 'jDwoBqPH0jk', instructions: 'Lie on back with knees bent and feet flat. Place hands behind head. Lift upper body toward knees. Lower back down with control.' },
+  { name: 'Crunches', videoId: 'Xyd_fa5zoEU', instructions: 'Lie on back with knees bent. Place hands behind head. Lift shoulders off ground using abs. Hold briefly, then lower. Keep neck relaxed.' },
+  { name: 'Squats', videoId: 'aclHkVaku9U', instructions: 'Stand with feet shoulder-width apart. Lower hips back and down as if sitting. Keep chest up and knees behind toes. Return to standing.' },
+  { name: 'Lunges', videoId: 'QOVaHwm-Q6w', instructions: 'Step forward with one leg. Lower hips until both knees bent at 90°. Front knee over ankle, back knee near ground. Push back to start.' },
+  { name: 'Plank', videoId: 'pSHjTRCQxIw', instructions: 'Hold push-up position with body in straight line from head to heels. Engage core and glutes. Hold for desired time without sagging.' },
+  { name: 'Wall Sit', videoId: 'y-wV4Venusw', instructions: 'Stand with back against wall. Slide down until knees bent at 90°. Hold position keeping back flat against wall. Engage core.' },
+  { name: 'Burpees', videoId: 'TU8QYVW0gDU', instructions: 'Start standing. Drop to squat, kick feet back to plank. Do push-up. Jump feet forward and explode up into jump. Land softly and repeat.' },
+  { name: 'Deadlift', videoId: 'ytGaGQ3zNRY', instructions: 'Stand with feet hip-width apart. Hinge at hips, keeping back straight. Lower weight along shins. Drive through heels to stand up. Squeeze glutes at top.' },
+  { name: 'Bench Press', videoId: 'rT7DgCr-3pg', instructions: 'Lie on bench with feet flat. Grip bar slightly wider than shoulders. Lower bar to chest, then press up. Keep elbows at 45° angle.' },
+  { name: 'Bicep Curl', videoId: 'ykJmrZ5v0Oo', instructions: 'Stand holding weights at sides, palms forward. Curl weights toward shoulders keeping elbows stationary. Squeeze biceps at top. Lower with control.' },
+  { name: 'Tricep Dip', videoId: '0326dy_-CzM', instructions: 'Sit on edge of bench, hands beside hips. Slide forward, lower body by bending elbows to 90°. Push back up. Keep shoulders down.' },
+  { name: 'Running', videoId: 'k0Q1Qe7h6tY', instructions: 'Maintain upright posture with slight forward lean. Land midfoot, keep cadence quick. Arms swing front to back, not across body. Breathe rhythmically.' }
 ];
 
 let currentVideoIndex = 0;
@@ -30,9 +37,7 @@ function renderMovementLibrary() {
     <!-- Featured Video -->
     <div class="card">
       <h3><i class="fas fa-play-circle"></i> Featured Exercise</h3>
-      <div id="featuredVideo">
-        <!-- Will be populated by JS -->
-      </div>
+      <div id="featuredVideo"></div>
     </div>
 
     <!-- Exercise Grid -->
@@ -41,21 +46,21 @@ function renderMovementLibrary() {
       <div class="exercise-search">
         <input type="text" id="exerciseSearch" class="form-control" placeholder="Search exercises..." oninput="filterExercises()">
       </div>
-      <div class="exercise-grid" id="exerciseGrid">
-        <!-- Will be populated by JS -->
-      </div>
+      <div class="exercise-grid" id="exerciseGrid"></div>
     </div>
 
     <!-- Instructions Modal -->
     <div id="instructionModal" class="modal" style="display:none">
-      <div class="modal-content" style="max-width:500px">
+      <div class="modal-content" style="max-width:550px">
         <div class="modal-header">
-          <i class="fas fa-info-circle" style="font-size:2rem"></i>
+          <i class="fas fa-info-circle" style="font-size:2.5rem"></i>
           <h3 id="modalExerciseName">Exercise Name</h3>
         </div>
         <div class="modal-body">
           <div id="modalVideoContainer"></div>
-          <p id="modalInstructions" style="margin-top:16px;line-height:1.6"></p>
+          <div class="modal-instructions">
+            <p id="modalInstructions"></p>
+          </div>
           <button class="modal-btn" onclick="closeInstructionModal()">Close</button>
         </div>
       </div>
@@ -71,18 +76,17 @@ function displayFeaturedExercise(index) {
   const container = document.getElementById('featuredVideo');
   
   container.innerHTML = `
-    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin-bottom:16px">
+    <div class="featured-video-container">
       <iframe 
         src="https://www.youtube.com/embed/${exercise.videoId}?rel=0&modestbranding=1" 
-        style="position:absolute;top:0;left:0;width:100%;height:100%" 
         frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
       </iframe>
     </div>
-    <h4 style="margin-bottom:8px;color:#1a1a1a">${exercise.name}</h4>
-    <p style="color:#64748b;margin-bottom:16px">${exercise.instructions}</p>
-    <div style="display:flex;gap:8px">
+    <h4 class="featured-video-title">${exercise.name}</h4>
+    <p class="featured-video-description">${exercise.instructions}</p>
+    <div class="featured-video-controls">
       <button class="btn btn-outline" onclick="previousExercise()" ${index === 0 ? 'disabled' : ''}>
         <i class="fas fa-chevron-left"></i> Previous
       </button>
@@ -115,7 +119,7 @@ function displayExerciseGrid() {
     html += `
       <div class="exercise-card" onclick="showExerciseDetails('${ex.name}')">
         <div class="exercise-thumbnail">
-          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}">
+          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}" loading="lazy">
           <div class="play-overlay">
             <i class="fas fa-play"></i>
           </div>
@@ -140,12 +144,22 @@ function filterExercises() {
     ex.instructions.toLowerCase().includes(searchTerm)
   );
   
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="no-results" style="grid-column:1/-1">
+        <i class="fas fa-search"></i>
+        <p>No exercises found</p>
+      </div>
+    `;
+    return;
+  }
+  
   let html = '';
   filtered.forEach(ex => {
     html += `
       <div class="exercise-card" onclick="showExerciseDetails('${ex.name}')">
         <div class="exercise-thumbnail">
-          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}">
+          <img src="https://img.youtube.com/vi/${ex.videoId}/mqdefault.jpg" alt="${ex.name}" loading="lazy">
           <div class="play-overlay">
             <i class="fas fa-play"></i>
           </div>
@@ -158,7 +172,7 @@ function filterExercises() {
     `;
   });
   
-  grid.innerHTML = html || '<p style="text-align:center;padding:40px;color:#64748b">No exercises found</p>';
+  grid.innerHTML = html;
 }
 
 function showExerciseDetails(exerciseName) {
@@ -167,10 +181,9 @@ function showExerciseDetails(exerciseName) {
   
   document.getElementById('modalExerciseName').innerText = exercise.name;
   document.getElementById('modalVideoContainer').innerHTML = `
-    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px">
+    <div class="modal-video-container">
       <iframe 
         src="https://www.youtube.com/embed/${exercise.videoId}?autoplay=1&rel=0&modestbranding=1" 
-        style="position:absolute;top:0;left:0;width:100%;height:100%" 
         frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
