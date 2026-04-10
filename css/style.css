@@ -29,3 +29,6 @@
 
 /* Mobile & Tablet Responsive */
 @import 'responsive.css';
+
+/* BMI Page */
+@import 'bmi.css';

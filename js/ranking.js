@@ -15,13 +15,24 @@ function getRatingColor(rating) {
 
 async function renderRanking() {
   const container = document.getElementById("tabContent");
-  container.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading rankings...</div>`;
+  
+  // Show skeleton loader while fetching
+  container.innerHTML = `
+    <div class="ranking-banner">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+    </div>
+    <div class="card">
+      <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin"></i> Loading rankings...</div>
+    </div>
+  `;
   
   const result = await callAPI('getAllAssessments', {});
   if (result.success && result.assessments) {
     rankingData = result.assessments;
     displayRankings();
-  } else { container.innerHTML = `<div class="card"><p style="color:#d63031">Failed to load rankings</p></div>`; }
+  } else { 
+    container.innerHTML = `<div class="ranking-banner"><img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)"></div><div class="card"><p style="color:#d63031;text-align:center">Failed to load rankings</p></div>`; 
+  }
 }
 
 function displayRankings() {
@@ -61,25 +72,60 @@ function displayRankings() {
   });
   
   const userRank = rankings.findIndex(r => r.schoolId === window.currentUser?.schoolId) + 1;
+  const userData = rankings[userRank - 1];
   
   container.innerHTML = `
-    <div class="ranking-banner"><img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)"></div>
-    ${userRank > 0 ? `<div class="user-rank-card"><div class="user-rank-content"><i class="fas fa-user"></i><span>Your Rank: <strong>#${userRank}</strong> of ${rankings.length}</span><span class="user-points">${Math.round(rankings[userRank-1]?.totalPoints || 0)} pts</span></div></div>` : ''}
-    <div class="card"><h3><i class="fas fa-trophy"></i> Leaderboard</h3>
+    <div class="ranking-banner">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+    </div>
+    
+    ${userRank > 0 ? `
+      <div class="user-rank-card">
+        <div class="user-rank-content">
+          <i class="fas fa-user"></i>
+          <span>Your Rank: <strong>#${userRank}</strong> of ${rankings.length}</span>
+          <span class="user-points">${Math.round(userData?.totalPoints || 0)} pts</span>
+          <button class="refresh-rank-btn" onclick="renderRanking()" title="Refresh Rankings">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+    ` : ''}
+    
+    <div class="card">
+      <h3><i class="fas fa-trophy"></i> Leaderboard</h3>
       <div class="ranking-table-container">
-        <table class="ranking-table"><thead><tr><th>Rank</th><th>Student</th><th>Assessments</th><th>Avg Rating</th><th>Duration</th><th>Points</th></tr></thead>
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Student</th>
+              <th>Assessments</th>
+              <th>Avg Rating</th>
+              <th>Duration</th>
+              <th>Points</th>
+            </tr>
+          </thead>
           <tbody>
             ${rankings.map((r, i) => {
               const rank = i + 1;
               const isCurrentUser = r.schoolId === window.currentUser?.schoolId;
               let rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
-              return `<tr class="${isCurrentUser ? 'current-user-row' : ''}"><td><span class="rank-badge ${rankClass}">${rank}</span></td><td><strong>${escapeHtml(r.name)}</strong>${isCurrentUser ? '<span class="you-badge">You</span>' : ''}</td><td>${r.assessmentCount}</td><td><span style="color:${getRatingColor(r.averageRating)};font-weight:600">${r.averageRating}</span></td><td>${formatDuration(r.totalDuration)}</td><td><strong>${Math.round(r.totalPoints)}</strong></td></tr>`;
+              return `
+                <tr class="${isCurrentUser ? 'current-user-row' : ''}">
+                  <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+                  <td><strong>${escapeHtml(r.name)}</strong>${isCurrentUser ? '<span class="you-badge">You</span>' : ''}</td>
+                  <td>${r.assessmentCount}</td>
+                  <td><span style="color:${getRatingColor(r.averageRating)};font-weight:600">${r.averageRating}</span></td>
+                  <td>${formatDuration(r.totalDuration)}</td>
+                  <td><strong>${Math.round(r.totalPoints)}</strong></td>
+                </tr>
+              `;
             }).join('')}
           </tbody>
         </table>
       </div>
     </div>
-    <div style="text-align:center;margin-top:20px"><button class="btn btn-outline" onclick="renderRanking()"><i class="fas fa-sync-alt"></i> Refresh</button></div>
   `;
 }
 
