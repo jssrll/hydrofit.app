@@ -98,7 +98,7 @@
         <i class="fas fa-user-tag"></i> Body Type
       </button>
       <button class="nav-btn" data-tab="injury">
-        <i class="fas fa-shield-heart"></i> Injury Prevention
+        <i class="fas fa-shield"></i> Injury Prevention
       </button>
       <button class="nav-btn" data-tab="recovery">
         <i class="fas fa-bed"></i> Recovery
@@ -106,12 +106,9 @@
       <button class="nav-btn" data-tab="ranking">
         <i class="fas fa-trophy"></i> Ranking
       </button>
-      <button class="nav-btn" data-tab="about">
-        <i class="fas fa-info-circle"></i> About
-      </button>
-      <button class="logout-btn" id="logoutBtn">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
+    <button class="logout-btn" id="logoutBtn">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
   </aside>
 
   <!-- ======================================== -->
@@ -211,7 +208,7 @@
 <script src="js/recovery.js"></script>
 <script src="js/bodytype.js"></script>
 <script src="js/bodyparts.js"></script>
-<script src="js/about.js"></script>
+<script src="js/install-prompt.js"></script>
 <script src="js/app.js"></script>
 
 <!-- ======================================== -->
@@ -242,36 +239,21 @@
     console.log('📱 HydroFit is running as installed PWA');
   }
   
-  // Capture install prompt for custom install button
+  // Capture install prompt
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
-    // Stash the event so it can be triggered later
     deferredPrompt = e;
-    console.log('📲 Install prompt captured! Ready to install.');
-    
-    // Optionally, show your own install button
-    // You can access this from about.js via window.deferredPrompt
     window.deferredPrompt = deferredPrompt;
+    console.log('📲 Install prompt captured! Ready to install.');
   });
   
   // Track when app is successfully installed
-  window.addEventListener('appinstalled', (evt) => {
+  window.addEventListener('appinstalled', () => {
     console.log('✅ HydroFit was successfully installed!');
     deferredPrompt = null;
     window.deferredPrompt = null;
-    
-    // Show success message if on about page
-    if (typeof showToast === 'function') {
-      showToast('HydroFit installed successfully! 🎉', false);
-    }
   });
-  
-  // Log if manifest is found
-  if (document.querySelector('link[rel="manifest"]')) {
-    console.log('✅ Manifest found');
-  }
 </script>
 
 </body>
