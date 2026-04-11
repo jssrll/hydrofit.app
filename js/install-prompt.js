@@ -79,11 +79,11 @@ function showCustomInstallPrompt() {
           <span>Faster</span>
         </div>
         <div class="prompt-feature">
-          <i class="fas fa-wifi-slash"></i>
+          <i class="fas fa-wifi"></i>
           <span>Offline</span>
         </div>
         <div class="prompt-feature">
-          <i class="fas fa-mobile-screen"></i>
+          <i class="fas fa-mobile"></i>
           <span>Full Screen</span>
         </div>
       </div>
