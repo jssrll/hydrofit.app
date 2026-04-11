@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - DAILY WORKOUT SCHEDULER
+// HYDROFIT - DAILY WORKOUT SCHEDULER (SHEETS SYNC)
 // ========================================
 
 let workoutSchedule = [];
@@ -68,7 +68,17 @@ function renderScheduler() {
 
     <!-- Weekly Schedule Overview -->
     <div class="card">
-      <h3><i class="fas fa-calendar-week"></i> Weekly Schedule</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0"><i class="fas fa-calendar-week"></i> Weekly Schedule</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="syncScheduleWithSheets()">
+            <i class="fas fa-cloud-upload-alt"></i> Sync
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="clearAllSchedule()">
+            <i class="fas fa-trash"></i> Clear
+          </button>
+        </div>
+      </div>
       <div class="weekly-schedule" id="weeklySchedule"></div>
     </div>
 
@@ -140,15 +150,78 @@ function renderScheduler() {
   `;
   
   displayTodayDate();
-  loadSchedule();
-  loadChecklist();
-  updateProgress();
+  loadScheduleFromSheets();
 }
 
 function displayTodayDate() {
   const today = new Date();
   const options = { weekday: 'long', month: 'long', day: 'numeric' };
   document.getElementById('todayDate').innerText = today.toLocaleDateString('en-US', options);
+}
+
+async function loadScheduleFromSheets() {
+  try {
+    const result = await callAPI('getSchedule', { schoolId: window.currentUser.schoolId });
+    
+    if (result.success && result.schedule) {
+      workoutSchedule = result.schedule.map(item => ({
+        ...item,
+        id: item.id,
+        day: item.day,
+        time: item.time,
+        type: item.type,
+        duration: parseInt(item.duration),
+        notes: item.notes,
+        completed: item.completed
+      }));
+      
+      // Sort by day
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      workoutSchedule.sort((a, b) => days.indexOf(a.day) - days.indexOf(b.day));
+      
+      displayWeeklySchedule();
+      loadChecklist();
+      updateProgress();
+    } else {
+      // Load from localStorage as fallback
+      loadScheduleFromLocal();
+    }
+  } catch (error) {
+    console.error('Error loading schedule:', error);
+    loadScheduleFromLocal();
+  }
+}
+
+function loadScheduleFromLocal() {
+  const stored = localStorage.getItem('hydrofit_schedule_' + window.currentUser?.schoolId);
+  if (stored) {
+    workoutSchedule = JSON.parse(stored);
+    displayWeeklySchedule();
+    loadChecklist();
+    updateProgress();
+  } else {
+    displayWeeklySchedule();
+  }
+}
+
+async function syncScheduleWithSheets() {
+  if (workoutSchedule.length === 0) {
+    showToast('No schedule to sync', true);
+    return;
+  }
+  
+  showToast('Syncing schedule to Sheets...', false);
+  
+  const result = await callAPI('saveSchedule', {
+    schoolId: window.currentUser.schoolId,
+    scheduleData: JSON.stringify(workoutSchedule)
+  });
+  
+  if (result.success) {
+    showToast('Schedule synced to Sheets! 📤', false);
+  } else {
+    showToast(result.error || 'Sync failed', true);
+  }
 }
 
 function addToSchedule() {
@@ -159,7 +232,7 @@ function addToSchedule() {
   const notes = document.getElementById('scheduleNotes').value;
   
   const scheduleItem = {
-    id: Date.now(),
+    id: 'SCH' + Date.now() + Math.random().toString(36).substr(2, 5),
     day,
     time,
     type,
@@ -174,9 +247,10 @@ function addToSchedule() {
     return days.indexOf(a.day) - days.indexOf(b.day);
   });
   
-  saveSchedule();
+  saveScheduleLocal();
   displayWeeklySchedule();
   updateProgress();
+  syncScheduleWithSheets();
   
   // Clear form
   document.getElementById('scheduleNotes').value = '';
@@ -225,7 +299,7 @@ function displayWeeklySchedule() {
             <div class="workout-type">${workout.type}</div>
             <div class="workout-duration">${workout.duration} min</div>
             ${workout.notes ? `<div class="workout-notes">${workout.notes}</div>` : ''}
-            <button class="delete-workout" onclick="deleteWorkout(${workout.id})">
+            <button class="delete-workout" onclick="deleteWorkout('${workout.id}')">
               <i class="fas fa-trash-alt"></i>
             </button>
           </div>
@@ -248,13 +322,40 @@ function formatTime(timeStr) {
   return `${hour12}:${minutes} ${ampm}`;
 }
 
-function deleteWorkout(id) {
+async function deleteWorkout(id) {
+  if (!confirm('Remove this workout from schedule?')) return;
+  
   workoutSchedule = workoutSchedule.filter(w => w.id !== id);
-  saveSchedule();
+  saveScheduleLocal();
   displayWeeklySchedule();
   loadChecklist();
   updateProgress();
+  
+  // Delete from Sheets
+  await callAPI('deleteScheduleItem', {
+    schoolId: window.currentUser.schoolId,
+    workoutId: id
+  });
+  
   showToast('Workout removed from schedule', false);
+}
+
+async function clearAllSchedule() {
+  if (!confirm('Clear ALL scheduled workouts? This cannot be undone.')) return;
+  
+  workoutSchedule = [];
+  saveScheduleLocal();
+  displayWeeklySchedule();
+  loadChecklist();
+  updateProgress();
+  
+  await callAPI('clearSchedule', { schoolId: window.currentUser.schoolId });
+  
+  showToast('Schedule cleared', false);
+}
+
+function saveScheduleLocal() {
+  localStorage.setItem('hydrofit_schedule_' + window.currentUser?.schoolId, JSON.stringify(workoutSchedule));
 }
 
 function toggleReminders() {
@@ -320,31 +421,15 @@ function sendNotification(workout) {
   }
 }
 
-function loadSchedule() {
-  const stored = localStorage.getItem('hydrofit_schedule_' + window.currentUser?.schoolId);
-  if (stored) {
-    workoutSchedule = JSON.parse(stored);
-    displayWeeklySchedule();
-  } else {
-    displayWeeklySchedule();
-  }
-}
-
-function saveSchedule() {
-  localStorage.setItem('hydrofit_schedule_' + window.currentUser?.schoolId, JSON.stringify(workoutSchedule));
-}
-
 function loadChecklist() {
   const stored = localStorage.getItem('hydrofit_checklist_' + window.currentUser?.schoolId);
   if (stored) {
     dailyChecklist = JSON.parse(stored);
   }
   
-  // Get today's workouts
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
   const todayWorkouts = workoutSchedule.filter(w => w.day === today);
   
-  // Merge with saved checklist
   todayWorkouts.forEach(workout => {
     const existing = dailyChecklist.find(c => c.workoutId === workout.id && c.date === new Date().toDateString());
     if (!existing) {
@@ -352,20 +437,19 @@ function loadChecklist() {
         id: Date.now() + Math.random(),
         workoutId: workout.id,
         date: new Date().toDateString(),
-        completed: false,
+        completed: workout.completed || false,
         type: workout.type,
         duration: workout.duration
       });
     }
   });
   
-  // Filter to today only
   dailyChecklist = dailyChecklist.filter(c => c.date === new Date().toDateString());
-  saveChecklist();
+  saveChecklistLocal();
   displayChecklist();
 }
 
-function saveChecklist() {
+function saveChecklistLocal() {
   localStorage.setItem('hydrofit_checklist_' + window.currentUser?.schoolId, JSON.stringify(dailyChecklist));
 }
 
@@ -389,10 +473,10 @@ function displayChecklist() {
   
   todayWorkouts.forEach(workout => {
     const checklistItem = dailyChecklist.find(c => c.workoutId === workout.id);
-    const completed = checklistItem?.completed || false;
+    const completed = checklistItem?.completed || workout.completed || false;
     
     html += `
-      <div class="checklist-item ${completed ? 'checked' : ''}" onclick="toggleChecklistItem(${workout.id})">
+      <div class="checklist-item ${completed ? 'checked' : ''}" onclick="toggleChecklistItem('${workout.id}')">
         <div class="checkbox ${completed ? 'checked' : ''}">
           ${completed ? '<i class="fas fa-check"></i>' : ''}
         </div>
@@ -401,6 +485,7 @@ function displayChecklist() {
           <div class="checklist-details">
             <span><i class="fas fa-clock"></i> ${formatTime(workout.time)}</span>
             <span><i class="fas fa-hourglass-half"></i> ${workout.duration} min</span>
+            <span><i class="fas fa-cloud" style="color:#00b894" title="Synced to Sheets"></i></span>
           </div>
           ${workout.notes ? `<div class="checklist-notes">${workout.notes}</div>` : ''}
         </div>
@@ -410,7 +495,6 @@ function displayChecklist() {
   
   html += '</div>';
   
-  // Add hydration and stretch reminders
   html += `
     <div class="extra-checklist">
       <div class="checklist-item extra" onclick="toggleExtraItem('water')">
@@ -437,19 +521,26 @@ function displayChecklist() {
   container.innerHTML = html;
 }
 
-function toggleChecklistItem(workoutId) {
+async function toggleChecklistItem(workoutId) {
   const item = dailyChecklist.find(c => c.workoutId === workoutId);
   if (item) {
     item.completed = !item.completed;
     
-    // Update workout schedule completed status
     const workout = workoutSchedule.find(w => w.id === workoutId);
     if (workout) {
       workout.completed = item.completed;
-      saveSchedule();
+      saveScheduleLocal();
+      
+      // Update in Sheets
+      await callAPI('updateWorkoutCompletion', {
+        schoolId: window.currentUser.schoolId,
+        workoutId: workoutId,
+        completed: item.completed,
+        completedDate: item.completed ? new Date().toISOString() : ''
+      });
     }
     
-    saveChecklist();
+    saveChecklistLocal();
     displayChecklist();
     displayWeeklySchedule();
     updateProgress();
@@ -482,7 +573,6 @@ function updateProgress() {
   const percent = totalWorkouts > 0 ? Math.round((completedWorkouts / totalWorkouts) * 100) : 0;
   document.getElementById('completionPercent').innerText = percent + '%';
   
-  // Update circle progress
   const circle = document.getElementById('progressCircle');
   if (circle) {
     const circumference = 2 * Math.PI * 15.9155;
@@ -491,7 +581,6 @@ function updateProgress() {
     circle.style.strokeDashoffset = offset;
   }
   
-  // Calculate streak
   calculateStreak();
 }
 
@@ -532,4 +621,4 @@ function calculateStreak() {
   document.getElementById('currentStreak').innerText = streak;
 }
 
-console.log("✅ Daily Workout Scheduler Loaded");
+console.log("✅ Daily Workout Scheduler Loaded with Sheets Sync");
