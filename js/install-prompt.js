@@ -83,7 +83,7 @@ function showCustomInstallPrompt() {
           <span>Offline</span>
         </div>
         <div class="prompt-feature">
-          <i class="fas fa-mobile"></i>
+          <i class="fas fa-mobile-alt"></i>
           <span>Full Screen</span>
         </div>
       </div>
