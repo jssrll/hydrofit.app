@@ -1,44 +1,34 @@
 // ========================================
-// HYDROFIT - SECURITY & PRIVACY (FIXED)
+// HYDROFIT - SECURITY (HIDE SOURCES ONLY)
 // ========================================
 
 (function() {
   'use strict';
   
   // ========================================
-  // CONFIGURATION
+  // HIDE CONSOLE LOGS
   // ========================================
-  const isProduction = true;
+  const originalConsole = {
+    log: console.log,
+    warn: console.warn,
+    error: console.error,
+    info: console.info,
+    debug: console.debug
+  };
+  
+  // Override console methods
+  console.log = function() {};
+  console.warn = function() {};
+  console.info = function() {};
+  console.debug = function() {};
+  
+  // Keep error logging
+  console.error = function(...args) {
+    originalConsole.error.apply(console, args);
+  };
   
   // ========================================
-  // DISABLE CONSOLE LOGS IN PRODUCTION
-  // ========================================
-  if (isProduction) {
-    // Store original console methods
-    const originalConsole = {
-      log: console.log,
-      warn: console.warn,
-      error: console.error,
-      info: console.info,
-      debug: console.debug
-    };
-    
-    // Override console methods silently
-    console.log = function() {};
-    console.warn = function() {};
-    console.info = function() {};
-    console.debug = function() {};
-    
-    // Keep error logging for critical issues only
-    console.error = function(...args) {
-      if (args[0] && typeof args[0] === 'string' && args[0].includes('CRITICAL')) {
-        originalConsole.error.apply(console, args);
-      }
-    };
-  }
-  
-  // ========================================
-  // PROTECT SENSITIVE DATA IN LOCALSTORAGE
+  // PROTECT LOCALSTORAGE DATA
   // ========================================
   const originalSetItem = localStorage.setItem;
   const originalGetItem = localStorage.getItem;
@@ -68,9 +58,8 @@
     }
   }
   
-  // Override localStorage to encrypt sensitive data
   localStorage.setItem = function(key, value) {
-    if (key.includes('user') || key.includes('hydrofit') || key.includes('token')) {
+    if (key.includes('user') || key.includes('hydrofit')) {
       value = simpleEncrypt(value);
     }
     originalSetItem.call(localStorage, key, value);
@@ -78,7 +67,7 @@
   
   localStorage.getItem = function(key) {
     let value = originalGetItem.call(localStorage, key);
-    if (value && (key.includes('user') || key.includes('hydrofit') || key.includes('token'))) {
+    if (value && (key.includes('user') || key.includes('hydrofit'))) {
       try {
         value = simpleDecrypt(value);
       } catch(e) {}
@@ -87,12 +76,10 @@
   };
   
   // ========================================
-  // CLEAR CONSOLE ON PAGE LOAD
+  // CLEAR CONSOLE
   // ========================================
-  if (isProduction) {
-    setTimeout(() => {
-      console.clear();
-    }, 200);
-  }
+  setInterval(() => {
+    console.clear();
+  }, 500);
   
 })();
