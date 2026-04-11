@@ -192,3 +192,110 @@
     height: 60px;
   }
 }
+
+/* Install Guide Box */
+.install-guide-box {
+  margin-top: 24px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 16px;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.install-guide-box h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: var(--darker);
+}
+
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.guide-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.guide-step span:last-child {
+  color: #1a1a1a;
+}
+
+.alternative-hint {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e7ff;
+}
+
+.alternative-hint i {
+  margin-right: 6px;
+  color: var(--primary);
+}
+
+/* PWA Benefits */
+.pwa-benefits {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.pwa-benefit {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 14px;
+}
+
+.pwa-benefit i {
+  font-size: 1.5rem;
+  color: var(--primary);
+  width: 32px;
+  text-align: center;
+}
+
+.pwa-benefit h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: var(--darker);
+}
+
+.pwa-benefit p {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .pwa-benefits {
+    grid-template-columns: 1fr;
+  }
+  
+  .guide-step {
+    font-size: 0.9rem;
+  }
+}
