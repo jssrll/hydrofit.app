@@ -2,32 +2,17 @@
 // HYDROFIT - TELEGRAM COMMUNITY CHAT
 // ========================================
 
-// Telegram Group Settings - UPDATE THIS WITH YOUR GROUP
+// Telegram Group Settings
 const TELEGRAM_CONFIG = {
-  // Option 1: Public group username (e.g., @HydroFitCommunity)
-  groupUsername: 'HydroFit Community',
-  
-  // Option 2: Private group invite hash (from t.me/+XXXXX)
-  inviteHash: 't.me/HydroFit_App',
-  
-  // Your Telegram channel/group name
+  groupUsername: 'HydroFit_App',
   groupName: 'HydroFit Community',
-  
-  // Member count (approximate)
-  memberCount: 0,
-  
-  // QR Code for mobile join
-  qrCodeUrl: ''
+  groupLink: 'https://t.me/HydroFit_App'
 };
 
 function renderTelegramCommunity() {
   const container = document.getElementById("tabContent");
   
   container.innerHTML = `
-    <div class="page-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Community Chat" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
-    </div>
-
     <!-- Community Header -->
     <div class="card community-header">
       <div class="community-logo">
@@ -43,7 +28,7 @@ function renderTelegramCommunity() {
       <p>Click the button below to open Telegram and join the conversation. Get real-time updates, ask questions, and connect with classmates!</p>
       
       <div class="join-actions">
-        <a href="https://t.me/${TELEGRAM_CONFIG.groupUsername}" target="_blank" class="telegram-join-btn" id="telegramLink">
+        <a href="${TELEGRAM_CONFIG.groupLink}" target="_blank" class="telegram-join-btn" id="telegramLink">
           <i class="fab fa-telegram"></i> Join on Telegram
         </a>
         
@@ -57,38 +42,6 @@ function renderTelegramCommunity() {
           <button class="alt-btn" onclick="shareTelegramLink()">
             <i class="fas fa-share-alt"></i> Share
           </button>
-        </div>
-      </div>
-      
-      <div class="telegram-preview">
-        <div class="preview-header">
-          <i class="fab fa-telegram"></i>
-          <span>Telegram Preview</span>
-        </div>
-        <div class="preview-content">
-          <div class="preview-group">
-            <div class="group-avatar">
-              <i class="fas fa-users"></i>
-            </div>
-            <div class="group-info">
-              <h4>${TELEGRAM_CONFIG.groupName}</h4>
-              <p>${TELEGRAM_CONFIG.memberCount} members • PathFit Community</p>
-            </div>
-          </div>
-          <div class="preview-messages">
-            <div class="preview-message">
-              <span class="sender">Maria S.</span>
-              <span class="message">Just finished my morning workout! 💪 Who's next?</span>
-            </div>
-            <div class="preview-message">
-              <span class="sender">Juan D.</span>
-              <span class="message">Great job! I'm heading to the gym now 🏋️</span>
-            </div>
-            <div class="preview-message">
-              <span class="sender">Pedro R.</span>
-              <span class="message">Don't forget to log your exercises on HydroFit! 📊</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -153,34 +106,6 @@ function renderTelegramCommunity() {
       </div>
     </div>
 
-    <!-- How to Join Steps -->
-    <div class="card steps-card">
-      <h3><i class="fas fa-list-ol"></i> How to Join (3 Simple Steps)</h3>
-      <div class="join-steps">
-        <div class="join-step">
-          <div class="step-circle">1</div>
-          <div class="step-info">
-            <h4>Click "Join on Telegram"</h4>
-            <p>Tap the blue button above to open Telegram</p>
-          </div>
-        </div>
-        <div class="join-step">
-          <div class="step-circle">2</div>
-          <div class="step-info">
-            <h4>Tap "Join Group"</h4>
-            <p>When Telegram opens, tap the Join button</p>
-          </div>
-        </div>
-        <div class="join-step">
-          <div class="step-circle">3</div>
-          <div class="step-info">
-            <h4>Start Chatting!</h4>
-            <p>Introduce yourself and join the conversation</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Don't have Telegram? -->
     <div class="card download-card">
       <h3><i class="fas fa-download"></i> Don't have Telegram?</h3>
@@ -211,11 +136,11 @@ function renderTelegramCommunity() {
         <div class="modal-body">
           <div style="text-align:center;padding:20px">
             <div id="qrCodeContainer" style="background:white;padding:20px;border-radius:16px;display:inline-block">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://t.me/${TELEGRAM_CONFIG.groupUsername}" alt="QR Code" style="width:200px;height:200px">
+              <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Screenshot%202026-04-11%20124936.png" alt="QR Code" style="width:200px;height:200px;object-fit:contain">
             </div>
             <p style="margin-top:16px;color:#64748b">Scan with your phone camera to join</p>
             <p style="font-size:0.9rem;color:#1a1a1a;margin-top:8px">
-              <strong>t.me/${TELEGRAM_CONFIG.groupUsername}</strong>
+              <strong>${TELEGRAM_CONFIG.groupLink}</strong>
             </p>
           </div>
           <button class="modal-btn" onclick="closeQRModal()">Close</button>
@@ -226,7 +151,7 @@ function renderTelegramCommunity() {
 }
 
 function copyTelegramLink() {
-  const link = `https://t.me/${TELEGRAM_CONFIG.groupUsername}`;
+  const link = TELEGRAM_CONFIG.groupLink;
   
   navigator.clipboard.writeText(link).then(() => {
     showToast('Telegram link copied! Share with friends 📋', false);
@@ -244,8 +169,8 @@ function closeQRModal() {
 }
 
 function shareTelegramLink() {
-  const link = `https://t.me/${TELEGRAM_CONFIG.groupUsername}`;
-  const text = `Join our HydroFit PathFit Community on Telegram! 💪`;
+  const link = TELEGRAM_CONFIG.groupLink;
+  const text = `Join our HydroFit Community on Telegram! 💪`;
   
   if (navigator.share) {
     navigator.share({
@@ -254,6 +179,8 @@ function shareTelegramLink() {
       url: link
     }).catch(() => {});
   } else {
+    // Fallback - open share dialog
+    const shareText = encodeURIComponent(`${text} ${link}`);
     window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
   }
 }
