@@ -35,6 +35,7 @@ function switchTab(tab) {
     'download': () => { updatePageTitle('Download HydroFit'); renderDownload(); window.isLoading = false; },
     'warmup': () => { updatePageTitle('Warm-up & Cooldown'); renderWarmup(); window.isLoading = false; },
     'scheduler': () => { updatePageTitle('Workout Scheduler'); renderScheduler(); window.isLoading = false; },
+    'telegram': () => { updatePageTitle('Community Chat'); renderTelegramCommunity(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
   
