@@ -106,9 +106,12 @@
       <button class="nav-btn" data-tab="ranking">
         <i class="fas fa-trophy"></i> Ranking
       </button>
-    <button class="logout-btn" id="logoutBtn">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
+      <button class="nav-btn" data-tab="download">
+        <i class="fas fa-download"></i> Download
+      </button>
+      <button class="logout-btn" id="logoutBtn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
   </aside>
 
   <!-- ======================================== -->
@@ -190,6 +193,16 @@
 <div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
 
 <!-- ======================================== -->
+<!-- SECURITY - MUST BE LOADED FIRST          -->
+<!-- ======================================== -->
+<script src="js/security.js"></script>
+
+<!-- ======================================== -->
+<!-- ENVIRONMENT CONFIGURATION                 -->
+<!-- ======================================== -->
+<script src="js/env.js"></script>
+
+<!-- ======================================== -->
 <!-- JAVASCRIPT MODULES                        -->
 <!-- ======================================== -->
 <script src="js/config.js"></script>
@@ -208,8 +221,13 @@
 <script src="js/recovery.js"></script>
 <script src="js/bodytype.js"></script>
 <script src="js/bodyparts.js"></script>
-<script src="js/install-prompt.js"></script>
+<script src="js/download.js"></script>
 <script src="js/app.js"></script>
+
+<!-- ======================================== -->
+<!-- CUSTOM INSTALL PROMPT                     -->
+<!-- ======================================== -->
+<script src="js/install-prompt.js"></script>
 
 <!-- ======================================== -->
 <!-- PWA SERVICE WORKER - ENABLES INSTALL      -->
@@ -220,37 +238,27 @@
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js')
         .then(registration => {
-          console.log('✅ ServiceWorker registered with scope:', registration.scope);
-          
-          // Check for updates
+          // Silent registration - no console log in production
           registration.addEventListener('updatefound', () => {
-            console.log('🔄 Service Worker update found!');
+            // Service Worker update found
           });
         })
         .catch(error => {
-          console.log('❌ ServiceWorker registration failed:', error);
+          // Silent fail
         });
     });
   }
   
-  // Check if app is already installed
-  if (window.matchMedia('(display-mode: standalone)').matches || 
-      window.navigator.standalone === true) {
-    console.log('📱 HydroFit is running as installed PWA');
-  }
-  
-  // Capture install prompt
+  // Capture install prompt for custom UI
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     window.deferredPrompt = deferredPrompt;
-    console.log('📲 Install prompt captured! Ready to install.');
   });
   
-  // Track when app is successfully installed
+  // Track successful installation
   window.addEventListener('appinstalled', () => {
-    console.log('✅ HydroFit was successfully installed!');
     deferredPrompt = null;
     window.deferredPrompt = null;
   });

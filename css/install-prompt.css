@@ -29,6 +29,17 @@
   }
 }
 
+@keyframes fadeOutPrompt {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(100px);
+  }
+}
+
 .prompt-header {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   padding: 20px 24px;
@@ -112,16 +123,30 @@
 }
 
 .prompt-feature i {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   color: var(--primary);
   margin-bottom: 8px;
   display: block;
+}
+
+.prompt-feature i.fa-download {
+  color: var(--primary);
+}
+
+.prompt-feature i.fa-wifi-slash {
+  color: var(--primary-dark);
+}
+
+.prompt-feature i.fa-mobile-screen {
+  color: var(--primary);
 }
 
 .prompt-feature span {
   font-size: 0.75rem;
   font-weight: 600;
   color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .prompt-description {
@@ -182,45 +207,6 @@
   color: #1a1a1a;
 }
 
-/* Mobile Responsive */
-@media (max-width: 480px) {
-  .custom-install-prompt {
-    bottom: 10px;
-    width: 95%;
-  }
-  
-  .prompt-header {
-    padding: 16px 20px;
-  }
-  
-  .prompt-icon {
-    width: 48px;
-    height: 48px;
-  }
-  
-  .prompt-title h3 {
-    font-size: 1.1rem;
-  }
-  
-  .prompt-body {
-    padding: 20px 16px;
-  }
-  
-  .prompt-features {
-    gap: 10px;
-  }
-  
-  .prompt-buttons {
-    flex-direction: column;
-  }
-  
-  .prompt-install-btn,
-  .prompt-later-btn {
-    flex: 1;
-    padding: 14px;
-  }
-}
-
 /* Dark overlay when prompt is shown */
 .prompt-overlay {
   position: fixed;
@@ -237,4 +223,57 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .custom-install-prompt {
+    bottom: 10px;
+    width: 95%;
+  }
+  
+  .prompt-header {
+    padding: 16px 20px;
+  }
+  
+  .prompt-icon {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .prompt-icon img {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .prompt-title h3 {
+    font-size: 1.1rem;
+  }
+  
+  .prompt-body {
+    padding: 20px 16px;
+  }
+  
+  .prompt-features {
+    gap: 10px;
+  }
+  
+  .prompt-feature i {
+    font-size: 1.5rem;
+  }
+  
+  .prompt-buttons {
+    flex-direction: column;
+  }
+  
+  .prompt-install-btn,
+  .prompt-later-btn {
+    flex: 1;
+    padding: 14px;
+  }
 }
