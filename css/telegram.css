@@ -33,296 +33,268 @@
 
 .community-header p {
   color: rgba(255,255,255,0.9);
-  margin-bottom: 24px;
 }
 
-.community-stats {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-}
-
-.stat {
+/* Join Community Card */
+.join-community-card {
   text-align: center;
 }
 
-.stat i {
-  font-size: 1.5rem;
-  margin-bottom: 8px;
-  opacity: 0.9;
-}
-
-.stat span {
-  display: block;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: white;
-}
-
-.stat label {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Join Card */
-.join-card {
-  text-align: center;
-}
-
-.join-icon {
-  width: 70px;
-  height: 70px;
-  background: linear-gradient(135deg, #0088cc, #00b4d8);
-  border-radius: 20px;
+.join-community-card h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
-}
-
-.join-icon i {
-  font-size: 2.5rem;
-  color: white;
-}
-
-.join-card h3 {
-  font-size: 1.4rem;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 16px;
   color: var(--darker);
 }
 
-.join-card p {
+.join-community-card p {
   color: #64748b;
   margin-bottom: 24px;
 }
 
-.join-buttons {
-  display: flex;
-  gap: 12px;
+.join-actions {
+  margin-bottom: 24px;
+}
+
+.telegram-join-btn {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #0088cc, #00b4d8);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 18px rgba(0, 136, 204, 0.3);
   margin-bottom: 16px;
 }
 
-.join-btn {
-  flex: 1;
-  padding: 16px;
-  border: none;
-  border-radius: 16px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-.join-btn.primary {
-  background: linear-gradient(135deg, #0088cc, #00b4d8);
-  color: white;
-  box-shadow: 0 6px 18px rgba(0, 136, 204, 0.3);
-}
-
-.join-btn.primary:hover {
+.telegram-join-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 25px rgba(0, 136, 204, 0.4);
 }
 
-.join-btn.secondary {
+.alternative-options {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.alt-btn {
+  flex: 1;
+  padding: 12px;
   background: white;
-  color: #0088cc;
-  border: 2px solid #0088cc;
-}
-
-.join-btn.secondary:hover {
-  background: #f0f9ff;
-}
-
-.join-hint {
-  color: #94a3b8;
-  font-size: 0.85rem;
-}
-
-.join-hint i {
-  margin-right: 6px;
-}
-
-/* Discussion Card */
-.discussion-card {
-  padding-bottom: 16px;
-}
-
-.discussion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.live-badge {
-  background: #d63031;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
   font-weight: 600;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
-.live-badge i {
-  font-size: 0.5rem;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.telegram-widget-container {
-  min-height: 400px;
-  background: #f8fafc;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.loading-widget {
-  text-align: center;
-  padding: 60px 20px;
-  color: #64748b;
-}
-
-.loading-widget i {
-  font-size: 2rem;
-  margin-bottom: 16px;
+.alt-btn:hover {
+  background: #f0f9ff;
+  border-color: #0088cc;
   color: #0088cc;
 }
 
-.widget-placeholder,
-.widget-fallback {
-  text-align: center;
-  padding: 40px 20px;
+/* Telegram Preview */
+.telegram-preview {
+  background: #f0f9ff;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e0e7ff;
 }
 
-.widget-placeholder code {
-  font-family: monospace;
-}
-
-/* Guidelines */
-.guidelines-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.guideline {
+.preview-header {
+  background: #0088cc;
+  color: white;
+  padding: 10px 16px;
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.preview-content {
   padding: 16px;
+}
+
+.preview-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.group-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #0088cc, #00b4d8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.group-info h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: #1a1a1a;
+}
+
+.group-info p {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.preview-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-message {
+  background: white;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.preview-message .sender {
+  font-weight: 600;
+  color: #0088cc;
+  margin-right: 8px;
+  font-size: 0.85rem;
+}
+
+.preview-message .message {
+  color: #1a1a1a;
+  font-size: 0.85rem;
+}
+
+/* Benefits Grid */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.benefit {
+  text-align: center;
+  padding: 20px 12px;
   background: #f8fafc;
   border-radius: 16px;
 }
 
-.guideline i {
-  font-size: 1.5rem;
-  width: 40px;
-  text-align: center;
+.benefit i {
+  font-size: 2rem;
+  color: #0088cc;
+  margin-bottom: 12px;
 }
 
-.guideline h4 {
+.benefit h4 {
   font-size: 1rem;
   margin-bottom: 6px;
   color: var(--darker);
 }
 
-.guideline p {
+.benefit p {
   font-size: 0.85rem;
   color: #64748b;
-  line-height: 1.5;
 }
 
-/* Share Ideas */
-.share-ideas {
+/* Guidelines Compact */
+.guidelines-compact {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
-.idea {
+.guideline-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 14px;
   background: #f8fafc;
-  border-radius: 14px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
 }
 
-.idea:hover {
-  background: #f0f9ff;
-  transform: translateY(-2px);
-}
-
-.idea i {
-  color: var(--primary);
+.guideline-item i {
   font-size: 1.2rem;
   width: 24px;
 }
 
-.idea span {
+.guideline-item span {
   font-size: 0.9rem;
   color: #1a1a1a;
 }
 
-/* Help Modal */
-.help-steps {
-  margin-bottom: 24px;
+/* Join Steps */
+.join-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
 }
 
-.help-steps .step {
+.join-step {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #e0e7ff;
+  gap: 20px;
 }
 
-.help-steps .step:last-child {
-  border-bottom: none;
-}
-
-.step-num {
-  width: 32px;
-  height: 32px;
+.step-circle {
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, #0088cc, #00b4d8);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.3rem;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
-.help-steps .step p {
-  color: #1a1a1a;
+.step-info h4 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+  color: var(--darker);
 }
 
-.download-links {
-  display: flex;
+.step-info p {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Download Buttons */
+.download-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
-.store-btn {
-  flex: 1;
-  padding: 12px;
+.download-btn {
+  padding: 14px;
   background: #f0f9ff;
-  border-radius: 12px;
+  border-radius: 14px;
   text-align: center;
   text-decoration: none;
   color: #0088cc;
@@ -334,44 +306,45 @@
   transition: all 0.2s ease;
 }
 
-.store-btn:hover {
+.download-btn:hover {
   background: #0088cc;
   color: white;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .community-stats {
-    gap: 30px;
-  }
-  
-  .join-buttons {
-    flex-direction: column;
-  }
-  
-  .guidelines-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .share-ideas {
+  .benefits-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .download-links {
-    flex-direction: column;
+  .guidelines-compact {
+    grid-template-columns: 1fr;
+  }
+  
+  .download-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .alternative-options {
+    flex-wrap: wrap;
+  }
+  
+  .community-header h2 {
+    font-size: 1.4rem;
   }
 }
 
 @media (max-width: 480px) {
-  .community-header h2 {
-    font-size: 1.4rem;
-  }
-  
-  .share-ideas {
+  .benefits-grid {
     grid-template-columns: 1fr;
   }
   
-  .stat span {
-    font-size: 1.4rem;
+  .join-step {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .step-circle {
+    margin-bottom: 8px;
   }
 }

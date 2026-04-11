@@ -2,18 +2,22 @@
 // HYDROFIT - TELEGRAM COMMUNITY CHAT
 // ========================================
 
-// Telegram Group Settings
+// Telegram Group Settings - UPDATE THIS WITH YOUR GROUP
 const TELEGRAM_CONFIG = {
-  // Replace with your actual Telegram group/channel username
-  groupUsername: 'HydroFit_App', // Your group @username (without @)
-  // OR use invite link hash
-  inviteHash: 't.me/HydroFit_App', // From t.me/+XXXXX or t.me/joinchat/XXXXX
+  // Option 1: Public group username (e.g., @HydroFitCommunity)
+  groupUsername: 'HydroFit Community',
   
-  // Discussion widget settings
-  commentsLimit: 10,
-  height: 500,
-  colorScheme: 'light', // 'light' or 'dark'
-  showHeader: true
+  // Option 2: Private group invite hash (from t.me/+XXXXX)
+  inviteHash: 't.me/HydroFit_App',
+  
+  // Your Telegram channel/group name
+  groupName: 'HydroFit Community',
+  
+  // Member count (approximate)
+  memberCount: 0,
+  
+  // QR Code for mobile join
+  qrCodeUrl: ''
 };
 
 function renderTelegramCommunity() {
@@ -29,258 +33,229 @@ function renderTelegramCommunity() {
       <div class="community-logo">
         <i class="fab fa-telegram"></i>
       </div>
-      <h2>PathFit Community</h2>
-      <p>Join our Telegram group to connect with fellow students!</p>
-      
-      <div class="community-stats">
-        <div class="stat">
-          <i class="fas fa-users"></i>
-          <span id="memberCount">---</span>
-          <label>Members</label>
-        </div>
-        <div class="stat">
-          <i class="fas fa-comment-dots"></i>
-          <span id="onlineCount">---</span>
-          <label>Online</label>
-        </div>
-      </div>
+      <h2>${TELEGRAM_CONFIG.groupName}</h2>
+      <p>Connect with fellow students, share progress, and stay motivated!</p>
     </div>
 
-    <!-- Join Group Card -->
-    <div class="card join-card">
-      <div class="join-icon">
-        <i class="fab fa-telegram-plane"></i>
-      </div>
-      <h3>Join the Conversation</h3>
-      <p>Click the button below to join our Telegram group. Share your progress, ask questions, and motivate each other!</p>
+    <!-- Join Community Card -->
+    <div class="card join-community-card">
+      <h3><i class="fab fa-telegram"></i> Join Our Telegram Community</h3>
+      <p>Click the button below to open Telegram and join the conversation. Get real-time updates, ask questions, and connect with classmates!</p>
       
-      <div class="join-buttons">
-        <a href="https://t.me/${TELEGRAM_CONFIG.groupUsername}" target="_blank" class="join-btn primary" id="telegramGroupLink">
-          <i class="fab fa-telegram"></i> Join Telegram Group
+      <div class="join-actions">
+        <a href="https://t.me/${TELEGRAM_CONFIG.groupUsername}" target="_blank" class="telegram-join-btn" id="telegramLink">
+          <i class="fab fa-telegram"></i> Join on Telegram
         </a>
-        <button class="join-btn secondary" onclick="copyInviteLink()">
-          <i class="fas fa-link"></i> Copy Invite Link
-        </button>
+        
+        <div class="alternative-options">
+          <button class="alt-btn" onclick="copyTelegramLink()">
+            <i class="fas fa-copy"></i> Copy Link
+          </button>
+          <button class="alt-btn" onclick="showQRCode()">
+            <i class="fas fa-qrcode"></i> QR Code
+          </button>
+          <button class="alt-btn" onclick="shareTelegramLink()">
+            <i class="fas fa-share-alt"></i> Share
+          </button>
+        </div>
       </div>
       
-      <p class="join-hint">
-        <i class="fas fa-mobile-alt"></i> 
-        Open on mobile for the best experience
-      </p>
+      <div class="telegram-preview">
+        <div class="preview-header">
+          <i class="fab fa-telegram"></i>
+          <span>Telegram Preview</span>
+        </div>
+        <div class="preview-content">
+          <div class="preview-group">
+            <div class="group-avatar">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="group-info">
+              <h4>${TELEGRAM_CONFIG.groupName}</h4>
+              <p>${TELEGRAM_CONFIG.memberCount} members • PathFit Community</p>
+            </div>
+          </div>
+          <div class="preview-messages">
+            <div class="preview-message">
+              <span class="sender">Maria S.</span>
+              <span class="message">Just finished my morning workout! 💪 Who's next?</span>
+            </div>
+            <div class="preview-message">
+              <span class="sender">Juan D.</span>
+              <span class="message">Great job! I'm heading to the gym now 🏋️</span>
+            </div>
+            <div class="preview-message">
+              <span class="sender">Pedro R.</span>
+              <span class="message">Don't forget to log your exercises on HydroFit! 📊</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Live Discussion Widget -->
-    <div class="card discussion-card">
-      <div class="discussion-header">
-        <h3><i class="fas fa-comments"></i> Live Discussion</h3>
-        <span class="live-badge"><i class="fas fa-circle"></i> Live</span>
-      </div>
-      
-      <!-- Telegram Comments Widget -->
-      <div id="telegramComments" class="telegram-widget-container">
-        <div class="loading-widget">
-          <i class="fas fa-spinner fa-spin"></i>
-          <p>Loading discussion...</p>
+    <!-- Why Join Section -->
+    <div class="card benefits-card">
+      <h3><i class="fas fa-star"></i> Why Join Our Telegram Community?</h3>
+      <div class="benefits-grid">
+        <div class="benefit">
+          <i class="fas fa-comments"></i>
+          <h4>Real-time Chat</h4>
+          <p>Instant messaging with classmates and fitness buddies</p>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-bell"></i>
+          <h4>Workout Reminders</h4>
+          <p>Get notified about scheduled workouts and events</p>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-trophy"></i>
+          <h4>Share Achievements</h4>
+          <p>Post your PRs and celebrate with the community</p>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-question-circle"></i>
+          <h4>Ask Questions</h4>
+          <p>Get help from experienced members and coaches</p>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-users"></i>
+          <h4>Find Workout Partners</h4>
+          <p>Connect with others at your fitness level</p>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-calendar"></i>
+          <h4>Group Activities</h4>
+          <p>Join group workouts and fitness challenges</p>
         </div>
       </div>
     </div>
 
     <!-- Community Guidelines -->
     <div class="card guidelines-card">
-      <h3><i class="fas fa-book"></i> Community Guidelines</h3>
-      <div class="guidelines-list">
-        <div class="guideline">
+      <h3><i class="fas fa-shield-alt"></i> Community Guidelines</h3>
+      <div class="guidelines-compact">
+        <div class="guideline-item">
           <i class="fas fa-heart" style="color:#00b894"></i>
-          <div>
-            <h4>Be Supportive</h4>
-            <p>Encourage and motivate fellow students on their fitness journey</p>
+          <span>Be supportive and encouraging</span>
+        </div>
+        <div class="guideline-item">
+          <i class="fas fa-comment-dots" style="color:#00b4d8"></i>
+          <span>Keep conversations fitness-related</span>
+        </div>
+        <div class="guideline-item">
+          <i class="fas fa-user-shield" style="color:#fdcb6e"></i>
+          <span>Respect everyone's privacy</span>
+        </div>
+        <div class="guideline-item">
+          <i class="fas fa-flag" style="color:#e17055"></i>
+          <span>Report inappropriate content</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Join Steps -->
+    <div class="card steps-card">
+      <h3><i class="fas fa-list-ol"></i> How to Join (3 Simple Steps)</h3>
+      <div class="join-steps">
+        <div class="join-step">
+          <div class="step-circle">1</div>
+          <div class="step-info">
+            <h4>Click "Join on Telegram"</h4>
+            <p>Tap the blue button above to open Telegram</p>
           </div>
         </div>
-        <div class="guideline">
-          <i class="fas fa-shield-alt" style="color:#00b4d8"></i>
-          <div>
-            <h4>Stay Safe</h4>
-            <p>Don't share personal information. Report inappropriate content</p>
+        <div class="join-step">
+          <div class="step-circle">2</div>
+          <div class="step-info">
+            <h4>Tap "Join Group"</h4>
+            <p>When Telegram opens, tap the Join button</p>
           </div>
         </div>
-        <div class="guideline">
-          <i class="fas fa-comment-dots" style="color:#fdcb6e"></i>
-          <div>
-            <h4>Keep it Relevant</h4>
-            <p>Discussions should be about fitness, PathFit, and wellness</p>
-          </div>
-        </div>
-        <div class="guideline">
-          <i class="fas fa-clock" style="color:#6c5ce7"></i>
-          <div>
-            <h4>Be Active</h4>
-            <p>Share your daily workouts, progress, and tips with the community</p>
+        <div class="join-step">
+          <div class="step-circle">3</div>
+          <div class="step-info">
+            <h4>Start Chatting!</h4>
+            <p>Introduce yourself and join the conversation</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Quick Tips -->
-    <div class="card tips-card">
-      <h3><i class="fas fa-lightbulb"></i> What to Share</h3>
-      <div class="share-ideas">
-        <div class="idea">
-          <i class="fas fa-fire"></i>
-          <span>Today's workout completion</span>
-        </div>
-        <div class="idea">
-          <i class="fas fa-trophy"></i>
-          <span>Personal records and achievements</span>
-        </div>
-        <div class="idea">
-          <i class="fas fa-question-circle"></i>
-          <span>Questions about exercises</span>
-        </div>
-        <div class="idea">
-          <i class="fas fa-utensils"></i>
-          <span>Healthy meal ideas</span>
-        </div>
-        <div class="idea">
-          <i class="fas fa-calendar-check"></i>
-          <span>Workout schedule updates</span>
-        </div>
-        <div class="idea">
-          <i class="fas fa-hands-helping"></i>
-          <span>Motivation for others</span>
-        </div>
+    <!-- Don't have Telegram? -->
+    <div class="card download-card">
+      <h3><i class="fas fa-download"></i> Don't have Telegram?</h3>
+      <p>Telegram is a free, secure messaging app available on all platforms.</p>
+      <div class="download-buttons">
+        <a href="https://play.google.com/store/apps/details?id=org.telegram.messenger" target="_blank" class="download-btn">
+          <i class="fab fa-google-play"></i> Google Play
+        </a>
+        <a href="https://apps.apple.com/app/telegram-messenger/id686449807" target="_blank" class="download-btn">
+          <i class="fab fa-apple"></i> App Store
+        </a>
+        <a href="https://desktop.telegram.org/" target="_blank" class="download-btn">
+          <i class="fas fa-desktop"></i> Desktop
+        </a>
+        <a href="https://web.telegram.org/" target="_blank" class="download-btn">
+          <i class="fas fa-globe"></i> Web
+        </a>
       </div>
     </div>
 
-    <!-- How to Join Modal -->
-    <div id="helpModal" class="modal" style="display:none">
-      <div class="modal-content">
+    <!-- QR Code Modal -->
+    <div id="qrModal" class="modal" style="display:none">
+      <div class="modal-content" style="max-width:350px">
         <div class="modal-header">
           <i class="fab fa-telegram"></i>
-          <h3>How to Join</h3>
+          <h3>Scan to Join</h3>
         </div>
         <div class="modal-body">
-          <div class="help-steps">
-            <div class="step">
-              <div class="step-num">1</div>
-              <p>Click "Join Telegram Group" button above</p>
+          <div style="text-align:center;padding:20px">
+            <div id="qrCodeContainer" style="background:white;padding:20px;border-radius:16px;display:inline-block">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://t.me/${TELEGRAM_CONFIG.groupUsername}" alt="QR Code" style="width:200px;height:200px">
             </div>
-            <div class="step">
-              <div class="step-num">2</div>
-              <p>If you don't have Telegram, download it first</p>
-            </div>
-            <div class="step">
-              <div class="step-num">3</div>
-              <p>Tap "Join Group" when Telegram opens</p>
-            </div>
-            <div class="step">
-              <div class="step-num">4</div>
-              <p>Introduce yourself and start chatting!</p>
-            </div>
+            <p style="margin-top:16px;color:#64748b">Scan with your phone camera to join</p>
+            <p style="font-size:0.9rem;color:#1a1a1a;margin-top:8px">
+              <strong>t.me/${TELEGRAM_CONFIG.groupUsername}</strong>
+            </p>
           </div>
-          <div class="download-links">
-            <a href="https://play.google.com/store/apps/details?id=org.telegram.messenger" target="_blank" class="store-btn">
-              <i class="fab fa-google-play"></i> Google Play
-            </a>
-            <a href="https://apps.apple.com/app/telegram-messenger/id686449807" target="_blank" class="store-btn">
-              <i class="fab fa-apple"></i> App Store
-            </a>
-          </div>
-          <button class="modal-btn" onclick="closeHelpModal()">Got it</button>
+          <button class="modal-btn" onclick="closeQRModal()">Close</button>
         </div>
       </div>
     </div>
   `;
-  
-  // Load Telegram widget
-  loadTelegramWidget();
-  
-  // Show help modal for first-time users
-  setTimeout(() => {
-    const hasSeenHelp = localStorage.getItem('hydrofit_telegram_help');
-    if (!hasSeenHelp) {
-      openHelpModal();
-      localStorage.setItem('hydrofit_telegram_help', 'true');
-    }
-  }, 1000);
 }
 
-function loadTelegramWidget() {
-  const container = document.getElementById('telegramComments');
+function copyTelegramLink() {
+  const link = `https://t.me/${TELEGRAM_CONFIG.groupUsername}`;
   
-  // Check if Telegram username is set
-  if (TELEGRAM_CONFIG.groupUsername === 'HydroFit_PathFit') {
-    container.innerHTML = `
-      <div class="widget-placeholder">
-        <i class="fab fa-telegram" style="font-size:3rem;color:#0088cc;margin-bottom:16px"></i>
-        <h4>Telegram Widget Ready</h4>
-        <p>Update the TELEGRAM_CONFIG with your actual group @username</p>
-        <code style="background:#f0f0f0;padding:4px 12px;border-radius:20px;margin-top:8px;display:inline-block">
-          const TELEGRAM_CONFIG = { groupUsername: 'YourGroupName' }
-        </code>
-      </div>
-    `;
-    return;
-  }
-  
-  // Create Telegram comments widget
-  const script = document.createElement('script');
-  script.src = 'https://telegram.org/js/telegram-widget.js?22';
-  script.setAttribute('data-telegram-discussion', TELEGRAM_CONFIG.groupUsername);
-  script.setAttribute('data-comments-limit', TELEGRAM_CONFIG.commentsLimit);
-  script.setAttribute('data-color', '00b4d8');
-  script.setAttribute('data-dark', '0');
-  script.async = true;
-  
-  container.innerHTML = '';
-  container.appendChild(script);
-  
-  // Also create a fallback if widget doesn't load
-  setTimeout(() => {
-    if (container.children.length === 0) {
-      container.innerHTML = `
-        <div class="widget-fallback">
-          <i class="fab fa-telegram" style="font-size:3rem;color:#0088cc;margin-bottom:16px"></i>
-          <h4>Join the Conversation</h4>
-          <p>Click below to join our Telegram group and chat with the community!</p>
-          <a href="https://t.me/${TELEGRAM_CONFIG.groupUsername}" target="_blank" class="btn" style="margin-top:16px">
-            <i class="fab fa-telegram"></i> Open Telegram
-          </a>
-        </div>
-      `;
-    }
-  }, 3000);
-}
-
-function copyInviteLink() {
-  const inviteLink = `https://t.me/${TELEGRAM_CONFIG.groupUsername}`;
-  
-  navigator.clipboard.writeText(inviteLink).then(() => {
-    showToast('Invite link copied! Share with classmates 📋', false);
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('Telegram link copied! Share with friends 📋', false);
   }).catch(() => {
-    // Fallback
-    prompt('Copy this link:', inviteLink);
+    prompt('Copy this link:', link);
   });
 }
 
-function openHelpModal() {
-  document.getElementById('helpModal').style.display = 'flex';
+function showQRCode() {
+  document.getElementById('qrModal').style.display = 'flex';
 }
 
-function closeHelpModal() {
-  document.getElementById('helpModal').style.display = 'none';
+function closeQRModal() {
+  document.getElementById('qrModal').style.display = 'none';
 }
 
-// Share workout to Telegram
-function shareToTelegram(workoutData) {
-  const text = encodeURIComponent(
-    `🏋️ Just completed my workout on HydroFit!\n` +
-    `Exercise: ${workoutData.exercise}\n` +
-    `Duration: ${workoutData.duration} min\n` +
-    `Feeling great! 💪\n\n` +
-    `Join me on HydroFit!`
-  );
+function shareTelegramLink() {
+  const link = `https://t.me/${TELEGRAM_CONFIG.groupUsername}`;
+  const text = `Join our HydroFit PathFit Community on Telegram! 💪`;
   
-  window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${text}`, '_blank');
+  if (navigator.share) {
+    navigator.share({
+      title: 'HydroFit Community',
+      text: text,
+      url: link
+    }).catch(() => {});
+  } else {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
+  }
 }
 
 console.log("✅ Telegram Community Loaded");
