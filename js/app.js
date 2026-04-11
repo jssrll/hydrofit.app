@@ -36,6 +36,7 @@ function switchTab(tab) {
     'warmup': () => { updatePageTitle('Warm-up & Cooldown'); renderWarmup(); window.isLoading = false; },
     'scheduler': () => { updatePageTitle('Workout Scheduler'); renderScheduler(); window.isLoading = false; },
     'telegram': () => { updatePageTitle('Community Chat'); renderTelegramCommunity(); window.isLoading = false; },
+    'stretching': () => { updatePageTitle('Stretching Exercises'); renderStretching(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
   
