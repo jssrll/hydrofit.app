@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
   
-  <!-- Web App Manifest -->
+  <!-- Web App Manifest - CRITICAL for Install Button -->
   <link rel="manifest" href="manifest.json">
   
   <!-- Theme Colors -->
@@ -194,16 +194,6 @@
 <div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
 
 <!-- ======================================== -->
-<!-- ENVIRONMENT CONFIGURATION                 -->
-<!-- ======================================== -->
-<script src="js/env.js"></script>
-
-<!-- ======================================== -->
-<!-- SECURITY - Silent protection             -->
-<!-- ======================================== -->
-<script src="js/security.js"></script>
-
-<!-- ======================================== -->
 <!-- JAVASCRIPT MODULES                        -->
 <!-- ======================================== -->
 <script src="js/config.js"></script>
@@ -223,33 +213,49 @@
 <script src="js/bodytype.js"></script>
 <script src="js/bodyparts.js"></script>
 <script src="js/download.js"></script>
+<script src="js/install-prompt.js"></script>
 <script src="js/app.js"></script>
 
 <!-- ======================================== -->
-<!-- CUSTOM INSTALL PROMPT                     -->
-<!-- ======================================== -->
-<script src="js/install-prompt.js"></script>
-
-<!-- ======================================== -->
-<!-- PWA SERVICE WORKER                        -->
+<!-- PWA SERVICE WORKER - ENABLES INSTALL      -->
 <!-- ======================================== -->
 <script>
+  // Register Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js')
-        .then(registration => {})
-        .catch(error => {});
+        .then(registration => {
+          console.log('✅ ServiceWorker registered with scope:', registration.scope);
+          
+          // Check for updates
+          registration.addEventListener('updatefound', () => {
+            console.log('🔄 Service Worker update found!');
+          });
+        })
+        .catch(error => {
+          console.log('❌ ServiceWorker registration failed:', error);
+        });
     });
   }
   
+  // Check if app is already installed
+  if (window.matchMedia('(display-mode: standalone)').matches || 
+      window.navigator.standalone === true) {
+    console.log('📱 HydroFit is running as installed PWA');
+  }
+  
+  // Capture install prompt
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     window.deferredPrompt = deferredPrompt;
+    console.log('📲 Install prompt captured! Ready to install.');
   });
   
+  // Track when app is successfully installed
   window.addEventListener('appinstalled', () => {
+    console.log('✅ HydroFit was successfully installed!');
     deferredPrompt = null;
     window.deferredPrompt = null;
   });
