@@ -4,7 +4,9 @@
 
 let calorieRecords = [];
 let dailyGoal = 2000;
-let commonFoods = [
+let selectedDate = new Date().toISOString().split('T')[0];
+
+const commonFoods = [
   { name: 'Rice (1 cup)', calories: 206, protein: 4.3, carbs: 45, fat: 0.4 },
   { name: 'Chicken Breast (100g)', calories: 165, protein: 31, carbs: 0, fat: 3.6 },
   { name: 'Egg (1 large)', calories: 72, protein: 6.3, carbs: 0.4, fat: 5 },
@@ -21,9 +23,6 @@ let commonFoods = [
   { name: 'Pasta (1 cup cooked)', calories: 220, protein: 8, carbs: 43, fat: 1.3 },
   { name: 'Tuna (1 can)', calories: 132, protein: 29, carbs: 0, fat: 1 }
 ];
-
-let recentFoods = [];
-let selectedDate = new Date().toISOString().split('T')[0];
 
 function renderCalorieTracker() {
   const container = document.getElementById("tabContent");
@@ -53,17 +52,17 @@ function renderCalorieTracker() {
           </svg>
           <div class="circle-content">
             <span class="consumed-calories" id="consumedCalories">0</span>
-            <span class="goal-calories">/ <span id="dailyGoal">2000</span></span>
+            <span class="goal-calories">/ <span id="dailyGoal">${dailyGoal}</span></span>
           </div>
         </div>
         <div class="calorie-stats">
           <div class="stat-item">
             <span class="stat-label">Remaining</span>
-            <span class="stat-value" id="remainingCalories">2000</span>
+            <span class="stat-value" id="remainingCalories">${dailyGoal}</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Goal</span>
-            <span class="stat-value" id="goalDisplay">2000</span>
+            <span class="stat-value" id="goalDisplay">${dailyGoal}</span>
           </div>
         </div>
       </div>
@@ -73,7 +72,7 @@ function renderCalorieTracker() {
       </button>
     </div>
 
-    <!-- Quick Add Food -->
+    <!-- Add Food -->
     <div class="card">
       <h3><i class="fas fa-plus-circle"></i> Add Food</h3>
       
@@ -83,10 +82,7 @@ function renderCalorieTracker() {
         <div id="searchResults" class="search-results"></div>
       </div>
       
-      <!-- Recent Foods -->
-      <div class="recent-foods" id="recentFoods"></div>
-      
-      <!-- Quick Add Common Foods -->
+      <!-- Common Foods -->
       <div class="common-foods">
         <h4>Common Foods</h4>
         <div class="common-foods-grid" id="commonFoods"></div>
@@ -109,7 +105,6 @@ function renderCalorieTracker() {
         </button>
       </div>
       <div id="foodLog"></div>
-      <div class="food-log-summary" id="foodLogSummary"></div>
     </div>
 
     <!-- Nutrition Summary -->
@@ -140,15 +135,17 @@ function renderCalorieTracker() {
       </div>
     </div>
 
-    <!-- Weekly Progress Chart -->
+    <!-- Daily Progress Chart -->
     <div class="card">
-      <h3><i class="fas fa-chart-line"></i> Weekly Progress</h3>
-      <div id="weeklyChart"></div>
+      <h3><i class="fas fa-chart-line"></i> Daily Progress</h3>
+      <div id="dailyChartContainer" style="position:relative;height:250px;">
+        <canvas id="dailyChart" style="width:100%;height:100%"></canvas>
+      </div>
     </div>
 
-    <!-- History -->
+    <!-- Daily History -->
     <div class="card">
-      <h3><i class="fas fa-history"></i> Recent History</h3>
+      <h3><i class="fas fa-history"></i> Daily History</h3>
       <div id="calorieHistory"></div>
     </div>
 
@@ -161,10 +158,10 @@ function renderCalorieTracker() {
         </div>
         <div class="modal-body">
           <input type="text" id="customFoodName" class="modal-input" placeholder="Food name">
-          <input type="number" id="customCalories" class="modal-input" placeholder="Calories">
-          <input type="number" id="customProtein" class="modal-input" placeholder="Protein (g)" value="0">
-          <input type="number" id="customCarbs" class="modal-input" placeholder="Carbs (g)" value="0">
-          <input type="number" id="customFat" class="modal-input" placeholder="Fat (g)" value="0">
+          <input type="number" id="customCalories" class="modal-input" placeholder="Calories (required)">
+          <input type="number" id="customProtein" class="modal-input" placeholder="Protein (g)">
+          <input type="number" id="customCarbs" class="modal-input" placeholder="Carbs (g)">
+          <input type="number" id="customFat" class="modal-input" placeholder="Fat (g)">
           <button class="modal-btn" onclick="addCustomFood()">Add Food</button>
           <button class="modal-btn btn-outline" onclick="closeCustomFoodModal()">Cancel</button>
         </div>
@@ -188,7 +185,6 @@ function renderCalorieTracker() {
   `;
   
   displayCommonFoods();
-  displayRecentFoods();
   loadCalorieRecords();
   loadGoal();
 }
@@ -210,7 +206,7 @@ function changeDate() {
 function displayCommonFoods() {
   const container = document.getElementById('commonFoods');
   let html = '';
-  commonFoods.slice(0, 6).forEach(food => {
+  commonFoods.slice(0, 8).forEach(food => {
     html += `
       <div class="common-food-item" onclick="quickAddFood('${food.name}', ${food.calories}, ${food.protein}, ${food.carbs}, ${food.fat})">
         <span class="food-name">${food.name}</span>
@@ -218,23 +214,6 @@ function displayCommonFoods() {
       </div>
     `;
   });
-  container.innerHTML = html;
-}
-
-function displayRecentFoods() {
-  const container = document.getElementById('recentFoods');
-  if (recentFoods.length === 0) return;
-  
-  let html = '<h4>Recent Foods</h4><div class="recent-foods-grid">';
-  recentFoods.slice(0, 4).forEach(food => {
-    html += `
-      <div class="recent-food-item" onclick="quickAddFood('${food.name}', ${food.calories}, ${food.protein}, ${food.carbs}, ${food.fat})">
-        <span>${food.name}</span>
-        <span>${food.calories} cal</span>
-      </div>
-    `;
-  });
-  html += '</div>';
   container.innerHTML = html;
 }
 
@@ -270,36 +249,32 @@ function searchFood() {
 async function quickAddFood(name, calories, protein, carbs, fat) {
   await saveFoodEntry(name, calories, protein, carbs, fat);
   
-  // Add to recent foods
-  const foodData = { name, calories, protein, carbs, fat };
-  recentFoods = [foodData, ...recentFoods.filter(f => f.name !== name)].slice(0, 8);
-  localStorage.setItem('hydrofit_recent_foods_' + window.currentUser?.schoolId, JSON.stringify(recentFoods));
-  
   document.getElementById('foodSearch').value = '';
   document.getElementById('searchResults').style.display = 'none';
-  displayRecentFoods();
 }
 
 async function saveFoodEntry(name, calories, protein, carbs, fat) {
   const entry = {
     id: 'CAL' + Date.now(),
     name,
-    calories,
-    protein,
-    carbs,
-    fat,
+    calories: parseFloat(calories),
+    protein: parseFloat(protein) || 0,
+    carbs: parseFloat(carbs) || 0,
+    fat: parseFloat(fat) || 0,
     date: selectedDate,
     time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
   
   try {
-    await callAPI('saveCalorieEntry', {
+    const result = await callAPI('saveCalorieEntry', {
       schoolId: window.currentUser.schoolId,
       entryData: JSON.stringify(entry)
     });
     
-    showToast(`${name} added!`, false);
-    loadCalorieRecords();
+    if (result.success) {
+      showToast(`${name} added!`, false);
+      loadCalorieRecords();
+    }
   } catch (error) {
     console.error('Error saving food:', error);
     showToast('Failed to save food', true);
@@ -320,8 +295,8 @@ async function loadCalorieRecords() {
     }
     
     updateDisplay();
-    loadWeeklyData();
-    loadHistory();
+    loadDailyHistory();
+    drawDailyChart();
   } catch (error) {
     console.error('Error loading records:', error);
     calorieRecords = [];
@@ -353,13 +328,19 @@ function updateDisplay() {
   }
   
   // Update nutrition bars
-  document.getElementById('proteinBar').style.width = Math.min(100, (totalProtein / 150) * 100) + '%';
-  document.getElementById('carbsBar').style.width = Math.min(100, (totalCarbs / 300) * 100) + '%';
-  document.getElementById('fatBar').style.width = Math.min(100, (totalFat / 65) * 100) + '%';
+  const proteinPercent = Math.min(100, (totalProtein / 150) * 100);
+  const carbsPercent = Math.min(100, (totalCarbs / 300) * 100);
+  const fatPercent = Math.min(100, (totalFat / 65) * 100);
+  
+  document.getElementById('proteinBar').style.width = proteinPercent + '%';
+  document.getElementById('carbsBar').style.width = carbsPercent + '%';
+  document.getElementById('fatBar').style.width = fatPercent + '%';
   
   // Alert if limit reached
   if (totalCalories >= dailyGoal) {
     document.getElementById('remainingCalories').style.color = '#d63031';
+  } else {
+    document.getElementById('remainingCalories').style.color = '#00b894';
   }
   
   displayFoodLog();
@@ -388,6 +369,11 @@ function displayFoodLog() {
         <div class="food-log-info">
           <span class="food-log-name">${entry.name}</span>
           <span class="food-log-time">${entry.time}</span>
+          <div class="food-log-macros">
+            <span>P: ${Math.round(entry.protein || 0)}g</span>
+            <span>C: ${Math.round(entry.carbs || 0)}g</span>
+            <span>F: ${Math.round(entry.fat || 0)}g</span>
+          </div>
         </div>
         <div class="food-log-calories">${entry.calories} cal</div>
         <button class="delete-food" onclick="deleteFoodEntry('${entry.id}')">
@@ -409,6 +395,11 @@ async function deleteFoodEntry(id) {
 }
 
 function openCustomFoodModal() {
+  document.getElementById('customFoodName').value = '';
+  document.getElementById('customCalories').value = '';
+  document.getElementById('customProtein').value = '';
+  document.getElementById('customCarbs').value = '';
+  document.getElementById('customFat').value = '';
   document.getElementById('customFoodModal').style.display = 'flex';
 }
 
@@ -430,12 +421,6 @@ async function addCustomFood() {
   
   await saveFoodEntry(name, calories, protein, carbs, fat);
   closeCustomFoodModal();
-  
-  document.getElementById('customFoodName').value = '';
-  document.getElementById('customCalories').value = '';
-  document.getElementById('customProtein').value = '0';
-  document.getElementById('customCarbs').value = '0';
-  document.getElementById('customFat').value = '0';
 }
 
 function openGoalModal() {
@@ -467,55 +452,9 @@ function loadGoal() {
     document.getElementById('dailyGoal').innerText = dailyGoal;
     document.getElementById('goalDisplay').innerText = dailyGoal;
   }
-  
-  const storedRecent = localStorage.getItem('hydrofit_recent_foods_' + window.currentUser?.schoolId);
-  if (storedRecent) {
-    recentFoods = JSON.parse(storedRecent);
-  }
 }
 
-async function loadWeeklyData() {
-  try {
-    const result = await callAPI('getWeeklyCalories', { 
-      schoolId: window.currentUser.schoolId 
-    });
-    
-    if (result.success && result.weeklyData) {
-      displayWeeklyChart(result.weeklyData);
-    }
-  } catch (error) {
-    console.error('Error loading weekly data:', error);
-  }
-}
-
-function displayWeeklyChart(data) {
-  const container = document.getElementById('weeklyChart');
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const maxCalories = Math.max(...data.map(d => d.calories), dailyGoal);
-  
-  let html = '<div class="weekly-bars">';
-  data.forEach((day, i) => {
-    const height = (day.calories / maxCalories) * 150;
-    const isOver = day.calories > dailyGoal;
-    
-    html += `
-      <div class="weekly-bar-item">
-        <div class="bar-container">
-          <div class="bar ${isOver ? 'over' : ''}" style="height:${Math.max(10, height)}px">
-            <span class="bar-value">${day.calories}</span>
-          </div>
-        </div>
-        <span class="bar-label">${days[i]}</span>
-      </div>
-    `;
-  });
-  html += '</div>';
-  
-  html += '<div class="weekly-goal-line" style="bottom:' + (dailyGoal / maxCalories * 150) + 'px">Goal</div>';
-  container.innerHTML = html;
-}
-
-async function loadHistory() {
+async function loadDailyHistory() {
   try {
     const result = await callAPI('getCalorieHistory', { 
       schoolId: window.currentUser.schoolId 
@@ -538,11 +477,15 @@ function displayHistory(history) {
   }
   
   let html = '<div class="history-list">';
-  history.slice(0, 5).forEach(day => {
+  history.slice(0, 7).forEach(day => {
+    const isOver = day.calories > dailyGoal;
     html += `
       <div class="history-item" onclick="viewHistoryDate('${day.date}')">
-        <span>${formatDisplayDate(day.date)}</span>
-        <span style="font-weight:600">${day.calories} / ${dailyGoal} cal</span>
+        <div>
+          <span class="history-date">${formatDisplayDate(day.date)}</span>
+          <span class="history-calories ${isOver ? 'over' : ''}">${day.calories} cal</span>
+        </div>
+        <span class="history-goal">/ ${dailyGoal} cal</span>
       </div>
     `;
   });
@@ -554,6 +497,100 @@ function viewHistoryDate(date) {
   selectedDate = date;
   document.getElementById('selectedDateDisplay').innerText = formatDisplayDate(selectedDate);
   loadCalorieRecords();
+}
+
+function drawDailyChart() {
+  const canvas = document.getElementById('dailyChart');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  const container = canvas.parentElement;
+  const containerWidth = container.clientWidth;
+  
+  canvas.width = containerWidth * 2;
+  canvas.height = 250 * 2;
+  canvas.style.width = containerWidth + 'px';
+  canvas.style.height = '250px';
+  
+  ctx.scale(2, 2);
+  
+  const width = containerWidth;
+  const height = 250;
+  
+  ctx.clearRect(0, 0, width, height);
+  
+  // Get last 7 days of data
+  const chartData = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const dayRecords = calorieRecords.filter(r => r.date === dateStr);
+    const calories = dayRecords.reduce((sum, r) => sum + parseFloat(r.calories), 0);
+    chartData.push({
+      date: dateStr,
+      calories: calories,
+      label: date.toLocaleDateString('en-US', { weekday: 'short' })
+    });
+  }
+  
+  const padding = { top: 30, right: 20, bottom: 40, left: 50 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+  
+  const maxCalories = Math.max(dailyGoal, ...chartData.map(d => d.calories)) + 200;
+  
+  // Draw goal line
+  const goalY = padding.top + chartHeight - (dailyGoal / maxCalories) * chartHeight;
+  ctx.beginPath();
+  ctx.strokeStyle = '#d63031';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 5]);
+  ctx.moveTo(padding.left, goalY);
+  ctx.lineTo(width - padding.right, goalY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Draw goal label
+  ctx.font = '10px Inter, sans-serif';
+  ctx.fillStyle = '#d63031';
+  ctx.textAlign = 'right';
+  ctx.fillText('Goal', padding.left - 5, goalY + 3);
+  
+  // Draw bars
+  const barWidth = (chartWidth / chartData.length) * 0.7;
+  
+  chartData.forEach((d, i) => {
+    const x = padding.left + (i / chartData.length) * chartWidth + (chartWidth / chartData.length - barWidth) / 2;
+    const barHeight = (d.calories / maxCalories) * chartHeight;
+    const y = padding.top + chartHeight - barHeight;
+    
+    // Bar color
+    ctx.fillStyle = d.calories > dailyGoal ? '#e17055' : '#00b894';
+    ctx.fillRect(x, y, barWidth, barHeight);
+    
+    // Bar value
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.fillStyle = '#1a1a1a';
+    ctx.textAlign = 'center';
+    ctx.fillText(d.calories, x + barWidth / 2, y - 5);
+    
+    // Date label
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText(d.label, x + barWidth / 2, height - 20);
+  });
+  
+  // Y-axis labels
+  ctx.font = '10px Inter, sans-serif';
+  ctx.fillStyle = '#94a3b8';
+  ctx.textAlign = 'right';
+  
+  for (let i = 0; i <= 4; i++) {
+    const value = Math.round((i / 4) * maxCalories);
+    const y = padding.top + chartHeight - (i / 4) * chartHeight;
+    ctx.fillText(value, padding.left - 8, y + 3);
+  }
 }
 
 console.log("✅ Calorie Tracker Loaded");
