@@ -6,330 +6,251 @@
   margin-bottom: 8px;
 }
 
-.water-goal-card .goal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.water-progress {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  margin-bottom: 20px;
-}
-
-.progress-circle-water {
-  position: relative;
-  width: 140px;
-  height: 140px;
-}
-
-.water-circle {
-  transform: rotate(-90deg);
-}
-
-.water-circle .circle-bg {
-  fill: none;
-  stroke: #e0e7ff;
-  stroke-width: 8;
-}
-
-.water-circle .circle-fill {
-  fill: none;
-  stroke: #00b4d8;
-  stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.5s ease;
-}
-
-.circle-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* Result Card */
+.result-card {
   text-align: center;
+  background: linear-gradient(135deg, #f0f9ff, #ffffff);
+  border: 1px solid rgba(0, 180, 216, 0.1);
 }
 
-.consumed-water {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--darker);
-}
-
-.goal-water {
-  font-size: 0.9rem;
-  color: #64748b;
-}
-
-.water-stats {
-  flex: 1;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #e0e7ff;
-}
-
-.stat-item:last-child {
-  border-bottom: none;
-}
-
-.stat-label {
-  color: #64748b;
-}
-
-.stat-value {
-  font-weight: 700;
-  color: var(--darker);
-}
-
-/* Profile Summary */
-.profile-summary {
-  background: #f0f9ff;
-  padding: 16px;
-  border-radius: 16px;
-  margin-top: 16px;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-around;
-  padding: 6px 0;
-}
-
-.summary-row span {
+.result-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #1a1a1a;
-  font-size: 0.9rem;
-}
-
-.summary-row i {
-  color: var(--primary);
-  width: 20px;
-}
-
-/* Quick Add */
-.quick-add-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
 }
 
-.water-btn {
-  padding: 14px 8px;
-  background: #f0f9ff;
-  border: 2px solid #e0e7ff;
-  border-radius: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.water-btn i {
-  font-size: 1.2rem;
+.result-header i {
+  font-size: 2rem;
   color: #00b4d8;
 }
 
-.water-btn:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: white;
-  transform: translateY(-2px);
+.result-header h2 {
+  color: var(--darker);
+  margin: 0;
 }
 
-.water-btn:hover i {
-  color: white;
+.goal-display-large {
+  margin-bottom: 24px;
 }
 
-.custom-add {
-  display: flex;
-  gap: 10px;
+.goal-number {
+  font-size: 4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #00b4d8, #0096c7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1.2;
 }
 
-.custom-add .form-control {
-  flex: 2;
+.goal-range {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-bottom: 8px;
 }
 
-.custom-add .btn {
-  flex: 1;
-}
-
-/* Water Log */
-.water-log-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.water-log-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid #e0e7ff;
-}
-
-.log-info {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.log-amount {
+.goal-glasses {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #e0f7fa;
+  border-radius: 40px;
+  color: #00838f;
   font-weight: 600;
+}
+
+.goal-glasses i {
+  margin-right: 6px;
+}
+
+.profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: white;
+  border-radius: 40px;
+  box-shadow: var(--shadow);
+  font-size: 0.85rem;
   color: #1a1a1a;
 }
 
-.log-time {
-  color: #94a3b8;
-  font-size: 0.85rem;
-  margin-right: 12px;
+.badge i {
+  color: #00b4d8;
 }
 
-.delete-log {
-  background: none;
-  border: none;
-  color: #d63031;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.water-log-item:hover .delete-log {
-  opacity: 1;
-}
-
-.log-total {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 12px 0;
-  border-top: 2px solid #e0e7ff;
-  margin-top: 12px;
-}
-
-/* Tips */
-.tips-grid {
+/* Importance Grid */
+.importance-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 16px;
   margin-top: 16px;
 }
 
-.tip {
+.importance-item {
+  text-align: center;
+  padding: 20px 12px;
+  background: #f8fafc;
+  border-radius: 16px;
+}
+
+.importance-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.importance-item h4 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+  color: var(--darker);
+}
+
+.importance-item p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Benefits List */
+.benefits-list {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.benefit {
+  display: flex;
+  gap: 16px;
   padding: 14px;
   background: #f8fafc;
   border-radius: 14px;
 }
 
-.tip i {
-  color: #00b4d8;
+.benefit i {
+  color: #00b894;
   font-size: 1.2rem;
-  width: 24px;
+  margin-top: 3px;
 }
 
-.tip span {
-  font-size: 0.9rem;
-  color: #1a1a1a;
+.benefit strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--darker);
 }
 
-/* Calculation Breakdown */
-.breakdown-steps {
-  margin-top: 16px;
-}
-
-.breakdown-step {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #e0e7ff;
-}
-
-.breakdown-step:last-child {
-  border-bottom: none;
-}
-
-.step-label {
+.benefit p {
+  font-size: 0.85rem;
   color: #64748b;
 }
 
-.step-value {
-  font-weight: 600;
-  color: #1a1a1a;
+/* Tips Grid */
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
 }
 
-.step-value.negative {
+.tip {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 14px;
+}
+
+.tip-number {
+  width: 32px;
+  height: 32px;
+  background: #00b4d8;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.tip strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--darker);
+}
+
+.tip p {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Warning Signs */
+.warning-card h3 {
   color: #e17055;
 }
 
-.step-value.positive {
-  color: #00b894;
+.signs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.breakdown-step.total {
-  background: #f0f9ff;
+.sign {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 12px;
-  border-radius: 10px;
-  margin: 8px 0;
-  border: none;
-}
-
-.breakdown-step.total .step-value {
-  color: var(--primary-dark);
-  font-size: 1.1rem;
-}
-
-.breakdown-step.recommended {
-  background: linear-gradient(135deg, #00b4d8, #0096c7);
-  padding: 14px;
+  background: #fff5f5;
   border-radius: 12px;
-  margin-top: 12px;
-  border: none;
 }
 
-.breakdown-step.recommended .step-label {
-  color: white;
+.sign i {
+  color: #e17055;
+  width: 20px;
 }
 
-.breakdown-step.recommended .step-value {
-  color: white;
-  font-size: 1.2rem;
+.sign span {
+  font-size: 0.85rem;
+  color: #1a1a1a;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .water-progress {
-    flex-direction: column;
-    gap: 20px;
+  .goal-number {
+    font-size: 3rem;
   }
   
-  .quick-add-buttons {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .custom-add {
-    flex-direction: column;
+  .importance-grid {
+    grid-template-columns: 1fr;
   }
   
   .tips-grid {
     grid-template-columns: 1fr;
   }
   
-  .summary-row {
+  .signs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .profile-badges {
     flex-direction: column;
-    gap: 8px;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .signs-grid {
+    grid-template-columns: 1fr;
   }
 }
