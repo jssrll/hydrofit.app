@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="assets/android-chrome-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="assets/android-chrome-512x512.png">
   
-  <!-- Web App Manifest - CRITICAL for Install Button -->
+  <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
   
   <!-- Theme Colors -->
@@ -98,7 +98,7 @@
         <i class="fas fa-user-tag"></i> Body Type
       </button>
       <button class="nav-btn" data-tab="injury">
-        <i class="fas fa-shield"></i> Injury Prevention
+        <i class="fas fa-shield-heart"></i> Injury Prevention
       </button>
       <button class="nav-btn" data-tab="recovery">
         <i class="fas fa-bed"></i> Recovery
@@ -109,9 +109,10 @@
       <button class="nav-btn" data-tab="download">
         <i class="fas fa-download"></i> Download
       </button>
-      <button class="logout-btn" id="logoutBtn">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
+    </nav>
+    <button class="logout-btn" id="logoutBtn">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
   </aside>
 
   <!-- ======================================== -->
@@ -193,14 +194,14 @@
 <div id="toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: none;"></div>
 
 <!-- ======================================== -->
-<!-- SECURITY - MUST BE LOADED FIRST          -->
-<!-- ======================================== -->
-<script src="js/security.js"></script>
-
-<!-- ======================================== -->
 <!-- ENVIRONMENT CONFIGURATION                 -->
 <!-- ======================================== -->
 <script src="js/env.js"></script>
+
+<!-- ======================================== -->
+<!-- SECURITY - Silent protection             -->
+<!-- ======================================== -->
+<script src="js/security.js"></script>
 
 <!-- ======================================== -->
 <!-- JAVASCRIPT MODULES                        -->
@@ -230,26 +231,17 @@
 <script src="js/install-prompt.js"></script>
 
 <!-- ======================================== -->
-<!-- PWA SERVICE WORKER - ENABLES INSTALL      -->
+<!-- PWA SERVICE WORKER                        -->
 <!-- ======================================== -->
 <script>
-  // Register Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js')
-        .then(registration => {
-          // Silent registration - no console log in production
-          registration.addEventListener('updatefound', () => {
-            // Service Worker update found
-          });
-        })
-        .catch(error => {
-          // Silent fail
-        });
+        .then(registration => {})
+        .catch(error => {});
     });
   }
   
-  // Capture install prompt for custom UI
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -257,7 +249,6 @@
     window.deferredPrompt = deferredPrompt;
   });
   
-  // Track successful installation
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     window.deferredPrompt = null;
