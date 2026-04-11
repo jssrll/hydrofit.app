@@ -33,6 +33,7 @@ function switchTab(tab) {
     'bodytype': () => { updatePageTitle('Body Type'); renderBodyType(); window.isLoading = false; },
     'bodyparts': () => { updatePageTitle('Body Parts Trainer'); renderBodyParts(); window.isLoading = false; },
     'download': () => { updatePageTitle('Download HydroFit'); renderDownload(); window.isLoading = false; },
+    'warmup': () => { updatePageTitle('Warm-up & Cooldown'); renderWarmup(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
   
