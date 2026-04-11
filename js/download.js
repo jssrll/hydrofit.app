@@ -25,7 +25,6 @@ function renderDownload() {
           <i class="fab fa-android"></i>
           <div class="btn-text">
             <span class="btn-title">Download for Android</span>
-            <span class="btn-subtitle">APK File - 15 MB</span>
           </div>
         </button>
         
@@ -33,7 +32,6 @@ function renderDownload() {
           <i class="fas fa-desktop"></i>
           <div class="btn-text">
             <span class="btn-title">Download for PC</span>
-            <span class="btn-subtitle">Windows / Mac / Linux</span>
           </div>
         </button>
       </div>
@@ -100,105 +98,6 @@ function renderDownload() {
           <div class="feature-content">
             <h4>Rankings</h4>
             <p>Compete with others and climb the leaderboard</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- How It Works -->
-    <div class="card how-it-works">
-      <h3><i class="fas fa-cogs"></i> How It Works</h3>
-      <div class="steps-container">
-        <div class="step-item">
-          <div class="step-number">1</div>
-          <div class="step-icon">
-            <i class="fas fa-person-walking"></i>
-          </div>
-          <h4>Choose Body Part</h4>
-          <p>Select from Legs, Core, Arms, or Full Body workouts</p>
-        </div>
-        <div class="step-arrow">
-          <i class="fas fa-arrow-right"></i>
-        </div>
-        <div class="step-item">
-          <div class="step-number">2</div>
-          <div class="step-icon">
-            <i class="fas fa-sliders-h"></i>
-          </div>
-          <h4>Pick Difficulty</h4>
-          <p>Choose Beginner, Intermediate, or Advanced level</p>
-        </div>
-        <div class="step-arrow">
-          <i class="fas fa-arrow-right"></i>
-        </div>
-        <div class="step-item">
-          <div class="step-number">3</div>
-          <div class="step-icon">
-            <i class="fas fa-play-circle"></i>
-          </div>
-          <h4>Start Workout</h4>
-          <p>Follow guided exercises and track your progress</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Workout Preview -->
-    <div class="card">
-      <h3><i class="fas fa-fire"></i> Popular Workouts</h3>
-      <div class="workout-preview-grid">
-        <div class="workout-preview">
-          <div class="preview-icon">💪</div>
-          <h4>Squat Challenge</h4>
-          <p>3 sets • Beginner</p>
-        </div>
-        <div class="workout-preview">
-          <div class="preview-icon">🎯</div>
-          <h4>Core Crusher</h4>
-          <p>4 sets • Intermediate</p>
-        </div>
-        <div class="workout-preview">
-          <div class="preview-icon">🏋️</div>
-          <h4>Push-up Pro</h4>
-          <p>3 sets • Advanced</p>
-        </div>
-        <div class="workout-preview">
-          <div class="preview-icon">🦵</div>
-          <h4>Leg Day</h4>
-          <p>5 sets • Intermediate</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- System Requirements -->
-    <div class="card requirements-card">
-      <h3><i class="fas fa-laptop"></i> System Requirements</h3>
-      <div class="requirements-grid">
-        <div class="req-item">
-          <i class="fab fa-android"></i>
-          <div>
-            <h4>Android</h4>
-            <p>Android 8.0 or higher • 50 MB free space</p>
-          </div>
-        </div>
-        <div class="req-item">
-          <i class="fab fa-windows"></i>
-          <div>
-            <h4>Windows</h4>
-            <p>Windows 10/11 • Any modern browser</p>
-          </div>
-        </div>
-        <div class="req-item">
-          <i class="fab fa-apple"></i>
-          <div>
-            <h4>macOS</h4>
-            <p>macOS 11+ • Safari or Chrome</p>
-          </div>
-        </div>
-        <div class="req-item">
-          <i class="fab fa-linux"></i>
-          <div>
-            <h4>Linux</h4>
-            <p>Any distribution • Modern browser</p>
           </div>
         </div>
       </div>
