@@ -70,47 +70,23 @@ function renderScheduler() {
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
         <h3 style="margin:0"><i class="fas fa-calendar-week"></i> Weekly Schedule</h3>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" onclick="syncScheduleWithSheets()">
-            <i class="fas fa-cloud-upload-alt"></i> Sync
-          </button>
-          <button class="btn btn-outline btn-sm" onclick="clearAllSchedule()">
-            <i class="fas fa-trash"></i> Clear
-          </button>
-        </div>
+        <button class="btn btn-outline btn-sm" onclick="clearAllSchedule()">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
       </div>
       <div class="weekly-schedule" id="weeklySchedule"></div>
-    </div>
-
-    <!-- Reminder Settings -->
-    <div class="card reminder-card">
-      <h3><i class="fas fa-bell"></i> Auto Reminders</h3>
-      <div class="reminder-settings">
-        <div class="reminder-toggle">
-          <label class="switch">
-            <input type="checkbox" id="reminderToggle" onchange="toggleReminders()">
-            <span class="slider round"></span>
-          </label>
-          <span>Enable workout reminders</span>
-        </div>
-        <div id="reminderOptions" style="display:none">
-          <div class="form-group">
-            <label>Remind me</label>
-            <select id="reminderTime" class="form-control">
-              <option value="15">15 minutes before</option>
-              <option value="30">30 minutes before</option>
-              <option value="60">1 hour before</option>
-            </select>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Today's Checklist -->
     <div class="card checklist-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h3 style="margin:0"><i class="fas fa-check-square"></i> Today's Checklist</h3>
-        <span class="today-date" id="todayDate"></span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <h3 style="margin:0"><i class="fas fa-check-square"></i> Today's Checklist</h3>
+          <span class="today-date" id="todayDate"></span>
+        </div>
+        <button class="refresh-btn" onclick="refreshChecklist()" title="Refresh Checklist">
+          <i class="fas fa-sync-alt"></i>
+        </button>
       </div>
       <div id="dailyChecklist"></div>
     </div>
@@ -151,12 +127,57 @@ function renderScheduler() {
   
   displayTodayDate();
   loadScheduleFromSheets();
+  
+  // Auto-refresh checklist every minute to check time
+  setInterval(() => {
+    if (currentTab === 'scheduler') {
+      checkWorkoutTimes();
+    }
+  }, 60000);
+  
+  // Initial time check
+  setTimeout(() => {
+    checkWorkoutTimes();
+  }, 1000);
 }
 
 function displayTodayDate() {
   const today = new Date();
   const options = { weekday: 'long', month: 'long', day: 'numeric' };
   document.getElementById('todayDate').innerText = today.toLocaleDateString('en-US', options);
+}
+
+function refreshChecklist() {
+  loadChecklist();
+  showToast('Checklist refreshed! 🔄', false);
+}
+
+function checkWorkoutTimes() {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  
+  const todayWorkouts = workoutSchedule.filter(w => w.day === today && !w.completed);
+  
+  todayWorkouts.forEach(workout => {
+    const [hours, minutes] = workout.time.split(':');
+    const workoutTime = parseInt(hours) * 60 + parseInt(minutes);
+    
+    // If workout time has passed (within last 2 hours), highlight it
+    if (currentTime >= workoutTime && currentTime <= workoutTime + 120) {
+      highlightWorkoutItem(workout.id);
+    }
+  });
+}
+
+function highlightWorkoutItem(workoutId) {
+  const items = document.querySelectorAll('.checklist-item');
+  items.forEach(item => {
+    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(workoutId)) {
+      item.style.background = '#fef9e7';
+      item.style.borderColor = '#fdcb6e';
+    }
+  });
 }
 
 async function loadScheduleFromSheets() {
@@ -205,12 +226,7 @@ function loadScheduleFromLocal() {
 }
 
 async function syncScheduleWithSheets() {
-  if (workoutSchedule.length === 0) {
-    showToast('No schedule to sync', true);
-    return;
-  }
-  
-  showToast('Syncing schedule to Sheets...', false);
+  if (workoutSchedule.length === 0) return;
   
   const result = await callAPI('saveSchedule', {
     schoolId: window.currentUser.schoolId,
@@ -218,9 +234,7 @@ async function syncScheduleWithSheets() {
   });
   
   if (result.success) {
-    showToast('Schedule synced to Sheets! 📤', false);
-  } else {
-    showToast(result.error || 'Sync failed', true);
+    console.log('✅ Schedule synced automatically');
   }
 }
 
@@ -358,69 +372,6 @@ function saveScheduleLocal() {
   localStorage.setItem('hydrofit_schedule_' + window.currentUser?.schoolId, JSON.stringify(workoutSchedule));
 }
 
-function toggleReminders() {
-  const toggle = document.getElementById('reminderToggle');
-  const options = document.getElementById('reminderOptions');
-  
-  if (toggle.checked) {
-    if ('Notification' in window) {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          reminderPermission = true;
-          options.style.display = 'block';
-          showToast('Reminders enabled! 🔔', false);
-          scheduleReminders();
-        } else {
-          toggle.checked = false;
-          showToast('Please allow notifications for reminders', true);
-        }
-      });
-    } else {
-      toggle.checked = false;
-      showToast('Notifications not supported in this browser', true);
-    }
-  } else {
-    reminderPermission = false;
-    options.style.display = 'none';
-    showToast('Reminders disabled', false);
-  }
-}
-
-function scheduleReminders() {
-  if (!reminderPermission) return;
-  
-  const reminderMinutes = parseInt(document.getElementById('reminderTime')?.value || '15');
-  
-  workoutSchedule.forEach(workout => {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-    if (workout.day === today && !workout.completed) {
-      const [hours, minutes] = workout.time.split(':');
-      const workoutTime = new Date();
-      workoutTime.setHours(parseInt(hours), parseInt(minutes) - reminderMinutes, 0);
-      
-      const now = new Date();
-      const timeUntilReminder = workoutTime - now;
-      
-      if (timeUntilReminder > 0) {
-        setTimeout(() => {
-          sendNotification(workout);
-        }, timeUntilReminder);
-      }
-    }
-  });
-}
-
-function sendNotification(workout) {
-  if (Notification.permission === 'granted') {
-    new Notification('🏋️ Workout Reminder', {
-      body: `${workout.type} starting in ${document.getElementById('reminderTime').value} minutes!`,
-      icon: 'assets/android-chrome-192x192.png',
-      badge: 'assets/android-chrome-192x192.png',
-      vibrate: [200, 100, 200]
-    });
-  }
-}
-
 function loadChecklist() {
   const stored = localStorage.getItem('hydrofit_checklist_' + window.currentUser?.schoolId);
   if (stored) {
@@ -469,23 +420,35 @@ function displayChecklist() {
     return;
   }
   
+  // Check current time for each workout
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  
   let html = '<div class="checklist-items">';
   
   todayWorkouts.forEach(workout => {
     const checklistItem = dailyChecklist.find(c => c.workoutId === workout.id);
     const completed = checklistItem?.completed || workout.completed || false;
     
+    const [hours, minutes] = workout.time.split(':');
+    const workoutTime = parseInt(hours) * 60 + parseInt(minutes);
+    const isTimeReached = currentTime >= workoutTime;
+    const timeStatus = isTimeReached ? 'ready' : 'upcoming';
+    
     html += `
-      <div class="checklist-item ${completed ? 'checked' : ''}" onclick="toggleChecklistItem('${workout.id}')">
+      <div class="checklist-item ${completed ? 'checked' : ''} ${timeStatus}" onclick="toggleChecklistItem('${workout.id}')" id="workout-${workout.id}">
         <div class="checkbox ${completed ? 'checked' : ''}">
           ${completed ? '<i class="fas fa-check"></i>' : ''}
         </div>
         <div class="checklist-content">
-          <div class="checklist-title">${workout.type}</div>
+          <div class="checklist-title">
+            ${workout.type}
+            ${!completed && isTimeReached ? '<span class="time-badge">⏰ Now</span>' : ''}
+            ${!completed && !isTimeReached ? '<span class="time-badge upcoming">📅 ' + formatTime(workout.time) + '</span>' : ''}
+          </div>
           <div class="checklist-details">
             <span><i class="fas fa-clock"></i> ${formatTime(workout.time)}</span>
             <span><i class="fas fa-hourglass-half"></i> ${workout.duration} min</span>
-            <span><i class="fas fa-cloud" style="color:#00b894" title="Synced to Sheets"></i></span>
           </div>
           ${workout.notes ? `<div class="checklist-notes">${workout.notes}</div>` : ''}
         </div>
@@ -621,4 +584,4 @@ function calculateStreak() {
   document.getElementById('currentStreak').innerText = streak;
 }
 
-console.log("✅ Daily Workout Scheduler Loaded with Sheets Sync");
+console.log("✅ Daily Workout Scheduler Loaded");
