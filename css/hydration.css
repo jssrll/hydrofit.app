@@ -1,0 +1,335 @@
+/* ======================================== */
+/* HYDRATION TRACKER STYLES                  */
+/* ======================================== */
+
+.profile-setup-card h3 {
+  margin-bottom: 8px;
+}
+
+.water-goal-card .goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.water-progress {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.progress-circle-water {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.water-circle {
+  transform: rotate(-90deg);
+}
+
+.water-circle .circle-bg {
+  fill: none;
+  stroke: #e0e7ff;
+  stroke-width: 8;
+}
+
+.water-circle .circle-fill {
+  fill: none;
+  stroke: #00b4d8;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.circle-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.consumed-water {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--darker);
+}
+
+.goal-water {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.water-stats {
+  flex: 1;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #64748b;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: var(--darker);
+}
+
+/* Profile Summary */
+.profile-summary {
+  background: #f0f9ff;
+  padding: 16px;
+  border-radius: 16px;
+  margin-top: 16px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0;
+}
+
+.summary-row span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+}
+
+.summary-row i {
+  color: var(--primary);
+  width: 20px;
+}
+
+/* Quick Add */
+.quick-add-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.water-btn {
+  padding: 14px 8px;
+  background: #f0f9ff;
+  border: 2px solid #e0e7ff;
+  border-radius: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.water-btn i {
+  font-size: 1.2rem;
+  color: #00b4d8;
+}
+
+.water-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.water-btn:hover i {
+  color: white;
+}
+
+.custom-add {
+  display: flex;
+  gap: 10px;
+}
+
+.custom-add .form-control {
+  flex: 2;
+}
+
+.custom-add .btn {
+  flex: 1;
+}
+
+/* Water Log */
+.water-log-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.water-log-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.log-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.log-amount {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.log-time {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-right: 12px;
+}
+
+.delete-log {
+  background: none;
+  border: none;
+  color: #d63031;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.water-log-item:hover .delete-log {
+  opacity: 1;
+}
+
+.log-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 12px 0;
+  border-top: 2px solid #e0e7ff;
+  margin-top: 12px;
+}
+
+/* Tips */
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.tip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 14px;
+}
+
+.tip i {
+  color: #00b4d8;
+  font-size: 1.2rem;
+  width: 24px;
+}
+
+.tip span {
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+
+/* Calculation Breakdown */
+.breakdown-steps {
+  margin-top: 16px;
+}
+
+.breakdown-step {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.breakdown-step:last-child {
+  border-bottom: none;
+}
+
+.step-label {
+  color: #64748b;
+}
+
+.step-value {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.step-value.negative {
+  color: #e17055;
+}
+
+.step-value.positive {
+  color: #00b894;
+}
+
+.breakdown-step.total {
+  background: #f0f9ff;
+  padding: 12px;
+  border-radius: 10px;
+  margin: 8px 0;
+  border: none;
+}
+
+.breakdown-step.total .step-value {
+  color: var(--primary-dark);
+  font-size: 1.1rem;
+}
+
+.breakdown-step.recommended {
+  background: linear-gradient(135deg, #00b4d8, #0096c7);
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 12px;
+  border: none;
+}
+
+.breakdown-step.recommended .step-label {
+  color: white;
+}
+
+.breakdown-step.recommended .step-value {
+  color: white;
+  font-size: 1.2rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .water-progress {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .quick-add-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .custom-add {
+    flex-direction: column;
+  }
+  
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
