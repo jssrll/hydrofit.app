@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - RANKING
+// HYDROFIT - RANKING (FIXED)
 // ========================================
 
 let rankingData = [];
@@ -16,22 +16,61 @@ function getRatingColor(rating) {
 async function renderRanking() {
   const container = document.getElementById("tabContent");
   
-  // Show skeleton loader while fetching
+  // Show loading
   container.innerHTML = `
     <div class="ranking-banner">
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
     <div class="card">
-      <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin"></i> Loading rankings...</div>
+      <div style="text-align:center;padding:40px">
+        <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#00b4d8;margin-bottom:16px"></i>
+        <p>Loading rankings...</p>
+      </div>
     </div>
   `;
   
-  const result = await callAPI('getAllAssessments', {});
-  if (result.success && result.assessments) {
-    rankingData = result.assessments;
-    displayRankings();
-  } else { 
-    container.innerHTML = `<div class="ranking-banner"><img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)"></div><div class="card"><p style="color:#d63031;text-align:center">Failed to load rankings</p></div>`; 
+  try {
+    const result = await callAPI('getAllAssessments', {});
+    console.log('Ranking API Result:', result);
+    
+    if (result.success && result.assessments && result.assessments.length > 0) {
+      rankingData = result.assessments;
+      displayRankings();
+    } else {
+      // No data yet
+      container.innerHTML = `
+        <div class="ranking-banner">
+          <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+        </div>
+        <div class="card">
+          <div style="text-align:center;padding:40px">
+            <i class="fas fa-trophy" style="font-size:3rem;color:#fdcb6e;margin-bottom:16px"></i>
+            <h3>No Rankings Yet</h3>
+            <p style="color:#64748b">Complete fitness assessments to appear on the leaderboard!</p>
+            <button class="btn" onclick="switchTab('assignment')" style="margin-top:20px">
+              <i class="fas fa-clipboard-list"></i> Go to Fitness Assessment
+            </button>
+          </div>
+        </div>
+      `;
+    }
+  } catch (error) {
+    console.error('Ranking error:', error);
+    container.innerHTML = `
+      <div class="ranking-banner">
+        <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      </div>
+      <div class="card">
+        <div style="text-align:center;padding:40px">
+          <i class="fas fa-exclamation-triangle" style="font-size:3rem;color:#e17055;margin-bottom:16px"></i>
+          <h3>Unable to Load Rankings</h3>
+          <p style="color:#64748b">Please check your connection and try again</p>
+          <button class="btn" onclick="renderRanking()" style="margin-top:20px">
+            <i class="fas fa-sync-alt"></i> Retry
+          </button>
+        </div>
+      </div>
+    `;
   }
 }
 
@@ -39,16 +78,24 @@ function displayRankings() {
   const container = document.getElementById("tabContent");
   const studentStats = {};
   
+  console.log('Processing ranking data:', rankingData.length, 'assessments');
+  
   rankingData.forEach(a => {
     if (!studentStats[a.schoolId]) {
       studentStats[a.schoolId] = {
-        schoolId: a.schoolId, name: a.studentName, totalPoints: 0,
-        assessmentCount: 0, ratingSum: 0, totalDuration: 0
+        schoolId: a.schoolId,
+        name: a.studentName || 'Student',
+        totalPoints: 0,
+        assessmentCount: 0,
+        ratingSum: 0,
+        totalDuration: 0
       };
     }
+    
     const rating = parseFloat(a.rating) || 0;
     const value = parseFloat(a.value) || 0;
     let durationInSeconds = 0;
+    
     if (a.unit === 'seconds') durationInSeconds = value;
     else if (a.unit === 'minutes') durationInSeconds = value * 60;
     else if (a.unit === 'reps') durationInSeconds = value * 2;
@@ -62,7 +109,8 @@ function displayRankings() {
   });
   
   const rankings = Object.values(studentStats).map(s => ({
-    ...s, averageRating: s.assessmentCount > 0 ? (s.ratingSum / s.assessmentCount).toFixed(1) : '0.0'
+    ...s,
+    averageRating: s.assessmentCount > 0 ? (s.ratingSum / s.assessmentCount).toFixed(1) : '0.0'
   }));
   
   rankings.sort((a, b) => {
