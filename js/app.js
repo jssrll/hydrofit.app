@@ -32,7 +32,6 @@ function switchTab(tab) {
     'recovery': () => { updatePageTitle('Recovery Tracker'); renderRecoveryTracker(); window.isLoading = false; },
     'bodytype': () => { updatePageTitle('Body Type'); renderBodyType(); window.isLoading = false; },
     'bodyparts': () => { updatePageTitle('Body Parts Trainer'); renderBodyParts(); window.isLoading = false; },
-    'download': () => { updatePageTitle('Download HydroFit'); renderDownload(); window.isLoading = false; },
     'warmup': () => { updatePageTitle('Warm-up & Cooldown'); renderWarmup(); window.isLoading = false; },
     'scheduler': () => { updatePageTitle('Workout Scheduler'); renderScheduler(); window.isLoading = false; },
     'telegram': () => { updatePageTitle('Community Chat'); renderTelegramCommunity(); window.isLoading = false; },
