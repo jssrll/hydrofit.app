@@ -113,15 +113,22 @@ function renderBodyParts() {
       <div id="exerciseList"></div>
     </div>
 
-    <!-- Workout Summary -->
+    <!-- Workout Tips -->
     <div class="card">
-      <h3><i class="fas fa-clipboard-check"></i> Workout Plan</h3>
-      <div id="workoutSummary"></div>
+      <h3><i class="fas fa-lightbulb"></i> Workout Tips</h3>
+      <ul class="tips-list">
+        <li>Rest 60-90 seconds between sets</li>
+        <li>Warm up for 5-10 minutes before starting</li>
+        <li>Focus on proper form over weight</li>
+        <li>Cool down and stretch after workout</li>
+        ${selectedBodyPart === 'legs' ? '<li>Keep knees aligned with toes during squats and lunges</li>' : ''}
+        ${selectedBodyPart === 'core' ? '<li>Breathe steadily and avoid holding your breath</li>' : ''}
+        ${selectedBodyPart === 'arms' ? '<li>Control the negative (lowering) phase of each rep</li>' : ''}
+      </ul>
     </div>
   `;
   
   updateExerciseList();
-  updateWorkoutSummary();
 }
 
 function selectBodyPart(part) {
@@ -133,7 +140,7 @@ function selectBodyPart(part) {
   event.currentTarget.classList.add('active');
   
   updateExerciseList();
-  updateWorkoutSummary();
+  renderBodyParts();
 }
 
 function filterByDifficulty(difficulty) {
@@ -151,7 +158,6 @@ function updateExerciseList() {
   const listContainer = document.getElementById('exerciseList');
   let exercises = exercisesByBodyPart[selectedBodyPart] || [];
   
-  // Filter by difficulty
   if (selectedDifficulty !== 'all') {
     exercises = exercises.filter(ex => ex.difficulty === selectedDifficulty);
   }
@@ -193,66 +199,6 @@ function updateExerciseList() {
   
   html += '</div>';
   listContainer.innerHTML = html;
-}
-
-function updateWorkoutSummary() {
-  const summaryContainer = document.getElementById('workoutSummary');
-  let exercises = exercisesByBodyPart[selectedBodyPart] || [];
-  
-  // Filter by difficulty if selected
-  if (selectedDifficulty !== 'all') {
-    exercises = exercises.filter(ex => ex.difficulty === selectedDifficulty);
-  }
-  
-  const totalExercises = exercises.length;
-  const totalSets = exercises.reduce((sum, ex) => sum + ex.sets, 0);
-  
-  const partNames = {
-    legs: 'Legs',
-    core: 'Core',
-    arms: 'Arms',
-    fullbody: 'Full Body'
-  };
-  
-  summaryContainer.innerHTML = `
-    <div class="summary-stats">
-      <div class="summary-stat">
-        <div class="stat-number">${totalExercises}</div>
-        <div class="stat-label">Exercises</div>
-      </div>
-      <div class="summary-stat">
-        <div class="stat-number">${totalSets}</div>
-        <div class="stat-label">Total Sets</div>
-      </div>
-      <div class="summary-stat">
-        <div class="stat-number">~${totalSets * 2}</div>
-        <div class="stat-label">Est. Minutes</div>
-      </div>
-    </div>
-    
-    <div class="how-to-use">
-      <h4><i class="fas fa-info-circle"></i> How to Use This Plan</h4>
-      <ol class="steps-list">
-        <li><strong>Step 1:</strong> You selected <strong>${partNames[selectedBodyPart]}</strong></li>
-        <li><strong>Step 2:</strong> System filtered ${totalExercises} exercises</li>
-        <li><strong>Step 3:</strong> Difficulty: ${selectedDifficulty === 'all' ? 'All Levels' : selectedDifficulty}</li>
-        <li><strong>Step 4:</strong> Complete the sets and reps as listed</li>
-      </ol>
-    </div>
-    
-    <div class="workout-tips">
-      <h4><i class="fas fa-lightbulb"></i> Workout Tips</h4>
-      <ul class="tips-list">
-        <li>Rest 60-90 seconds between sets</li>
-        <li>Warm up for 5-10 minutes before starting</li>
-        <li>Focus on proper form over weight</li>
-        <li>Cool down and stretch after workout</li>
-        ${selectedBodyPart === 'legs' ? '<li>Keep knees aligned with toes during squats and lunges</li>' : ''}
-        ${selectedBodyPart === 'core' ? '<li>Breathe steadily and avoid holding your breath</li>' : ''}
-        ${selectedBodyPart === 'arms' ? '<li>Control the negative (lowering) phase of each rep</li>' : ''}
-      </ul>
-    </div>
-  `;
 }
 
 console.log("✅ Body Parts Focus Trainer Loaded");

@@ -167,12 +167,6 @@ function renderStretching() {
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Stretching Exercises" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
-    <!-- Header -->
-    <div class="card stretching-header">
-      <h2><i class="fas fa-person-walking"></i> Stretching Exercise Library</h2>
-      <p>Complete collection of stretching routines for pain relief, flexibility, and recovery</p>
-    </div>
-
     <!-- Quick Filters -->
     <div class="card filter-card">
       <h3><i class="fas fa-filter"></i> Filter Routines</h3>
@@ -195,7 +189,6 @@ function renderStretching() {
 function filterRoutines(filter) {
   currentFilter = filter;
   
-  // Update active tab
   document.querySelectorAll('.filter-tab').forEach(tab => {
     tab.classList.remove('active');
   });
@@ -274,7 +267,6 @@ function toggleRoutine(id) {
   const icon = document.getElementById(`icon-${id}`);
   
   if (exercisesDiv.style.display === 'none') {
-    // Close all other open routines
     document.querySelectorAll('.routine-exercises-list').forEach(el => {
       el.style.display = 'none';
     });
@@ -283,7 +275,6 @@ function toggleRoutine(id) {
       el.classList.add('fa-chevron-down');
     });
     
-    // Open this one
     exercisesDiv.style.display = 'block';
     icon.classList.remove('fa-chevron-down');
     icon.classList.add('fa-chevron-up');
@@ -300,7 +291,6 @@ function startRoutineTimer(id) {
   
   showToast(`Starting: ${routine.title} 🎯`, false);
   
-  // You can integrate with the Exercise Timer page
   if (typeof switchTab === 'function') {
     switchTab('timer');
   }
