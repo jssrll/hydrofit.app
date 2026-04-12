@@ -57,10 +57,84 @@
   
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
-
-  <meta http-equiv="X-Debug" content="disabled">
   
   <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; font-src * data:; connect-src *;">
+
+  <!-- ======================================== -->
+  <!-- MAXIMUM SECURITY - LOADS FIRST           -->
+  <!-- ======================================== -->
+  <script>
+    (function() {
+      "use strict";
+      
+      // 1. Disable right-click (capture phase - catches it first)
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }, true);
+      
+      // 2. Block all devtools shortcuts
+      document.addEventListener('keydown', function(e) {
+        const key = e.key || e.keyCode;
+        // F12
+        if (key === 'F12' || key === 123) { e.preventDefault(); return false; }
+        // Ctrl+Shift+I
+        if (e.ctrlKey && e.shiftKey && (key === 'I' || key === 73)) { e.preventDefault(); return false; }
+        // Ctrl+Shift+J
+        if (e.ctrlKey && e.shiftKey && (key === 'J' || key === 74)) { e.preventDefault(); return false; }
+        // Ctrl+Shift+C
+        if (e.ctrlKey && e.shiftKey && (key === 'C' || key === 67)) { e.preventDefault(); return false; }
+        // Ctrl+U
+        if (e.ctrlKey && (key === 'U' || key === 85)) { e.preventDefault(); return false; }
+        // Ctrl+S
+        if (e.ctrlKey && (key === 'S' || key === 83)) { e.preventDefault(); return false; }
+        // Ctrl+P
+        if (e.ctrlKey && (key === 'P' || key === 80)) { e.preventDefault(); return false; }
+      }, true);
+      
+      // 3. DevTools detection with redirect
+      let devtoolsDetected = false;
+      const checkDevTools = setInterval(function() {
+        const widthThreshold = window.outerWidth - window.innerWidth > 160;
+        const heightThreshold = window.outerHeight - window.innerHeight > 160;
+        
+        if ((widthThreshold || heightThreshold) && !devtoolsDetected) {
+          devtoolsDetected = true;
+          document.body.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e);color:white;text-align:center">
+              <div>
+                <h1 style="color:#d63031;font-size:2rem;margin-bottom:16px">⚠️ Developer Tools Detected</h1>
+                <p style="font-size:1.1rem;margin-bottom:24px;opacity:0.9">Please close developer tools to continue using HydroFit.</p>
+                <button onclick="location.reload()" style="padding:12px 32px;background:#00b4d8;border:none;border-radius:40px;color:white;font-weight:600;font-size:1rem;cursor:pointer">Refresh Page</button>
+              </div>
+            </div>
+          `;
+          clearInterval(checkDevTools);
+        }
+      }, 300);
+      
+      // 4. Disable console functions
+      const noop = function(){};
+      Object.defineProperty(window, 'console', {
+        get: function() {
+          return {
+            log: noop, warn: noop, error: noop, info: noop, 
+            clear: noop, table: noop, trace: noop, debug: noop
+          };
+        }
+      });
+      
+      // 5. Prevent view source
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'U') {
+          e.preventDefault();
+          return false;
+        }
+      });
+    })();
+  </script>
+
 </head>
 <body>
 <div class="app-container">
