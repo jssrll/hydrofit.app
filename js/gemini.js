@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - GEMINI AI ASSISTANT
+// HYDROFIT - GEMINI AI ASSISTANT (SMARTER)
 // ========================================
 
 const GEMINI_API_KEY = 'AIzaSyCYCfcv8okzyVYLRuBm1Be_6BNseL2LOlk';
@@ -9,14 +9,28 @@ const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/${GE
 let chatHistory = [];
 let isProcessing = false;
 
-const FITNESS_CONTEXT = `You are HydroFit AI, a friendly fitness assistant for students. 
-Keep responses short (2-3 sentences max), encouraging, and helpful.
-Focus on: exercise form, workout tips, nutrition, recovery, and motivation.`;
+const FITNESS_CONTEXT = `You are HydroFit AI, an expert fitness coach and personal trainer with deep knowledge of exercise science, nutrition, and sports medicine.
 
-// Make functions globally available
-window.sendGeminiMessage = sendGeminiMessage;
-window.clearGeminiChat = clearGeminiChat;
-window.useSuggestion = useSuggestion;
+Your expertise includes:
+- Detailed exercise form and technique analysis
+- Custom workout programming for all fitness levels
+- Sports-specific training methodologies
+- Nutrition and meal planning for performance
+- Injury prevention and rehabilitation exercises
+- Recovery optimization strategies
+- Fitness assessment interpretation
+- Motivational coaching and goal setting
+
+Guidelines:
+- Provide detailed, comprehensive answers (not just 2-3 sentences)
+- Include specific sets, reps, rest periods, and progression plans
+- Explain the "why" behind your recommendations
+- Offer modifications and alternatives when appropriate
+- Use scientific reasoning and evidence-based practices
+- Be encouraging but also honest about realistic expectations
+- Include safety disclaimers when discussing intense exercises or diets
+
+You are talking to college students in a PathFit (Physical Education) class. Be thorough, educational, and genuinely helpful.`;
 
 function renderGeminiAI() {
   const container = document.getElementById("tabContent");
@@ -32,28 +46,28 @@ function renderGeminiAI() {
           <i class="fas fa-robot"></i>
         </div>
         <div>
-          <h2>HydroFit AI Assistant</h2>
-          <p>Powered by Gemini 2.5 Flash • Ask me anything!</p>
+          <h2>HydroFit AI Coach</h2>
+          <p>Expert fitness advice powered by Google Gemini</p>
         </div>
       </div>
 
       <div class="gemini-chat-area" id="geminiChatArea">
         <div class="gemini-welcome" id="geminiWelcome">
-          <div class="welcome-icon">🤖</div>
-          <h3>Hello! I'm your HydroFit AI Assistant</h3>
-          <p>I can help you with workout tips, exercise form, nutrition advice, and more!</p>
+          <div class="welcome-icon">🏋️</div>
+          <h3>Your Personal AI Fitness Coach</h3>
+          <p>Ask me detailed questions about workouts, form, nutrition, or training programs!</p>
           <div class="suggestion-chips">
-            <span class="suggestion-chip" onclick="window.useSuggestion('What are the best exercises for abs?')">
-              <i class="fas fa-dumbbell"></i> Best ab exercises?
+            <span class="suggestion-chip" onclick="window.useSuggestion('Create a detailed 4-week workout plan for building muscle with progressive overload')">
+              <i class="fas fa-dumbbell"></i> 4-Week Muscle Building Plan
             </span>
-            <span class="suggestion-chip" onclick="window.useSuggestion('How do I do proper push-ups?')">
-              <i class="fas fa-question-circle"></i> Proper push-up form?
+            <span class="suggestion-chip" onclick="window.useSuggestion('What are the best exercises for chest development and proper form tips?')">
+              <i class="fas fa-question-circle"></i> Chest Exercises & Form
             </span>
-            <span class="suggestion-chip" onclick="window.useSuggestion('What should I eat after a workout?')">
-              <i class="fas fa-apple-alt"></i> Post-workout nutrition?
+            <span class="suggestion-chip" onclick="window.useSuggestion('How do I calculate my macros for fat loss while maintaining muscle?')">
+              <i class="fas fa-apple-alt"></i> Fat Loss Macros
             </span>
-            <span class="suggestion-chip" onclick="window.useSuggestion('Create a simple 3-day beginner workout plan')">
-              <i class="fas fa-calendar"></i> Beginner workout plan
+            <span class="suggestion-chip" onclick="window.useSuggestion('What stretches should I do daily to improve flexibility for squats?')">
+              <i class="fas fa-person-walking"></i> Squat Flexibility
             </span>
           </div>
         </div>
@@ -82,7 +96,6 @@ function renderGeminiAI() {
     </div>
   `;
   
-  // Auto-resize textarea
   setTimeout(() => {
     const input = document.getElementById('geminiInput');
     if (input) {
@@ -95,17 +108,17 @@ function renderGeminiAI() {
   }, 100);
 }
 
-function useSuggestion(text) {
+window.useSuggestion = function(text) {
   const input = document.getElementById('geminiInput');
   if (input) {
     input.value = text;
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   }
-  sendGeminiMessage();
-}
+  window.sendGeminiMessage();
+};
 
-async function sendGeminiMessage() {
+window.sendGeminiMessage = async function() {
   const input = document.getElementById('geminiInput');
   if (!input) return;
   
@@ -116,14 +129,10 @@ async function sendGeminiMessage() {
   input.value = '';
   input.style.height = 'auto';
   
-  // Hide welcome
   const welcome = document.getElementById('geminiWelcome');
   if (welcome) welcome.style.display = 'none';
   
-  // Add user message
   addMessageToChat('user', message);
-  
-  // Show typing
   showTypingIndicator();
   
   try {
@@ -138,18 +147,36 @@ async function sendGeminiMessage() {
   
   isProcessing = false;
   scrollToBottom();
-}
+};
 
 async function callGeminiAPI(message) {
+  // Include recent chat history for context
+  const recentHistory = chatHistory.slice(-6).map(msg => ({
+    role: msg.role === 'user' ? 'user' : 'model',
+    parts: [{ text: msg.content }]
+  }));
+  
   const requestBody = {
-    contents: [{
-      parts: [{
-        text: `${FITNESS_CONTEXT}\n\nUser: ${message}\n\nAssistant:`
-      }]
-    }],
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: FITNESS_CONTEXT }]
+      },
+      {
+        role: 'model',
+        parts: [{ text: 'I understand. I will act as an expert fitness coach, providing detailed, educational, and helpful responses about exercise science, nutrition, and training.' }]
+      },
+      ...recentHistory,
+      {
+        role: 'user',
+        parts: [{ text: message }]
+      }
+    ],
     generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 300
+      temperature: 0.8,
+      maxOutputTokens: 800,
+      topP: 0.95,
+      topK: 40
     }
   };
   
@@ -175,26 +202,27 @@ async function callGeminiAPI(message) {
 function getFallbackResponse(message) {
   const msg = message.toLowerCase();
   
-  if (msg.includes('abs') || msg.includes('ab')) {
-    return "Great question! The best ab exercises include planks (hold 30-60 seconds), bicycle crunches (3 sets of 20), leg raises (3 sets of 12-15), and Russian twists (3 sets of 20). Engage your core throughout! 💪";
-  }
-  if (msg.includes('push-up') || msg.includes('pushup')) {
-    return "For proper push-ups: Hands shoulder-width apart, body straight, lower until chest nearly touches ground, then push up. Keep core tight! Do 3 sets of as many as you can with good form. 🎯";
-  }
-  if (msg.includes('eat') || msg.includes('nutrition') || msg.includes('food')) {
-    return "Post-workout: Aim for protein (20-30g) and carbs within 30-60 minutes. Good options: Greek yogurt with fruit, protein shake with banana, or eggs with toast. Stay hydrated! 🥗";
-  }
-  if (msg.includes('workout') || msg.includes('plan') || msg.includes('routine')) {
-    return "3-day beginner plan:\n• Day 1: Push-ups, squats, planks\n• Day 2: Rest/light walk\n• Day 3: Lunges, bridges, crunches\n• Day 4: Rest\n• Day 5: Repeat\n3 sets of 10-12 reps each. 📋";
-  }
-  if (msg.includes('cardio') || msg.includes('running')) {
-    return "Start with 20-30 min brisk walking/jogging, 3-4x weekly. Gradually increase. Always warm up 5 min and cool down with stretching! 🏃";
-  }
-  if (msg.includes('stretch') || msg.includes('flexibility')) {
-    return "Hold each stretch 15-30 seconds without bouncing. Focus on hamstrings, quads, chest, back, shoulders. Never stretch to pain! 🧘";
+  if (msg.includes('abs') || msg.includes('ab') || msg.includes('core')) {
+    return "For optimal core development, you need both isolation and compound movements:\n\n**Isolation Exercises:**\n• Planks: 3-4 sets, hold 30-60 sec (progressive: add weight vest)\n• Dead Bug: 3 sets of 12-15 per side\n• Bird Dog: 3 sets of 10-12 per side\n• Pallof Press: 3 sets of 12-15\n\n**Compound Movements:**\n• Squats and Deadlifts (engage core as stabilizer)\n• Hanging Leg Raises: 3 sets of 10-15\n• Ab Wheel Rollouts: 3 sets of 8-12\n\n**Pro Tips:**\n• Breathe out during exertion\n• Quality > Quantity - slow controlled reps\n• Train abs 2-3x per week with 48h rest\n• Visible abs require low body fat (diet matters!)\n\nWant a full core workout program?";
   }
   
-  return "I'm here to help with fitness! Ask about exercises, nutrition, or workout plans. What would you like to know? 💪";
+  if (msg.includes('push-up') || msg.includes('pushup') || msg.includes('chest')) {
+    return "**Perfect Push-Up Form:**\n\n**Setup:**\n• Hands slightly wider than shoulders\n• Body in straight line from head to heels\n• Core and glutes engaged\n• Neck neutral (look at floor slightly ahead)\n\n**Execution:**\n• Lower chest to 2-3 inches from floor (2-3 sec descent)\n• Elbows at 45° angle to body\n• Explosive push up (1 sec)\n• Lock out elbows at top\n\n**Common Mistakes to Avoid:**\n• Sagging hips → Engage glutes more\n• Flared elbows → Tuck to 45°\n• Partial reps → Full range of motion\n• Holding breath → Exhale on push\n\n**Progression Path:**\n1. Knee push-ups (3x8-12)\n2. Standard push-ups (3x5-10)\n3. Diamond push-ups (triceps focus)\n4. Decline push-ups (upper chest)\n5. Archer push-ups (unilateral strength)\n\nTrack your max reps weekly!";
+  }
+  
+  if (msg.includes('workout') || msg.includes('plan') || msg.includes('program') || msg.includes('routine')) {
+    return "**4-Week Progressive Overload Program**\n\n**Week 1-2 (Foundation):**\n• Frequency: 3x/week (M/W/F)\n• Focus: Form mastery\n\nDay 1 (Push):\n• Push-ups: 3x8-12\n• Dumbbell/Chair Dips: 3x10-12\n• Plank: 3x30-45 sec\n\nDay 2 (Pull/Legs):\n• Bodyweight Squats: 3x15-20\n• Lunges: 3x10 per leg\n• Glute Bridges: 3x15\n• Superman Holds: 3x20 sec\n\nDay 3 (Full Body):\n• Burpees: 3x10\n• Mountain Climbers: 3x30 sec\n• Bicycle Crunches: 3x15 per side\n\n**Week 3-4 (Progression):**\n• Add 1 set to each exercise\n• Decrease rest from 90 sec → 60 sec\n• Add tempo (3 sec down, 1 sec up)\n\n**Week 5+ (Advanced):**\n• Add resistance bands or weights\n• Increase to 4x/week\n• Track all lifts for progressive overload\n\nWould you like a specific focus (strength/hypertrophy/endurance)?";
+  }
+  
+  if (msg.includes('nutrition') || msg.includes('eat') || msg.includes('food') || msg.includes('diet') || msg.includes('macro')) {
+    return "**Nutrition Fundamentals for Fitness:**\n\n**Calculate Your Macros:**\n1. Find BMR (Basal Metabolic Rate)\n2. Multiply by activity factor (1.375-1.725)\n3. Adjust based on goal:\n   • Fat loss: -300-500 calories\n   • Maintenance: no change\n   • Muscle gain: +200-300 calories\n\n**Protein (1.6-2.2g per kg bodyweight):**\n• Chicken breast (31g/100g)\n• Greek yogurt (10g/100g)\n• Eggs (6g per egg)\n• Lentils (9g/100g cooked)\n• Tofu (8g/100g)\n\n**Carbs (3-5g per kg):**\n• Oats, rice, potatoes\n• Fruits and vegetables\n• Timing: More carbs around workouts\n\n**Fats (0.5-1g per kg):**\n• Avocado, nuts, olive oil\n• Fatty fish (salmon, tuna)\n\n**Sample Day (2000 cal):**\n• Breakfast: Oatmeal + berries + eggs\n• Lunch: Chicken + quinoa + veggies\n• Snack: Greek yogurt + apple\n• Dinner: Salmon + sweet potato + broccoli\n\n**Hydration:** 35ml per kg bodyweight daily\n\nWant a personalized meal plan?";
+  }
+  
+  if (msg.includes('stretch') || msg.includes('flexibility') || msg.includes('mobility')) {
+    return "**Complete Flexibility Routine for Better Lifts**\n\n**Dynamic Warm-Up (Pre-Workout - 5-10 min):**\n• Leg swings: 10-15 per leg\n• Arm circles: 10 forward/backward\n• Torso twists: 10 per side\n• Cat-Cow: 8-10 reps\n• Walking lunges with twist: 10 per leg\n• World's greatest stretch: 5 per side\n\n**Static Stretching (Post-Workout - Hold 20-30 sec):**\n\n**For Squat Depth:**\n• Deep squat hold (use support if needed)\n• Couch stretch (quad/hip flexor)\n• Pigeon pose (glutes)\n• Ankle mobility drills\n\n**For Shoulder Mobility:**\n• Doorway chest stretch\n• Thread the needle\n• Wall slides\n• Band pull-aparts\n\n**For Deadlift/Hinge:**\n• Standing hamstring stretch\n• 90/90 hip stretch\n• Cat-Cow flow\n• Child's pose with lat reach\n\n**Pro Tips:**\n• Never stretch cold muscles\n• Breathe deeply into stretches\n• Consistency > Intensity\n• 10 min daily > 60 min weekly\n\nWant sport-specific mobility drills?";
+  }
+  
+  return "I'm your expert AI fitness coach! I can provide detailed guidance on:\n\n• **Exercise form and technique** (with progressions)\n• **Custom workout programming** (any goal/level)\n• **Nutrition and meal planning** (macros, timing)\n• **Injury prevention and rehab** exercises\n• **Recovery and mobility** routines\n• **Sports-specific training**\n\nWhat would you like detailed help with? Be specific for the best answer! 💪";
 }
 
 function addMessageToChat(role, content) {
@@ -222,6 +250,7 @@ function formatMessage(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/•/g, '<br>•')
     .replace(/\n/g, '<br>');
 }
 
@@ -252,7 +281,7 @@ function scrollToBottom() {
   if (area) area.scrollTop = area.scrollHeight;
 }
 
-function clearGeminiChat() {
+window.clearGeminiChat = function() {
   if (!confirm('Clear conversation?')) return;
   
   chatHistory = [];
@@ -265,7 +294,7 @@ function clearGeminiChat() {
   if (welcome) welcome.style.display = 'block';
   
   showToast('Chat cleared', false);
-}
+};
 
 function loadChatHistory() {
   const saved = localStorage.getItem('hydrofit_gemini_chat');
@@ -302,4 +331,4 @@ function loadChatHistory() {
   }
 }
 
-console.log("✅ Gemini AI Loaded");
+console.log("✅ Gemini AI Coach Loaded");
