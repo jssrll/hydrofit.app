@@ -41,7 +41,6 @@ function switchTab(tab) {
     'bloodpressure': () => { updatePageTitle('Blood Pressure'); renderBloodPressure(); window.isLoading = false; },
     'music': () => { updatePageTitle('Workout Music'); renderMusic(); window.isLoading = false; },
     'measurements': () => { updatePageTitle('Body Measurements'); renderMeasurements(); window.isLoading = false; },
-    'calendar': () => { updatePageTitle('Calendar'); renderCalendar(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
   
