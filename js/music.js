@@ -24,6 +24,27 @@ let currentPlaylist = null;
 let currentTrack = null;
 let isPlaying = false;
 let isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+let tokenExpiryTime = null;
+
+// Check for saved token on load
+(function init() {
+  const savedToken = localStorage.getItem('spotify_access_token');
+  const savedExpiry = localStorage.getItem('spotify_token_expiry');
+  
+  if (savedToken && savedExpiry) {
+    const expiryTime = parseInt(savedExpiry);
+    if (Date.now() < expiryTime) {
+      spotifyAccessToken = savedToken;
+      tokenExpiryTime = expiryTime;
+      console.log('✅ Valid token found');
+    } else {
+      console.log('⚠️ Token expired, clearing...');
+      localStorage.removeItem('spotify_access_token');
+      localStorage.removeItem('spotify_refresh_token');
+      localStorage.removeItem('spotify_token_expiry');
+    }
+  }
+})();
 
 function renderMusic() {
   const container = document.getElementById("tabContent");
@@ -42,7 +63,7 @@ function renderMusic() {
           <h2>Connect Your Spotify</h2>
         </div>
         <p style="color:#64748b;margin-bottom:24px;text-align:center">Connect your Spotify account to play your own playlists and music during workouts</p>
-        <button class="spotify-connect-btn" onclick="connectSpotify()">
+        <button class="spotify-connect-btn" id="spotifyConnectBtn">
           <i class="fab fa-spotify"></i> Connect Spotify Account
         </button>
         <p class="connect-hint">
@@ -58,7 +79,7 @@ function renderMusic() {
             <h3 id="userName">Loading profile...</h3>
             <p id="userEmail"></p>
           </div>
-          <button class="btn btn-outline" onclick="disconnectSpotify()">
+          <button class="btn btn-outline" id="disconnectSpotifyBtn">
             <i class="fas fa-sign-out-alt"></i> Disconnect
           </button>
         </div>
@@ -77,17 +98,17 @@ function renderMusic() {
             </div>
           </div>
           <div class="player-controls">
-            <button class="player-btn" onclick="previousTrack()">
+            <button class="player-btn" id="previousTrackBtn">
               <i class="fas fa-step-backward"></i>
             </button>
-            <button class="player-btn play-pause" id="playPauseBtn" onclick="togglePlayPause()">
+            <button class="player-btn play-pause" id="playPauseBtn">
               <i class="fas fa-play"></i>
             </button>
-            <button class="player-btn" onclick="nextTrack()">
+            <button class="player-btn" id="nextTrackBtn">
               <i class="fas fa-step-forward"></i>
             </button>
           </div>
-          <div class="progress-bar" id="progressBar" onclick="seekToPosition(event)">
+          <div class="progress-bar" id="progressBar">
             <div class="progress-fill" id="progressFill"></div>
           </div>
           <div class="time-display">
@@ -96,7 +117,7 @@ function renderMusic() {
           </div>
           <div class="volume-control">
             <i class="fas fa-volume-down"></i>
-            <input type="range" id="volumeSlider" min="0" max="100" value="50" onchange="setVolume(this.value)">
+            <input type="range" id="volumeSlider" min="0" max="100" value="50">
             <i class="fas fa-volume-up"></i>
           </div>
         </div>
@@ -111,7 +132,7 @@ function renderMusic() {
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <h3 style="margin:0"><i class="fas fa-list"></i> My Playlists</h3>
-          <button class="refresh-btn" onclick="loadUserPlaylists()" title="Refresh">
+          <button class="refresh-btn" id="refreshPlaylistsBtn" title="Refresh">
             <i class="fas fa-sync-alt"></i>
           </button>
         </div>
@@ -148,35 +169,32 @@ function renderMusic() {
     `}
   `;
   
-  if (isConnected) {
-    // Verify token is valid before loading
-    verifyAndLoadData();
+  // Attach event listeners after render
+  if (!isConnected) {
+    document.getElementById('spotifyConnectBtn')?.addEventListener('click', connectSpotify);
   } else {
-    checkForAuthCallback();
+    document.getElementById('disconnectSpotifyBtn')?.addEventListener('click', disconnectSpotify);
+    document.getElementById('refreshPlaylistsBtn')?.addEventListener('click', loadUserPlaylists);
+    
+    if (!isMobileDevice) {
+      document.getElementById('previousTrackBtn')?.addEventListener('click', previousTrack);
+      document.getElementById('playPauseBtn')?.addEventListener('click', togglePlayPause);
+      document.getElementById('nextTrackBtn')?.addEventListener('click', nextTrack);
+      document.getElementById('progressBar')?.addEventListener('click', seekToPosition);
+      document.getElementById('volumeSlider')?.addEventListener('change', (e) => setVolume(e.target.value));
+    }
+    
+    // Load data
+    loadUserProfile();
+    loadUserPlaylists();
+    if (!isMobileDevice) {
+      loadAvailableDevices();
+      initializeSpotifyPlayer();
+    }
   }
-}
-
-async function verifyAndLoadData() {
-  // Test if token is valid
-  const testData = await spotifyAPI('me');
   
-  if (!testData || testData.error) {
-    console.log('Token invalid, clearing...');
-    spotifyAccessToken = null;
-    localStorage.removeItem('spotify_access_token');
-    localStorage.removeItem('spotify_refresh_token');
-    renderMusic();
-    showToast('Session expired. Please reconnect.', true);
-    return;
-  }
-  
-  // Token is valid, load data
-  loadUserProfile();
-  loadUserPlaylists();
-  if (!isMobileDevice) {
-    loadAvailableDevices();
-    initializeSpotifyPlayer();
-  }
+  // Check for OAuth callback
+  checkForAuthCallback();
 }
 
 // ========================================
@@ -200,16 +218,18 @@ async function generateCodeChallenge(codeVerifier) {
 }
 
 async function connectSpotify() {
-  // Clear any existing tokens before new login
+  // Clear any existing tokens
   spotifyAccessToken = null;
   localStorage.removeItem('spotify_access_token');
   localStorage.removeItem('spotify_refresh_token');
   localStorage.removeItem('spotify_code_verifier');
+  localStorage.removeItem('spotify_token_expiry');
   
   const codeVerifier = generateRandomString(64);
   const codeChallenge = await generateCodeChallenge(codeVerifier);
   
   localStorage.setItem('spotify_code_verifier', codeVerifier);
+  localStorage.setItem('spotify_auth_started', 'true');
   
   const params = new URLSearchParams({
     response_type: 'code',
@@ -217,9 +237,11 @@ async function connectSpotify() {
     scope: SPOTIFY_SCOPES,
     code_challenge_method: 'S256',
     code_challenge: codeChallenge,
-    redirect_uri: SPOTIFY_REDIRECT_URI
+    redirect_uri: SPOTIFY_REDIRECT_URI,
+    show_dialog: 'false'
   });
   
+  // Redirect to Spotify
   window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
 }
 
@@ -228,6 +250,7 @@ async function exchangeCodeForToken(code) {
   
   if (!codeVerifier) {
     console.error('No code verifier found');
+    showToast('Authentication failed. Please try again.', true);
     return false;
   }
   
@@ -252,24 +275,36 @@ async function exchangeCodeForToken(code) {
     
     if (data.access_token) {
       spotifyAccessToken = data.access_token;
+      tokenExpiryTime = Date.now() + (data.expires_in * 1000);
+      
       localStorage.setItem('spotify_access_token', data.access_token);
+      localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
       
       if (data.refresh_token) {
         localStorage.setItem('spotify_refresh_token', data.refresh_token);
       }
       
       localStorage.removeItem('spotify_code_verifier');
+      localStorage.removeItem('spotify_auth_started');
+      
+      // Clear URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Re-render with connected state
       renderMusic();
       showToast('Connected to Spotify! 🎵', false);
       return true;
     } else {
       console.error('Token exchange failed:', data);
+      localStorage.removeItem('spotify_auth_started');
+      window.history.replaceState({}, document.title, window.location.pathname);
       showToast('Failed to connect. Please try again.', true);
       return false;
     }
   } catch (error) {
     console.error('Token exchange error:', error);
+    localStorage.removeItem('spotify_auth_started');
+    window.history.replaceState({}, document.title, window.location.pathname);
     showToast('Connection error. Please try again.', true);
     return false;
   }
@@ -298,7 +333,10 @@ async function refreshAccessToken() {
     
     if (data.access_token) {
       spotifyAccessToken = data.access_token;
+      tokenExpiryTime = Date.now() + (data.expires_in * 1000);
+      
       localStorage.setItem('spotify_access_token', data.access_token);
+      localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
       
       if (data.refresh_token) {
         localStorage.setItem('spotify_refresh_token', data.refresh_token);
@@ -318,30 +356,28 @@ function checkForAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const error = params.get('error');
+  const authStarted = localStorage.getItem('spotify_auth_started');
   
   if (error) {
-    showToast('Authorization failed: ' + error, true);
+    localStorage.removeItem('spotify_auth_started');
     window.history.replaceState({}, document.title, window.location.pathname);
+    showToast('Authorization cancelled', true);
     return;
   }
   
-  if (code) {
+  if (code && authStarted === 'true') {
     exchangeCodeForToken(code);
-  } else {
-    // Check for saved token and validate it
-    const savedToken = localStorage.getItem('spotify_access_token');
-    if (savedToken) {
-      spotifyAccessToken = savedToken;
-      renderMusic();
-    }
   }
 }
 
 function disconnectSpotify() {
   spotifyAccessToken = null;
+  tokenExpiryTime = null;
   localStorage.removeItem('spotify_access_token');
   localStorage.removeItem('spotify_refresh_token');
   localStorage.removeItem('spotify_code_verifier');
+  localStorage.removeItem('spotify_token_expiry');
+  localStorage.removeItem('spotify_auth_started');
   
   if (spotifyPlayer) {
     spotifyPlayer.disconnect();
@@ -359,6 +395,17 @@ function disconnectSpotify() {
 async function spotifyAPI(endpoint, method = 'GET', body = null) {
   if (!spotifyAccessToken) return null;
   
+  // Check if token is expired
+  if (tokenExpiryTime && Date.now() >= tokenExpiryTime) {
+    console.log('Token expired, refreshing...');
+    const refreshed = await refreshAccessToken();
+    if (!refreshed) {
+      disconnectSpotify();
+      showToast('Session expired. Please reconnect.', true);
+      return null;
+    }
+  }
+  
   const options = {
     method,
     headers: { 'Authorization': `Bearer ${spotifyAccessToken}` }
@@ -372,9 +419,9 @@ async function spotifyAPI(endpoint, method = 'GET', body = null) {
   try {
     let response = await fetch(`https://api.spotify.com/v1/${endpoint}`, options);
     
-    // Token expired
+    // Token expired during request
     if (response.status === 401) {
-      console.log('Token expired, refreshing...');
+      console.log('Token expired during request, refreshing...');
       const refreshed = await refreshAccessToken();
       if (refreshed) {
         options.headers['Authorization'] = `Bearer ${spotifyAccessToken}`;
@@ -419,10 +466,6 @@ async function loadUserProfile() {
     if (avatarEl && data.images && data.images.length > 0) {
       avatarEl.src = data.images[0].url;
     }
-  } else {
-    // Failed to load profile
-    const nameEl = document.getElementById('userName');
-    if (nameEl) nameEl.innerText = 'Failed to load profile';
   }
 }
 
@@ -430,7 +473,13 @@ async function loadUserPlaylists() {
   const container = document.getElementById('playlistsList');
   if (!container) return;
   
-  const data = await spotifyAPI('me/playlists?limit=20');
+  container.innerHTML = `
+    <div class="loading-placeholder">
+      <i class="fas fa-spinner fa-spin"></i> Loading your playlists...
+    </div>
+  `;
+  
+  const data = await spotifyAPI('me/playlists?limit=30');
   
   if (data && data.items) {
     userPlaylists = data.items;
@@ -447,7 +496,7 @@ async function loadUserPlaylists() {
         : 'https://via.placeholder.com/60/1DB954/ffffff?text=🎵';
       
       html += `
-        <div class="playlist-card" onclick="playPlaylist('${playlist.id}', '${playlist.uri}')">
+        <div class="playlist-card" data-playlist-id="${playlist.id}" data-playlist-uri="${playlist.uri}">
           <img src="${imageUrl}" alt="${escapeHtml(playlist.name)}" class="playlist-image" onerror="this.src='https://via.placeholder.com/60/1DB954/ffffff?text=🎵'">
           <div class="playlist-info">
             <h4>${escapeHtml(playlist.name)}</h4>
@@ -458,14 +507,24 @@ async function loadUserPlaylists() {
     });
     html += '</div>';
     container.innerHTML = html;
+    
+    // Attach click listeners
+    document.querySelectorAll('.playlist-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const uri = card.dataset.playlistUri;
+        const id = card.dataset.playlistId;
+        playPlaylist(id, uri);
+      });
+    });
   } else {
     container.innerHTML = `
       <div style="text-align:center;padding:20px;color:#d63031">
         <i class="fas fa-exclamation-circle"></i>
         <p>Failed to load playlists</p>
-        <button class="btn btn-outline" onclick="loadUserPlaylists()" style="margin-top:12px">Try Again</button>
+        <button class="btn btn-outline" id="retryPlaylistsBtn" style="margin-top:12px">Try Again</button>
       </div>
     `;
+    document.getElementById('retryPlaylistsBtn')?.addEventListener('click', loadUserPlaylists);
   }
 }
 
@@ -497,7 +556,7 @@ function createPlayer() {
   
   spotifyPlayer.addListener('ready', ({ device_id }) => {
     spotifyDeviceId = device_id;
-    console.log('Spotify Player Ready:', device_id);
+    console.log('✅ Spotify Player Ready');
     transferPlayback();
   });
   
@@ -507,21 +566,8 @@ function createPlayer() {
     }
   });
   
-  spotifyPlayer.addListener('initialization_error', ({ message }) => {
-    console.error('Failed to initialize:', message);
-  });
-  
   spotifyPlayer.addListener('authentication_error', ({ message }) => {
-    console.error('Authentication error:', message);
-    disconnectSpotify();
-  });
-  
-  spotifyPlayer.addListener('account_error', ({ message }) => {
-    console.error('Account error:', message);
-  });
-  
-  spotifyPlayer.addListener('playback_error', ({ message }) => {
-    console.error('Playback error:', message);
+    console.error('Auth error:', message);
   });
   
   spotifyPlayer.connect();
@@ -529,11 +575,7 @@ function createPlayer() {
 
 async function transferPlayback() {
   if (!spotifyDeviceId) return;
-  
-  await spotifyAPI('me/player', 'PUT', {
-    device_ids: [spotifyDeviceId],
-    play: false
-  });
+  await spotifyAPI('me/player', 'PUT', { device_ids: [spotifyDeviceId], play: false });
 }
 
 async function loadAvailableDevices() {
@@ -545,27 +587,27 @@ async function loadAvailableDevices() {
   if (data && data.devices && data.devices.length > 0) {
     let html = '<div class="device-list">';
     data.devices.forEach(device => {
-      const isActive = device.is_active;
       html += `
-        <div class="device-item ${isActive ? 'active' : ''}" onclick="setActiveDevice('${device.id}')">
+        <div class="device-item ${device.is_active ? 'active' : ''}" data-device-id="${device.id}">
           <i class="fas fa-${device.type === 'Computer' ? 'desktop' : device.type === 'Smartphone' ? 'mobile-alt' : 'speaker'}"></i>
           <span>${escapeHtml(device.name)}</span>
-          ${isActive ? '<span class="active-badge">Active</span>' : ''}
+          ${device.is_active ? '<span class="active-badge">Active</span>' : ''}
         </div>
       `;
     });
     html += '</div>';
     container.innerHTML = html;
+    
+    document.querySelectorAll('.device-item').forEach(item => {
+      item.addEventListener('click', () => setActiveDevice(item.dataset.deviceId));
+    });
   } else {
-    container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Open Spotify on your device to control playback</p>';
+    container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Open Spotify on a device to control playback</p>';
   }
 }
 
 async function setActiveDevice(deviceId) {
-  await spotifyAPI('me/player', 'PUT', {
-    device_ids: [deviceId]
-  });
-  
+  await spotifyAPI('me/player', 'PUT', { device_ids: [deviceId] });
   showToast('Device changed', false);
   setTimeout(loadAvailableDevices, 1000);
 }
@@ -580,16 +622,10 @@ async function playPlaylist(playlistId, playlistUri) {
     return;
   }
   
-  currentPlaylist = { id: playlistId, uri: playlistUri };
-  
-  const result = await spotifyAPI('me/player/play', 'PUT', {
-    context_uri: playlistUri
-  });
-  
+  const result = await spotifyAPI('me/player/play', 'PUT', { context_uri: playlistUri });
   if (result) {
     showToast('Playing playlist! 🎵', false);
-    const card = document.getElementById('nowPlayingCard');
-    if (card) card.style.display = 'block';
+    document.getElementById('nowPlayingCard').style.display = 'block';
   }
 }
 
@@ -639,9 +675,6 @@ async function seekToPosition(event) {
 function updateNowPlaying(state) {
   if (!state || !state.item) return;
   
-  currentTrack = state.item;
-  isPlaying = state.is_playing;
-  
   const card = document.getElementById('nowPlayingCard');
   if (card) card.style.display = 'block';
   
@@ -660,38 +693,12 @@ function updateNowPlaying(state) {
   if (trackImage) trackImage.src = state.item.album.images[0]?.url || '';
   
   if (playPauseBtn) {
-    playPauseBtn.innerHTML = isPlaying 
-      ? '<i class="fas fa-pause"></i>' 
-      : '<i class="fas fa-play"></i>';
+    playPauseBtn.innerHTML = state.is_playing ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
   }
   
-  const progress = (state.position / state.item.duration_ms) * 100;
-  if (progressFill) progressFill.style.width = progress + '%';
-  
+  if (progressFill) progressFill.style.width = (state.position / state.item.duration_ms * 100) + '%';
   if (currentTime) currentTime.innerText = formatTime(state.position);
   if (duration) duration.innerText = formatTime(state.item.duration_ms);
-  
-  if (isPlaying) {
-    setTimeout(() => updateProgress(), 1000);
-  }
-}
-
-async function updateProgress() {
-  const state = await spotifyAPI('me/player');
-  if (state && state.is_playing && state.item) {
-    const progressFill = document.getElementById('progressFill');
-    const currentTime = document.getElementById('currentTime');
-    
-    if (progressFill) {
-      const progress = (state.progress_ms / state.item.duration_ms) * 100;
-      progressFill.style.width = progress + '%';
-    }
-    if (currentTime) {
-      currentTime.innerText = formatTime(state.progress_ms);
-    }
-    
-    setTimeout(() => updateProgress(), 1000);
-  }
 }
 
 function formatTime(ms) {
