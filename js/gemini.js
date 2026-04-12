@@ -76,29 +76,52 @@ function renderGeminiAI() {
     </div>
   `;
   
-  setupEventListeners();
-  loadChatHistory();
+  // Use setTimeout to ensure DOM is fully rendered
+  setTimeout(() => {
+    setupEventListeners();
+    loadChatHistory();
+  }, 100);
 }
 
 function setupEventListeners() {
-  document.getElementById('geminiInput')?.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-  });
+  const input = document.getElementById('geminiInput');
+  const sendBtn = document.getElementById('sendMessageBtn');
+  const clearBtn = document.getElementById('clearChatBtn');
   
-  document.getElementById('geminiInput')?.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
+  if (input) {
+    input.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
   
-  document.getElementById('sendMessageBtn')?.addEventListener('click', sendMessage);
-  document.getElementById('clearChatBtn')?.addEventListener('click', clearChat);
+  if (sendBtn) {
+    sendBtn.addEventListener('click', sendMessage);
+  }
+  
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      if (confirm('Clear conversation?')) {
+        chatHistory = [];
+        localStorage.removeItem('hydrofit_gemini_chat');
+        document.getElementById('chatMessages').innerHTML = '';
+        document.getElementById('geminiWelcome').style.display = 'block';
+        showToast('Chat cleared', false);
+      }
+    });
+  }
   
   document.querySelectorAll('.suggestion-chip').forEach(chip => {
     chip.addEventListener('click', function() {
-      document.getElementById('geminiInput').value = this.dataset.query;
+      const query = this.getAttribute('data-query');
+      document.getElementById('geminiInput').value = query;
       sendMessage();
     });
   });
@@ -106,16 +129,23 @@ function setupEventListeners() {
 
 async function sendMessage() {
   const input = document.getElementById('geminiInput');
-  const message = input.value.trim();
+  if (!input) return;
   
+  const message = input.value.trim();
   if (!message || isProcessing) return;
   
   isProcessing = true;
   input.value = '';
   input.style.height = 'auto';
   
-  document.getElementById('geminiWelcome').style.display = 'none';
+  // Hide welcome
+  const welcome = document.getElementById('geminiWelcome');
+  if (welcome) welcome.style.display = 'none';
+  
+  // Add user message
   addMessageToChat('user', message);
+  
+  // Show typing
   showTypingIndicator();
   
   try {
@@ -191,6 +221,7 @@ function getFallbackResponse(message) {
 
 function addMessageToChat(role, content) {
   const container = document.getElementById('chatMessages');
+  if (!container) return;
   
   const div = document.createElement('div');
   div.className = `gemini-message ${role}-message`;
@@ -218,6 +249,8 @@ function formatMessage(text) {
 
 function showTypingIndicator() {
   const container = document.getElementById('chatMessages');
+  if (!container) return;
+  
   const div = document.createElement('div');
   div.className = 'gemini-message assistant-message';
   div.id = 'typingIndicator';
@@ -232,21 +265,13 @@ function showTypingIndicator() {
 }
 
 function removeTypingIndicator() {
-  document.getElementById('typingIndicator')?.remove();
+  const indicator = document.getElementById('typingIndicator');
+  if (indicator) indicator.remove();
 }
 
 function scrollToBottom() {
   const area = document.getElementById('geminiChatArea');
-  area.scrollTop = area.scrollHeight;
-}
-
-function clearChat() {
-  if (!confirm('Clear conversation?')) return;
-  chatHistory = [];
-  localStorage.removeItem('hydrofit_gemini_chat');
-  document.getElementById('chatMessages').innerHTML = '';
-  document.getElementById('geminiWelcome').style.display = 'block';
-  showToast('Chat cleared', false);
+  if (area) area.scrollTop = area.scrollHeight;
 }
 
 function loadChatHistory() {
@@ -256,6 +281,8 @@ function loadChatHistory() {
   try {
     chatHistory = JSON.parse(saved);
     const container = document.getElementById('chatMessages');
+    if (!container) return;
+    
     container.innerHTML = '';
     
     chatHistory.forEach(msg => {
@@ -272,8 +299,11 @@ function loadChatHistory() {
     });
     
     if (chatHistory.length > 0) {
-      document.getElementById('geminiWelcome').style.display = 'none';
+      const welcome = document.getElementById('geminiWelcome');
+      if (welcome) welcome.style.display = 'none';
     }
+    
+    scrollToBottom();
   } catch (e) {
     console.error('Error loading chat:', e);
   }
