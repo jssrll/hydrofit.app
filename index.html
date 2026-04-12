@@ -134,9 +134,29 @@
       });
     })();
   </script>
-
 </head>
 <body>
+<!-- Persistent YouTube Player -->
+<div id="persistentYouTubePlayer" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></div>
+
+<!-- Mini Player Bar -->
+<div id="miniMusicPlayer" class="mini-music-player" style="display:none">
+  <div class="mini-player-content">
+    <img id="miniPlayerThumb" src="" alt="Now Playing">
+    <div class="mini-player-info">
+      <h4 id="miniPlayerTitle">No music playing</h4>
+      <p id="miniPlayerArtist"></p>
+    </div>
+    <div class="mini-player-controls">
+      <button class="mini-player-btn" id="miniPlayPauseBtn">
+        <i class="fas fa-play"></i>
+      </button>
+    </div>
+    <button class="mini-player-close" id="miniPlayerClose">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
 <div class="app-container">
   <!-- ======================================== -->
   <!-- SIDEBAR NAVIGATION                       -->
@@ -199,7 +219,7 @@
         <i class="fas fa-bed"></i> Recovery
       </button>
       <button class="nav-btn" data-tab="music">
-        <i class="fas fa-music"></i> Workout Music
+        <i class="fas fa-music"></i> YouTube Music
       </button>
       <button class="nav-btn" data-tab="measurements">
         <i class="fas fa-ruler"></i> Measurements
@@ -319,6 +339,7 @@
 <script src="js/stretching.js"></script>
 <script src="js/hydration.js"></script>
 <script src="js/music.js"></script>
+<script src="js/persistent-player.js"></script>
 <script src="js/measurements.js"></script>
 <script src="js/driveresources.js"></script>
 <script src="js/bloodpressure.js"></script>

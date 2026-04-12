@@ -16,14 +16,13 @@ const SCOPES = [
 let accessToken = null;
 let userProfile = null;
 let userPlaylists = [];
-let youtubePlayer = null;
 let currentVideo = null;
-let isPlaying = false;
 let currentView = 'home';
-let searchResults = [];
 let homeVideos = [];
 let currentPlaylistVideos = [];
 let currentPlaylistId = null;
+let youtubePlayer = null;
+let isPlaying = false;
 
 // Check for saved token
 (function init() {
@@ -48,6 +47,9 @@ let currentPlaylistId = null;
     window.location.hash = '';
     console.log('✅ Token saved from URL');
   }
+  
+  // Initialize persistent player
+  initPersistentPlayer();
 })();
 
 function renderMusic() {
@@ -56,11 +58,10 @@ function renderMusic() {
   
   container.innerHTML = `
     <div class="page-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Workout Music" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="YouTube Music" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
     ${!isConnected ? `
-      <!-- Connect YouTube -->
       <div class="card connect-card">
         <div class="connect-header">
           <i class="fab fa-youtube" style="color:#FF0000"></i>
@@ -77,9 +78,7 @@ function renderMusic() {
         </p>
       </div>
     ` : `
-      <!-- YouTube Music Interface -->
       <div class="youtube-music-container">
-        <!-- Sidebar -->
         <div class="youtube-sidebar">
           <div class="sidebar-menu">
             <div class="menu-item ${currentView === 'home' ? 'active' : ''}" onclick="switchToHome()">
@@ -112,38 +111,12 @@ function renderMusic() {
           </div>
         </div>
         
-        <!-- Main Content -->
         <div class="youtube-main">
-          <!-- Now Playing Bar (Bottom) -->
-          <div class="now-playing-bar" id="nowPlayingBar" style="display:none">
-            <div class="now-playing-left">
-              <img id="nowPlayingThumb" src="" alt="Thumbnail">
-              <div class="now-playing-info">
-                <h4 id="nowPlayingTitle">No video playing</h4>
-                <p id="nowPlayingChannel"></p>
-              </div>
-            </div>
-            <div class="now-playing-center">
-              <button class="player-btn-small" id="prevBtn"><i class="fas fa-step-backward"></i></button>
-              <button class="player-btn-small play-pause-small" id="playPauseBtn"><i class="fas fa-play"></i></button>
-              <button class="player-btn-small" id="nextBtn"><i class="fas fa-step-forward"></i></button>
-            </div>
-            <div class="now-playing-right">
-              <i class="fas fa-volume-down"></i>
-              <input type="range" id="volumeSlider" min="0" max="100" value="50">
-              <i class="fas fa-volume-up"></i>
-            </div>
-          </div>
-          
-          <!-- Content Area -->
           <div id="youtubeContentArea">
             ${renderHomeContent()}
           </div>
         </div>
       </div>
-      
-      <!-- Hidden YouTube Player -->
-      <div id="youtubePlayer" style="display:none"></div>
     `}
   `;
   
@@ -151,16 +124,44 @@ function renderMusic() {
     document.getElementById('youtubeConnectBtn')?.addEventListener('click', connectYouTube);
   } else {
     document.getElementById('disconnectBtn')?.addEventListener('click', disconnectYouTube);
-    document.getElementById('prevBtn')?.addEventListener('click', previousTrack);
-    document.getElementById('playPauseBtn')?.addEventListener('click', togglePlayPause);
-    document.getElementById('nextBtn')?.addEventListener('click', nextTrack);
-    document.getElementById('volumeSlider')?.addEventListener('input', (e) => setVolume(e.target.value));
     
     fetchUserProfile();
     fetchUserPlaylists();
     fetchHomeVideos();
-    initializeYouTubePlayer();
+    initYouTubePlayer();
   }
+}
+
+function initYouTubePlayer() {
+  if (!window.YT) {
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.body.appendChild(tag);
+  }
+  
+  window.onYouTubeIframeAPIReady = function() {
+    if (youtubePlayer) youtubePlayer.destroy();
+    
+    youtubePlayer = new YT.Player('youtubePlayer', {
+      height: '0',
+      width: '0',
+      playerVars: { autoplay: 0, controls: 0 },
+      events: { onStateChange: onPlayerStateChange }
+    });
+  };
+  
+  if (window.YT && window.YT.Player) {
+    youtubePlayer = new YT.Player('youtubePlayer', {
+      height: '0',
+      width: '0',
+      playerVars: { autoplay: 0, controls: 0 },
+      events: { onStateChange: onPlayerStateChange }
+    });
+  }
+}
+
+function onPlayerStateChange(event) {
+  isPlaying = event.data === YT.PlayerState.PLAYING;
 }
 
 function renderHomeContent() {
@@ -278,7 +279,6 @@ function disconnectYouTube() {
   accessToken = null;
   localStorage.removeItem('youtube_access_token');
   localStorage.removeItem('youtube_token_expiry');
-  if (youtubePlayer) youtubePlayer.destroy();
   renderMusic();
   showToast('Disconnected from YouTube', false);
 }
@@ -328,10 +328,10 @@ async function fetchUserProfile() {
   
   if (data) {
     userProfile = data;
-    document.getElementById('sidebarName').innerText = data.name?.split(' ')[0] || 'User';
-    if (data.picture) {
-      document.getElementById('sidebarAvatar').src = data.picture;
-    }
+    const nameEl = document.getElementById('sidebarName');
+    const avatarEl = document.getElementById('sidebarAvatar');
+    if (nameEl) nameEl.innerText = data.name?.split(' ')[0] || 'User';
+    if (avatarEl && data.picture) avatarEl.src = data.picture;
   }
 }
 
@@ -369,7 +369,6 @@ function updateSidebarPlaylists() {
 }
 
 async function fetchHomeVideos() {
-  // Search for workout music
   const queries = ['workout music 2024', 'gym motivation', 'running playlist'];
   const randomQuery = queries[Math.floor(Math.random() * queries.length)];
   
@@ -387,6 +386,7 @@ function displayHomeVideos() {
   
   let html = '';
   homeVideos.forEach(item => {
+    if (!item.id.videoId) return;
     const video = item.id.videoId;
     const title = item.snippet.title;
     const channel = item.snippet.channelTitle;
@@ -447,25 +447,18 @@ async function openPlaylist(playlistId, playlistName) {
     data.items.forEach((item, index) => {
       const video = item.snippet;
       html += `
-        <div class="playlist-video-item" onclick="playPlaylistVideo('${video.resourceId.videoId}', '${escapeHtml(video.title)}', '${escapeHtml(video.channelTitle)}', '${video.thumbnails.default.url}')">
+        <div class="playlist-video-item" onclick="playVideo('${video.resourceId.videoId}', '${escapeHtml(video.title)}', '${escapeHtml(video.channelTitle)}', '${video.thumbnails.default.url}')">
           <span class="video-index">${index + 1}</span>
           <img src="${video.thumbnails.default.url}" alt="">
           <div class="video-details">
             <h4>${escapeHtml(video.title)}</h4>
             <p>${escapeHtml(video.channelTitle)}</p>
           </div>
-          <button class="add-to-queue-btn" onclick="event.stopPropagation(); addToQueue('${video.resourceId.videoId}')">
-            <i class="fas fa-plus"></i>
-          </button>
         </div>
       `;
     });
     videosContainer.innerHTML = html;
   }
-}
-
-function playPlaylistVideo(videoId, title, channel, thumb) {
-  playVideo(videoId, title, channel, thumb);
 }
 
 function playAllInPlaylist() {
@@ -476,79 +469,139 @@ function playAllInPlaylist() {
 }
 
 // ========================================
-// YOUTUBE PLAYER
+// VIDEO PLAYBACK (Persistent)
 // ========================================
 
-function initializeYouTubePlayer() {
+function playVideo(videoId, title, channel, thumb) {
+  currentVideo = { id: videoId, title, channel, thumb };
+  
+  // Use persistent player
+  if (window.playPersistentVideo) {
+    window.playPersistentVideo(videoId, title, channel, thumb);
+  }
+  
+  // Also play in local player if on music page
+  if (youtubePlayer && youtubePlayer.loadVideoById) {
+    youtubePlayer.loadVideoById(videoId);
+  }
+}
+
+// ========================================
+// PERSISTENT PLAYER INIT
+// ========================================
+
+function initPersistentPlayer() {
+  if (window.persistentPlayer?.isInitialized) return;
+  
   if (!window.YT) {
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     document.body.appendChild(tag);
   }
   
-  window.onYouTubeIframeAPIReady = createPlayer;
-  if (window.YT && window.YT.Player) createPlayer();
+  window.onYouTubeIframeAPIReady = function() {
+    if (!window.persistentPlayer) {
+      window.persistentPlayer = { isInitialized: true };
+    }
+    
+    window.persistentPlayer.player = new YT.Player('persistentYouTubePlayer', {
+      height: '1',
+      width: '1',
+      playerVars: { autoplay: 0, controls: 0 },
+      events: {
+        onReady: () => console.log('✅ Persistent Player Ready'),
+        onStateChange: onPersistentStateChange
+      }
+    });
+  };
+  
+  if (window.YT && window.YT.Player && !window.persistentPlayer?.player) {
+    window.persistentPlayer = window.persistentPlayer || { isInitialized: true };
+    window.persistentPlayer.player = new YT.Player('persistentYouTubePlayer', {
+      height: '1',
+      width: '1',
+      playerVars: { autoplay: 0, controls: 0 },
+      events: {
+        onReady: () => console.log('✅ Persistent Player Ready'),
+        onStateChange: onPersistentStateChange
+      }
+    });
+  }
 }
 
-function createPlayer() {
-  if (youtubePlayer) youtubePlayer.destroy();
+function onPersistentStateChange(event) {
+  const isPlaying = event.data === YT.PlayerState.PLAYING;
+  if (window.persistentPlayer) {
+    window.persistentPlayer.isPlaying = isPlaying;
+  }
+  updateMiniPlayerState(isPlaying);
+}
+
+function updateMiniPlayerState(isPlaying) {
+  const btn = document.getElementById('miniPlayPauseBtn');
+  if (btn) {
+    btn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+  }
+}
+
+window.playPersistentVideo = function(videoId, title, channel, thumb) {
+  if (!window.persistentPlayer?.player) {
+    initPersistentPlayer();
+    setTimeout(() => window.playPersistentVideo(videoId, title, channel, thumb), 500);
+    return;
+  }
   
-  youtubePlayer = new YT.Player('youtubePlayer', {
-    height: '0',
-    width: '0',
-    playerVars: {
-      autoplay: 0,
-      controls: 0
-    },
-    events: {
-      onReady: () => console.log('✅ Player Ready'),
-      onStateChange: onPlayerStateChange
+  window.persistentPlayer.player.loadVideoById(videoId);
+  
+  const miniPlayer = document.getElementById('miniMusicPlayer');
+  if (miniPlayer) {
+    document.getElementById('miniPlayerTitle').innerText = title || 'Now Playing';
+    document.getElementById('miniPlayerArtist').innerText = channel || '';
+    document.getElementById('miniPlayerThumb').src = thumb || '';
+    miniPlayer.style.display = 'block';
+  }
+  
+  localStorage.setItem('persistent_current_video', JSON.stringify({ id: videoId, title, channel, thumb }));
+};
+
+// ========================================
+// MINI PLAYER CONTROLS
+// ========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('miniPlayPauseBtn')?.addEventListener('click', function() {
+    const player = window.persistentPlayer?.player;
+    if (!player) return;
+    
+    if (window.persistentPlayer.isPlaying) {
+      player.pauseVideo();
+    } else {
+      player.playVideo();
     }
   });
-}
-
-function onPlayerStateChange(event) {
-  isPlaying = event.data === YT.PlayerState.PLAYING;
-  const playPauseBtn = document.getElementById('playPauseBtn');
-  if (playPauseBtn) {
-    playPauseBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-  }
-}
-
-function playVideo(videoId, title, channel, thumb) {
-  currentVideo = { id: videoId, title, channel, thumb };
   
-  if (youtubePlayer) {
-    youtubePlayer.loadVideoById(videoId);
-  }
+  document.getElementById('miniPlayerClose')?.addEventListener('click', function() {
+    const player = window.persistentPlayer?.player;
+    if (player) {
+      player.stopVideo();
+      player.clearVideo();
+    }
+    document.getElementById('miniMusicPlayer').style.display = 'none';
+    localStorage.removeItem('persistent_current_video');
+  });
   
-  document.getElementById('nowPlayingBar').style.display = 'flex';
-  document.getElementById('nowPlayingThumb').src = thumb;
-  document.getElementById('nowPlayingTitle').innerText = title;
-  document.getElementById('nowPlayingChannel').innerText = channel;
-}
-
-function togglePlayPause() {
-  if (!youtubePlayer) return;
-  
-  if (isPlaying) {
-    youtubePlayer.pauseVideo();
-  } else {
-    youtubePlayer.playVideo();
+  // Restore mini player state
+  const savedVideo = localStorage.getItem('persistent_current_video');
+  if (savedVideo) {
+    try {
+      const video = JSON.parse(savedVideo);
+      document.getElementById('miniPlayerTitle').innerText = video.title || 'Now Playing';
+      document.getElementById('miniPlayerArtist').innerText = video.channel || '';
+      document.getElementById('miniPlayerThumb').src = video.thumb || '';
+      document.getElementById('miniMusicPlayer').style.display = 'block';
+    } catch(e) {}
   }
-}
-
-function nextTrack() {
-  showToast('Next track', false);
-}
-
-function previousTrack() {
-  showToast('Previous track', false);
-}
-
-function setVolume(value) {
-  if (youtubePlayer) youtubePlayer.setVolume(value);
-}
+});
 
 // ========================================
 // NAVIGATION
@@ -576,9 +629,7 @@ function switchToLibrary() {
 }
 
 function updateActiveMenu() {
-  document.querySelectorAll('.menu-item').forEach(item => {
-    item.classList.remove('active');
-  });
+  document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
 }
 
 function setupSearchListeners() {
@@ -613,9 +664,6 @@ async function performSearch() {
             <h4>${escapeHtml(title)}</h4>
             <p>${escapeHtml(channel)}</p>
           </div>
-          <button class="add-btn" onclick="event.stopPropagation(); addToPlaylist('${video}', '${escapeHtml(title)}')">
-            <i class="fas fa-plus"></i>
-          </button>
         </div>
       `;
     });
@@ -623,27 +671,19 @@ async function performSearch() {
   }
 }
 
-function addToPlaylist(videoId, title) {
-  showToast('Added to queue', false);
-}
-
-function createNewPlaylist() {
-  showToast('Create playlist feature coming soon!', false);
-}
-
 function filterByCategory(category) {
-  document.querySelectorAll('.chip').forEach(chip => {
-    chip.classList.remove('active');
-  });
+  document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
   event.target.classList.add('active');
   fetchHomeVideos();
 }
 
 function switchLibraryTab(tab) {
-  document.querySelectorAll('.library-tab').forEach(t => {
-    t.classList.remove('active');
-  });
+  document.querySelectorAll('.library-tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
+}
+
+function createNewPlaylist() {
+  showToast('Create playlist feature coming soon!', false);
 }
 
 function escapeHtml(str) {
@@ -651,4 +691,4 @@ function escapeHtml(str) {
   return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
 }
 
-console.log("✅ YouTube Music Full Interface Loaded");
+console.log("✅ YouTube Music Loaded with Persistent Player");
