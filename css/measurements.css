@@ -1,0 +1,163 @@
+/* ======================================== */
+/* BODY MEASUREMENTS STYLES                  */
+/* ======================================== */
+
+.measurement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.measurement-input label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.measurement-icon {
+  font-size: 1.2rem;
+}
+
+.latest-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 2px solid #e0e7ff;
+  margin-bottom: 16px;
+  color: #64748b;
+}
+
+.latest-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.latest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid;
+}
+
+.latest-icon {
+  font-size: 1.3rem;
+}
+
+.latest-label {
+  flex: 1;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.latest-value {
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.latest-notes {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f0f9ff;
+  border-radius: 12px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.comparison-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.comparison-controls select {
+  flex: 1;
+}
+
+.comparison-controls span {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.comparison-table {
+  width: 100%;
+}
+
+.comparison-header {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+}
+
+.comparison-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  padding: 14px 12px;
+  border-bottom: 1px solid #e0e7ff;
+  align-items: center;
+}
+
+.comparison-row.weight-row {
+  background: #f0f9ff;
+  font-weight: 600;
+}
+
+.increase {
+  color: #e17055;
+}
+
+.decrease {
+  color: #00b894;
+}
+
+.no-change {
+  color: #64748b;
+}
+
+.measurement-badge {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.chart-selector {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .measurement-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .latest-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .comparison-controls {
+    flex-direction: column;
+  }
+  
+  .comparison-header,
+  .comparison-row {
+    grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr;
+    font-size: 0.8rem;
+  }
+}

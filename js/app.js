@@ -39,6 +39,8 @@ function switchTab(tab) {
     'driveresources': () => { updatePageTitle('Drive Resources'); renderDriveResources(); window.isLoading = false; },
     'hydration': () => { updatePageTitle('Hydration Tracker'); renderHydration(); window.isLoading = false; },
     'bloodpressure': () => { updatePageTitle('Blood Pressure'); renderBloodPressure(); window.isLoading = false; },
+    'music': () => { updatePageTitle('Workout Music'); renderMusic(); window.isLoading = false; },
+    'measurements': () => { updatePageTitle('Body Measurements'); renderMeasurements(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
   
