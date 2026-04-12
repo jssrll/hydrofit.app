@@ -241,7 +241,6 @@ async function connectSpotify() {
     show_dialog: 'false'
   });
   
-  // Redirect to Spotify
   window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
 }
 
@@ -265,9 +264,7 @@ async function exchangeCodeForToken(code) {
   try {
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body
     });
     
@@ -287,10 +284,7 @@ async function exchangeCodeForToken(code) {
       localStorage.removeItem('spotify_code_verifier');
       localStorage.removeItem('spotify_auth_started');
       
-      // Clear URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Re-render with connected state
       renderMusic();
       showToast('Connected to Spotify! 🎵', false);
       return true;
@@ -323,9 +317,7 @@ async function refreshAccessToken() {
   try {
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body
     });
     
@@ -344,7 +336,6 @@ async function refreshAccessToken() {
       
       return true;
     }
-    
     return false;
   } catch (error) {
     console.error('Token refresh error:', error);
@@ -389,13 +380,12 @@ function disconnectSpotify() {
 }
 
 // ========================================
-// SPOTIFY API CALLS (With Auto Refresh)
+// SPOTIFY API CALLS
 // ========================================
 
 async function spotifyAPI(endpoint, method = 'GET', body = null) {
   if (!spotifyAccessToken) return null;
   
-  // Check if token is expired
   if (tokenExpiryTime && Date.now() >= tokenExpiryTime) {
     console.log('Token expired, refreshing...');
     const refreshed = await refreshAccessToken();
@@ -419,7 +409,6 @@ async function spotifyAPI(endpoint, method = 'GET', body = null) {
   try {
     let response = await fetch(`https://api.spotify.com/v1/${endpoint}`, options);
     
-    // Token expired during request
     if (response.status === 401) {
       console.log('Token expired during request, refreshing...');
       const refreshed = await refreshAccessToken();
@@ -439,13 +428,14 @@ async function spotifyAPI(endpoint, method = 'GET', body = null) {
     
     if (!response.ok) {
       console.error('API Error:', response.status);
-      return null;
+      const errorData = await response.json().catch(() => ({}));
+      return { error: true, status: response.status, message: errorData.error?.message || 'API Error' };
     }
     
     return await response.json();
   } catch (error) {
     console.error('Spotify API Error:', error);
-    return null;
+    return { error: true, message: error.message };
   }
 }
 
@@ -481,11 +471,19 @@ async function loadUserPlaylists() {
   
   const data = await spotifyAPI('me/playlists?limit=30');
   
-  if (data && data.items) {
+  console.log('Playlists API response:', data);
+  
+  if (data && !data.error && data.items) {
     userPlaylists = data.items;
     
     if (userPlaylists.length === 0) {
-      container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No playlists found</p>';
+      container.innerHTML = `
+        <div style="text-align:center;padding:20px;color:#64748b">
+          <i class="fab fa-spotify"></i>
+          <p>No playlists found</p>
+          <p style="font-size:0.85rem;margin-top:8px">Create a playlist in Spotify to see it here</p>
+        </div>
+      `;
       return;
     }
     
@@ -508,7 +506,6 @@ async function loadUserPlaylists() {
     html += '</div>';
     container.innerHTML = html;
     
-    // Attach click listeners
     document.querySelectorAll('.playlist-card').forEach(card => {
       card.addEventListener('click', () => {
         const uri = card.dataset.playlistUri;
@@ -517,14 +514,24 @@ async function loadUserPlaylists() {
       });
     });
   } else {
+    const errorMsg = data?.error?.message || data?.message || 'Failed to load playlists';
+    console.error('Playlists error:', data);
+    
     container.innerHTML = `
       <div style="text-align:center;padding:20px;color:#d63031">
         <i class="fas fa-exclamation-circle"></i>
         <p>Failed to load playlists</p>
+        <p style="font-size:0.85rem;margin:8px 0;color:#64748b">${errorMsg}</p>
         <button class="btn btn-outline" id="retryPlaylistsBtn" style="margin-top:12px">Try Again</button>
+        <button class="btn btn-outline" id="reconnectSpotifyBtn" style="margin-top:8px">Reconnect Account</button>
       </div>
     `;
+    
     document.getElementById('retryPlaylistsBtn')?.addEventListener('click', loadUserPlaylists);
+    document.getElementById('reconnectSpotifyBtn')?.addEventListener('click', () => {
+      disconnectSpotify();
+      setTimeout(() => connectSpotify(), 500);
+    });
   }
 }
 
@@ -544,9 +551,7 @@ function initializeSpotifyPlayer() {
 }
 
 function createPlayer() {
-  if (spotifyPlayer) {
-    spotifyPlayer.disconnect();
-  }
+  if (spotifyPlayer) spotifyPlayer.disconnect();
   
   spotifyPlayer = new Spotify.Player({
     name: 'HydroFit Web Player',
@@ -561,13 +566,7 @@ function createPlayer() {
   });
   
   spotifyPlayer.addListener('player_state_changed', state => {
-    if (state) {
-      updateNowPlaying(state);
-    }
-  });
-  
-  spotifyPlayer.addListener('authentication_error', ({ message }) => {
-    console.error('Auth error:', message);
+    if (state) updateNowPlaying(state);
   });
   
   spotifyPlayer.connect();
@@ -584,7 +583,7 @@ async function loadAvailableDevices() {
   
   const data = await spotifyAPI('me/player/devices');
   
-  if (data && data.devices && data.devices.length > 0) {
+  if (data && !data.error && data.devices && data.devices.length > 0) {
     let html = '<div class="device-list">';
     data.devices.forEach(device => {
       html += `
@@ -623,9 +622,11 @@ async function playPlaylist(playlistId, playlistUri) {
   }
   
   const result = await spotifyAPI('me/player/play', 'PUT', { context_uri: playlistUri });
-  if (result) {
+  if (result && !result.error) {
     showToast('Playing playlist! 🎵', false);
     document.getElementById('nowPlayingCard').style.display = 'block';
+  } else {
+    showToast('Failed to play. Open Spotify app.', true);
   }
 }
 
@@ -633,7 +634,7 @@ async function togglePlayPause() {
   const state = await spotifyAPI('me/player');
   const btn = document.getElementById('playPauseBtn');
   
-  if (state && state.is_playing) {
+  if (state && !state.error && state.is_playing) {
     await spotifyAPI('me/player/pause', 'PUT');
     if (btn) btn.innerHTML = '<i class="fas fa-play"></i>';
   } else {
@@ -662,7 +663,7 @@ async function seekToPosition(event) {
   const percent = (event.clientX - rect.left) / rect.width;
   
   const state = await spotifyAPI('me/player');
-  if (state && state.item) {
+  if (state && !state.error && state.item) {
     const position = Math.floor(percent * state.item.duration_ms);
     await spotifyAPI(`me/player/seek?position_ms=${position}`, 'PUT');
   }
@@ -690,7 +691,7 @@ function updateNowPlaying(state) {
   if (trackName) trackName.innerText = state.item.name;
   if (trackArtist) trackArtist.innerText = state.item.artists.map(a => a.name).join(', ');
   if (trackAlbum) trackAlbum.innerText = state.item.album.name;
-  if (trackImage) trackImage.src = state.item.album.images[0]?.url || '';
+  if (trackImage && state.item.album.images[0]) trackImage.src = state.item.album.images[0].url;
   
   if (playPauseBtn) {
     playPauseBtn.innerHTML = state.is_playing ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
