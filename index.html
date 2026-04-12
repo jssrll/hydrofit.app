@@ -58,8 +58,6 @@
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
   
-  <!-- Additional Security -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' https://script.google.com;">
 </head>
 <body>
 <div class="app-container">
@@ -276,80 +274,6 @@
     deferredPrompt = null;
     window.deferredPrompt = null;
   });
-</script>
-
-<!-- Disable Right Click -->
-<script>
-  // Disable right-click context menu
-  document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  
-  // Disable keyboard shortcuts for developer tools
-  document.addEventListener('keydown', function(e) {
-    // Disable F12
-    if (e.key === 'F12' || e.keyCode === 123) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Disable Ctrl+Shift+I (DevTools)
-    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Disable Ctrl+Shift+J (Console)
-    if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Disable Ctrl+Shift+C (Element Inspector)
-    if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Disable Ctrl+U (View Source)
-    if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Disable Ctrl+S (Save Page)
-    if (e.ctrlKey && (e.key === 'S' || e.key === 's' || e.keyCode === 83)) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Disable Ctrl+P (Print)
-    if (e.ctrlKey && (e.key === 'P' || e.key === 'p' || e.keyCode === 80)) {
-      e.preventDefault();
-      return false;
-    }
-  });
-  
-  // Additional protection - detect devtools
-  let devtoolsOpen = false;
-  const threshold = 160;
-  
-  const checkDevTools = setInterval(function() {
-    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-    
-    if ((widthThreshold || heightThreshold) && !devtoolsOpen) {
-      devtoolsOpen = true;
-      console.log('%c⚠️ Warning: Developer Tools detected!', 'color: #d63031; font-size: 16px; font-weight: bold;');
-      console.log('%cThis is a protected application.', 'color: #00b4d8; font-size: 14px;');
-    } else if (!widthThreshold && !heightThreshold) {
-      devtoolsOpen = false;
-    }
-  }, 1000);
-  
-  console.log('%cHydroFit Protected', 'color: #00b4d8; font-size: 20px; font-weight: bold;');
-  console.log('%cAcademic Fitness Tracker', 'color: #023e8a; font-size: 14px;');
 </script>
 
 </body>
