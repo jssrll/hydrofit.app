@@ -1,0 +1,97 @@
+/* ======================================== */
+/* BLOOD PRESSURE TRACKER STYLES             */
+/* ======================================== */
+
+.bp-input-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.bp-input-group small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+.bp-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.bp-category {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.category-color {
+  width: 8px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+.category-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-info strong {
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.category-info span {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.bp-badge {
+  width: 55px;
+  height: 55px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-tag {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+  .bp-input-group {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
