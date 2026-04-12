@@ -36,6 +36,7 @@ function switchTab(tab) {
     'scheduler': () => { updatePageTitle('Workout Scheduler'); renderScheduler(); window.isLoading = false; },
     'telegram': () => { updatePageTitle('Community Chat'); renderTelegramCommunity(); window.isLoading = false; },
     'stretching': () => { updatePageTitle('Stretching Exercises'); renderStretching(); window.isLoading = false; },
+    'driveresources': () => { updatePageTitle('Drive Resources'); renderDriveResources(); window.isLoading = false; },
     'hydration': () => { updatePageTitle('Hydration Tracker'); renderHydration(); window.isLoading = false; },
     'ranking': () => { updatePageTitle('Ranking'); renderRanking(); window.isLoading = false; }
   };
