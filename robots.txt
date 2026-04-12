@@ -1,0 +1,14 @@
+# HydroFit Robots.txt
+User-agent: *
+Allow: /
+
+# Disallow sensitive paths
+Disallow: /assets/
+Disallow: /js/
+Disallow: /css/
+
+# Crawl delay
+Crawl-delay: 10
+
+# Sitemap location
+Sitemap: https://hydrofit.app/sitemap.xml
