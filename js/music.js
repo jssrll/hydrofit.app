@@ -161,37 +161,127 @@ function renderMusic() {
 }
 
 // ========================================
-// SPOTIFY AUTHENTICATION
+// SPOTIFY AUTHENTICATION (PKCE Flow)
 // ========================================
 
-function connectSpotify() {
-  const state = generateRandomString(16);
-  localStorage.setItem('spotify_auth_state', state);
-  
-  const authUrl = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
-    response_type: 'token',
-    client_id: SPOTIFY_CLIENT_ID,
-    scope: SPOTIFY_SCOPES,
-    redirect_uri: SPOTIFY_REDIRECT_URI,
-    state: state
-  }).toString();
-  
-  window.location.href = authUrl;
+function generateRandomString(length) {
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return values.reduce((acc, x) => acc + possible[x % possible.length], '');
 }
 
-function checkForAuthCallback() {
-  const hash = window.location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  const accessToken = params.get('access_token');
-  const state = params.get('state');
-  const storedState = localStorage.getItem('spotify_auth_state');
+async function generateCodeChallenge(codeVerifier) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+async function connectSpotify() {
+  const codeVerifier = generateRandomString(64);
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
   
-  if (accessToken && state === storedState) {
-    spotifyAccessToken = accessToken;
-    localStorage.setItem('spotify_access_token', accessToken);
+  localStorage.setItem('spotify_code_verifier', codeVerifier);
+  
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: SPOTIFY_CLIENT_ID,
+    scope: SPOTIFY_SCOPES,
+    code_challenge_method: 'S256',
+    code_challenge: codeChallenge,
+    redirect_uri: SPOTIFY_REDIRECT_URI
+  });
+  
+  window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
+}
+
+async function exchangeCodeForToken(code) {
+  const codeVerifier = localStorage.getItem('spotify_code_verifier');
+  
+  const body = new URLSearchParams({
+    grant_type: 'authorization_code',
+    code: code,
+    redirect_uri: SPOTIFY_REDIRECT_URI,
+    client_id: SPOTIFY_CLIENT_ID,
+    code_verifier: codeVerifier
+  });
+  
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: body
+  });
+  
+  const data = await response.json();
+  
+  if (data.access_token) {
+    spotifyAccessToken = data.access_token;
+    localStorage.setItem('spotify_access_token', data.access_token);
+    
+    if (data.refresh_token) {
+      localStorage.setItem('spotify_refresh_token', data.refresh_token);
+    }
+    
+    localStorage.removeItem('spotify_code_verifier');
     window.location.hash = '';
     renderMusic();
     showToast('Connected to Spotify! 🎵', false);
+  }
+}
+
+async function refreshAccessToken() {
+  const refreshToken = localStorage.getItem('spotify_refresh_token');
+  if (!refreshToken) return false;
+  
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+    client_id: SPOTIFY_CLIENT_ID
+  });
+  
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: body
+  });
+  
+  const data = await response.json();
+  
+  if (data.access_token) {
+    spotifyAccessToken = data.access_token;
+    localStorage.setItem('spotify_access_token', data.access_token);
+    
+    if (data.refresh_token) {
+      localStorage.setItem('spotify_refresh_token', data.refresh_token);
+    }
+    
+    return true;
+  }
+  
+  return false;
+}
+
+function checkForAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+  
+  if (error) {
+    showToast('Authorization failed: ' + error, true);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return;
+  }
+  
+  if (code) {
+    exchangeCodeForToken(code);
+    window.history.replaceState({}, document.title, window.location.pathname);
   } else {
     const savedToken = localStorage.getItem('spotify_access_token');
     if (savedToken) {
@@ -204,6 +294,8 @@ function checkForAuthCallback() {
 function disconnectSpotify() {
   spotifyAccessToken = null;
   localStorage.removeItem('spotify_access_token');
+  localStorage.removeItem('spotify_refresh_token');
+  localStorage.removeItem('spotify_code_verifier');
   if (spotifyPlayer) {
     spotifyPlayer.disconnect();
     spotifyPlayer = null;
@@ -212,14 +304,8 @@ function disconnectSpotify() {
   showToast('Disconnected from Spotify', false);
 }
 
-function generateRandomString(length) {
-  return Array.from(crypto.getRandomValues(new Uint8Array(length)))
-    .map(b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[b % 62])
-    .join('');
-}
-
 // ========================================
-// SPOTIFY API CALLS
+// SPOTIFY API CALLS (With Auto Refresh)
 // ========================================
 
 async function spotifyAPI(endpoint, method = 'GET', body = null) {
@@ -236,12 +322,24 @@ async function spotifyAPI(endpoint, method = 'GET', body = null) {
   }
   
   try {
-    const response = await fetch(`https://api.spotify.com/v1/${endpoint}`, options);
+    let response = await fetch(`https://api.spotify.com/v1/${endpoint}`, options);
+    
     if (response.status === 401) {
-      disconnectSpotify();
-      showToast('Session expired. Please reconnect.', true);
-      return null;
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        options.headers['Authorization'] = `Bearer ${spotifyAccessToken}`;
+        response = await fetch(`https://api.spotify.com/v1/${endpoint}`, options);
+      } else {
+        disconnectSpotify();
+        showToast('Session expired. Please reconnect.', true);
+        return null;
+      }
     }
+    
+    if (response.status === 204) {
+      return { success: true };
+    }
+    
     return await response.json();
   } catch (error) {
     console.error('Spotify API Error:', error);
@@ -337,16 +435,9 @@ function createPlayer() {
 async function transferPlayback() {
   if (!spotifyDeviceId) return;
   
-  await fetch('https://api.spotify.com/v1/me/player', {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${spotifyAccessToken}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      device_ids: [spotifyDeviceId],
-      play: false
-    })
+  await spotifyAPI('me/player', 'PUT', {
+    device_ids: [spotifyDeviceId],
+    play: false
   });
 }
 
@@ -374,13 +465,8 @@ async function loadAvailableDevices() {
 }
 
 async function setActiveDevice(deviceId) {
-  await fetch('https://api.spotify.com/v1/me/player', {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${spotifyAccessToken}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ device_ids: [deviceId] })
+  await spotifyAPI('me/player', 'PUT', {
+    device_ids: [deviceId]
   });
   
   showToast('Device changed', false);
@@ -399,7 +485,7 @@ async function playPlaylist(playlistId, playlistUri) {
   
   currentPlaylist = { id: playlistId, uri: playlistUri };
   
-  await spotifyAPI(`me/player/play`, 'PUT', {
+  await spotifyAPI('me/player/play', 'PUT', {
     context_uri: playlistUri
   });
   
