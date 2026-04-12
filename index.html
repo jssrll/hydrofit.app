@@ -58,6 +58,7 @@
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
   
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; font-src * data:; connect-src *;">
 </head>
 <body>
 <div class="app-container">
@@ -274,6 +275,63 @@
     deferredPrompt = null;
     window.deferredPrompt = null;
   });
+</script>
+
+<!-- Security Script - Fixed Version -->
+<script>
+  // Disable right-click context menu (but allow on inputs/forms)
+  document.addEventListener('contextmenu', function(e) {
+    // Allow right-click on input fields and textareas
+    if (e.target.tagName === 'INPUT' || 
+        e.target.tagName === 'TEXTAREA' || 
+        e.target.tagName === 'SELECT') {
+      return true;
+    }
+    e.preventDefault();
+    return false;
+  });
+  
+  // Disable specific keyboard shortcuts (but not all)
+  document.addEventListener('keydown', function(e) {
+    // Only block if Ctrl/Shift/Cmd is pressed
+    if (!e.ctrlKey && !e.shiftKey && !e.metaKey) return true;
+    
+    // Disable F12
+    if (e.key === 'F12' || e.keyCode === 123) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Disable Ctrl+Shift+I (DevTools)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Disable Ctrl+Shift+J (Console)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Disable Ctrl+Shift+C (Element Inspector)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Disable Ctrl+U (View Source)
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Allow all other key combinations (important for accessibility)
+    return true;
+  });
+  
+  console.log('%c💧 HydroFit', 'color: #00b4d8; font-size: 20px; font-weight: bold;');
+  console.log('%cAcademic Fitness Tracker', 'color: #023e8a; font-size: 14px;');
 </script>
 
 </body>
