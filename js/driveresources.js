@@ -6,7 +6,7 @@ const driveResources = [
   {
     id: 'pathfitV1',
     fileId: '1XJzF2XYVZaG-wGTs0Li1pvjrWBZNX63B',
-    title: 'PATHFit 1 - Physical Fitness',
+    title: 'PATHFit - Physical Fitness',
     description: 'University of Rizal System - Worktext in Physical Fitness and Movement Enhancement',
     author: 'Prof. Noel P. Aranda, Prof. Donna B. Barredo, Prof. Jackilyn Kate A. Mayorca',
     pages: 154,
@@ -16,7 +16,7 @@ const driveResources = [
   {
     id: 'pathfitV2',
     fileId: '1V5AeErJ_m5KJN2h7nrL-Je0V0cc-XhKG',
-    title: 'PATHFit 2 - Movement Competency Training',
+    title: 'PATHFit - Movement Competency Training',
     description: 'Don Honorio Ventura State University - Physical Activity Towards Health and Fitness 1',
     author: 'DHVSU Mexico Campus',
     pages: 70,
@@ -26,7 +26,7 @@ const driveResources = [
   {
     id: 'pathfitV3',
     fileId: '1A1cRh5WuprmTq7sLLf3mPWtAcFLZNH2u',
-    title: 'PATHFit 3 - Movement Competency Training',
+    title: 'PATHFit - Movement Competency Training',
     description: 'Polytechnic University of the Philippines - Instructional Materials for PATHFit 1',
     author: 'Rhene A. Camarador, Janvier B. Mantala, et al.',
     pages: 114,
@@ -36,7 +36,7 @@ const driveResources = [
   {
     id: 'pathfitV4',
     fileId: '18O_pPX2v3zpnRPN667zMlgPgDMY4pqYr',
-    title: 'PATHFit 4 - Movement Enhancement',
+    title: 'PATHFit - Movement Enhancement',
     description: 'Political Science 601 - Physical Education Module 1',
     author: 'Movement Enhancement Module',
     pages: 22,
