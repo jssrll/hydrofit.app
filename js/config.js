@@ -2,6 +2,6 @@
 // HYDROFIT - CONFIGURATION
 // ========================================
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZe8lo4MNDTQeGL3q_-MKG89V23f3ckHD40WMU8GAM42_HEvWwO857gWH-H2RPWEFY/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8jwM1PSYmje47P0ubNE8joeRTMAHnU4XJ__M-TjuXL9xpVAfX4LGrfn7MQLn5NshG2Q/exec";
 
 console.log("✅ HydroFit Config Loaded");

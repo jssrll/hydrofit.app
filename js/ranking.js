@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - RANKING
+// HYDROFIT - RANKING (FIXED)
 // ========================================
 
 let rankingData = [];
@@ -28,65 +28,107 @@ async function renderRanking() {
     </div>
   `;
   
-  console.log("Calling getAllAssessments..."); // Debug log
+  console.log("Calling getAllAssessments...");
   
-  const result = await callAPI('getAllAssessments', {});
+  try {
+    const result = await callAPI('getAllAssessments', {});
+    console.log("Ranking result:", result);
+    
+    if (result && result.success && result.assessments) {
+      rankingData = result.assessments;
+      console.log("Ranking data loaded:", rankingData.length, "assessments");
+      displayRankings();
+    } else {
+      console.error("Failed to load rankings:", result);
+      showError(container, result?.error || 'No assessment data found');
+    }
+  } catch (error) {
+    console.error("Error loading rankings:", error);
+    showError(container, error.message || 'Connection error');
+  }
+}
+
+function showError(container, errorMsg) {
+  container.innerHTML = `
+    <div class="ranking-banner">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+    </div>
+    <div class="card">
+      <div style="text-align:center;padding:40px">
+        <i class="fas fa-exclamation-triangle" style="color:#d63031;font-size:3rem;margin-bottom:16px"></i>
+        <p style="color:#d63031">Failed to load rankings</p>
+        <p style="color:#64748b;margin-top:8px">${errorMsg}</p>
+        <button class="btn btn-outline" onclick="renderRanking()" style="margin-top:20px">
+          <i class="fas fa-sync-alt"></i> Retry
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function displayRankings() {
+  const container = document.getElementById("tabContent");
   
-  console.log("Ranking result:", result); // Debug log
-  
-  if (result && result.success && result.assessments) {
-    rankingData = result.assessments;
-    displayRankings();
-  } else {
-    console.error("Failed to load rankings:", result);
+  if (!rankingData || rankingData.length === 0) {
     container.innerHTML = `
       <div class="ranking-banner">
         <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
       </div>
       <div class="card">
         <div style="text-align:center;padding:40px">
-          <i class="fas fa-exclamation-triangle" style="color:#d63031;font-size:3rem;margin-bottom:16px"></i>
-          <p style="color:#d63031">Failed to load rankings</p>
-          <p style="color:#64748b;margin-top:8px">${result?.error || 'Unknown error'}</p>
-          <button class="btn btn-outline" onclick="renderRanking()" style="margin-top:20px">
-            <i class="fas fa-sync-alt"></i> Retry
-          </button>
+          <i class="fas fa-trophy" style="font-size:3rem;color:#fdcb6e;margin-bottom:16px"></i>
+          <h3>No rankings yet</h3>
+          <p style="color:#64748b">Complete fitness assessments to appear on the leaderboard!</p>
         </div>
       </div>
     `;
+    return;
   }
-}
-
-function displayRankings() {
-  const container = document.getElementById("tabContent");
+  
   const studentStats = {};
   
   rankingData.forEach(a => {
-    if (!studentStats[a.schoolId]) {
-      studentStats[a.schoolId] = {
-        schoolId: a.schoolId, name: a.studentName, totalPoints: 0,
-        assessmentCount: 0, ratingSum: 0, totalDuration: 0
+    // Handle both formats of data (with or without studentName)
+    const schoolId = a.schoolId;
+    const studentName = a.studentName || 'Student';
+    
+    if (!studentStats[schoolId]) {
+      studentStats[schoolId] = {
+        schoolId: schoolId,
+        name: studentName,
+        totalPoints: 0,
+        assessmentCount: 0,
+        ratingSum: 0,
+        totalDuration: 0
       };
     }
+    
+    // Parse values - handle both string and number
     const rating = parseFloat(a.rating) || 0;
     const value = parseFloat(a.value) || 0;
-    let durationInSeconds = 0;
-    if (a.unit === 'seconds') durationInSeconds = value;
-    else if (a.unit === 'minutes') durationInSeconds = value * 60;
-    else if (a.unit === 'reps') durationInSeconds = value * 2;
-    else if (a.unit === 'meters') durationInSeconds = value * 0.5;
-    else if (a.unit === 'laps') durationInSeconds = value * 60;
+    const intensity = parseFloat(a.intensity) || 5;
     
-    studentStats[a.schoolId].totalPoints += rating * 10;
-    studentStats[a.schoolId].assessmentCount++;
-    studentStats[a.schoolId].ratingSum += rating;
-    studentStats[a.schoolId].totalDuration += durationInSeconds;
+    let durationInSeconds = 0;
+    const unit = a.unit || 'reps';
+    
+    if (unit === 'seconds') durationInSeconds = value;
+    else if (unit === 'minutes') durationInSeconds = value * 60;
+    else if (unit === 'reps') durationInSeconds = value * 2;
+    else if (unit === 'meters') durationInSeconds = value * 0.5;
+    else if (unit === 'laps') durationInSeconds = value * 60;
+    
+    studentStats[schoolId].totalPoints += rating * 10;
+    studentStats[schoolId].assessmentCount++;
+    studentStats[schoolId].ratingSum += rating;
+    studentStats[schoolId].totalDuration += durationInSeconds;
   });
   
   const rankings = Object.values(studentStats).map(s => ({
-    ...s, averageRating: s.assessmentCount > 0 ? (s.ratingSum / s.assessmentCount).toFixed(1) : '0.0'
+    ...s,
+    averageRating: s.assessmentCount > 0 ? (s.ratingSum / s.assessmentCount).toFixed(1) : '0.0'
   }));
   
+  // Sort by total points, then duration, then assessment count
   rankings.sort((a, b) => {
     if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
     if (b.totalDuration !== a.totalDuration) return b.totalDuration - a.totalDuration;
