@@ -16,22 +16,44 @@ function getRatingColor(rating) {
 async function renderRanking() {
   const container = document.getElementById("tabContent");
   
-  // Show skeleton loader while fetching
+  // Show loading
   container.innerHTML = `
     <div class="ranking-banner">
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
     <div class="card">
-      <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin"></i> Loading rankings...</div>
+      <div style="text-align:center;padding:40px">
+        <i class="fas fa-spinner fa-spin"></i> Loading rankings...
+      </div>
     </div>
   `;
   
+  console.log("Calling getAllAssessments..."); // Debug log
+  
   const result = await callAPI('getAllAssessments', {});
-  if (result.success && result.assessments) {
+  
+  console.log("Ranking result:", result); // Debug log
+  
+  if (result && result.success && result.assessments) {
     rankingData = result.assessments;
     displayRankings();
-  } else { 
-    container.innerHTML = `<div class="ranking-banner"><img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)"></div><div class="card"><p style="color:#d63031;text-align:center">Failed to load rankings</p></div>`; 
+  } else {
+    console.error("Failed to load rankings:", result);
+    container.innerHTML = `
+      <div class="ranking-banner">
+        <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Exercise%20Presentation.png?updatedAt=1775725667841" alt="Ranking Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      </div>
+      <div class="card">
+        <div style="text-align:center;padding:40px">
+          <i class="fas fa-exclamation-triangle" style="color:#d63031;font-size:3rem;margin-bottom:16px"></i>
+          <p style="color:#d63031">Failed to load rankings</p>
+          <p style="color:#64748b;margin-top:8px">${result?.error || 'Unknown error'}</p>
+          <button class="btn btn-outline" onclick="renderRanking()" style="margin-top:20px">
+            <i class="fas fa-sync-alt"></i> Retry
+          </button>
+        </div>
+      </div>
+    `;
   }
 }
 
