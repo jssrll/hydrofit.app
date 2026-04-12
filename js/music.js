@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - YOUTUBE MUSIC FULL INTERFACE
+// HYDROFIT - YOUTUBE MUSIC WITH PERSISTENT PLAYER
 // ========================================
 
 const YOUTUBE_CLIENT_ID = '803381828579-kd6rlss822btd0in3h3t18ojaju0prue.apps.googleusercontent.com';
@@ -21,8 +21,6 @@ let currentView = 'home';
 let homeVideos = [];
 let currentPlaylistVideos = [];
 let currentPlaylistId = null;
-let youtubePlayer = null;
-let isPlaying = false;
 
 // Check for saved token
 (function init() {
@@ -47,9 +45,6 @@ let isPlaying = false;
     window.location.hash = '';
     console.log('✅ Token saved from URL');
   }
-  
-  // Initialize persistent player
-  initPersistentPlayer();
 })();
 
 function renderMusic() {
@@ -81,15 +76,15 @@ function renderMusic() {
       <div class="youtube-music-container">
         <div class="youtube-sidebar">
           <div class="sidebar-menu">
-            <div class="menu-item ${currentView === 'home' ? 'active' : ''}" onclick="switchToHome()">
+            <div class="menu-item ${currentView === 'home' ? 'active' : ''}" id="menuHome">
               <i class="fas fa-home"></i>
               <span>Home</span>
             </div>
-            <div class="menu-item ${currentView === 'search' ? 'active' : ''}" onclick="switchToSearch()">
+            <div class="menu-item ${currentView === 'search' ? 'active' : ''}" id="menuSearch">
               <i class="fas fa-search"></i>
               <span>Search</span>
             </div>
-            <div class="menu-item ${currentView === 'library' ? 'active' : ''}" onclick="switchToLibrary()">
+            <div class="menu-item ${currentView === 'library' ? 'active' : ''}" id="menuLibrary">
               <i class="fas fa-bookmark"></i>
               <span>Library</span>
             </div>
@@ -124,44 +119,14 @@ function renderMusic() {
     document.getElementById('youtubeConnectBtn')?.addEventListener('click', connectYouTube);
   } else {
     document.getElementById('disconnectBtn')?.addEventListener('click', disconnectYouTube);
+    document.getElementById('menuHome')?.addEventListener('click', switchToHome);
+    document.getElementById('menuSearch')?.addEventListener('click', switchToSearch);
+    document.getElementById('menuLibrary')?.addEventListener('click', switchToLibrary);
     
     fetchUserProfile();
     fetchUserPlaylists();
     fetchHomeVideos();
-    initYouTubePlayer();
   }
-}
-
-function initYouTubePlayer() {
-  if (!window.YT) {
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    document.body.appendChild(tag);
-  }
-  
-  window.onYouTubeIframeAPIReady = function() {
-    if (youtubePlayer) youtubePlayer.destroy();
-    
-    youtubePlayer = new YT.Player('youtubePlayer', {
-      height: '0',
-      width: '0',
-      playerVars: { autoplay: 0, controls: 0 },
-      events: { onStateChange: onPlayerStateChange }
-    });
-  };
-  
-  if (window.YT && window.YT.Player) {
-    youtubePlayer = new YT.Player('youtubePlayer', {
-      height: '0',
-      width: '0',
-      playerVars: { autoplay: 0, controls: 0 },
-      events: { onStateChange: onPlayerStateChange }
-    });
-  }
-}
-
-function onPlayerStateChange(event) {
-  isPlaying = event.data === YT.PlayerState.PLAYING;
 }
 
 function renderHomeContent() {
@@ -179,11 +144,11 @@ function renderHomeContent() {
       <div class="content-section">
         <h2><i class="fas fa-dumbbell"></i> Recommended for You</h2>
         <div class="category-chips">
-          <span class="chip active" onclick="filterByCategory('all')">All</span>
-          <span class="chip" onclick="filterByCategory('cardio')">Cardio</span>
-          <span class="chip" onclick="filterByCategory('strength')">Strength</span>
-          <span class="chip" onclick="filterByCategory('hiit')">HIIT</span>
-          <span class="chip" onclick="filterByCategory('yoga')">Yoga</span>
+          <span class="chip active" data-category="all">All</span>
+          <span class="chip" data-category="cardio">Cardio</span>
+          <span class="chip" data-category="strength">Strength</span>
+          <span class="chip" data-category="hiit">HIIT</span>
+          <span class="chip" data-category="yoga">Yoga</span>
         </div>
         <div id="recommendedList" class="video-grid-vertical"></div>
       </div>
@@ -217,15 +182,10 @@ function renderLibraryContent() {
     <div class="library-content">
       <div class="library-header">
         <h2><i class="fas fa-bookmark"></i> Your Library</h2>
-        <button class="btn-outline" onclick="createNewPlaylist()">
-          <i class="fas fa-plus"></i> New Playlist
-        </button>
       </div>
       
       <div class="library-tabs">
-        <span class="library-tab active" onclick="switchLibraryTab('playlists')">Playlists</span>
-        <span class="library-tab" onclick="switchLibraryTab('liked')">Liked Videos</span>
-        <span class="library-tab" onclick="switchLibraryTab('history')">History</span>
+        <span class="library-tab active" data-tab="playlists">Playlists</span>
       </div>
       
       <div id="libraryContent" class="library-playlists-grid"></div>
@@ -237,7 +197,7 @@ function renderPlaylistContent(playlistId, playlistName) {
   return `
     <div class="playlist-content">
       <div class="playlist-header">
-        <button class="back-btn" onclick="switchToLibrary()">
+        <button class="back-btn" id="backToLibraryBtn">
           <i class="fas fa-arrow-left"></i> Back
         </button>
         <div class="playlist-header-info">
@@ -249,7 +209,7 @@ function renderPlaylistContent(playlistId, playlistName) {
             <p id="playlistVideoCount"></p>
           </div>
         </div>
-        <button class="btn" onclick="playAllInPlaylist()">
+        <button class="btn" id="playAllBtn">
           <i class="fas fa-play"></i> Play All
         </button>
       </div>
@@ -359,13 +319,19 @@ function updateSidebarPlaylists() {
   let html = '';
   userPlaylists.slice(0, 5).forEach(playlist => {
     html += `
-      <div class="sidebar-playlist-item" onclick="openPlaylist('${playlist.id}', '${escapeHtml(playlist.snippet.title)}')">
+      <div class="sidebar-playlist-item" data-playlist-id="${playlist.id}" data-playlist-name="${escapeHtml(playlist.snippet.title)}">
         <i class="fas fa-list-ul"></i>
         <span>${escapeHtml(playlist.snippet.title)}</span>
       </div>
     `;
   });
   container.innerHTML = html;
+  
+  container.querySelectorAll('.sidebar-playlist-item').forEach(item => {
+    item.addEventListener('click', () => {
+      openPlaylist(item.dataset.playlistId, item.dataset.playlistName);
+    });
+  });
 }
 
 async function fetchHomeVideos() {
@@ -375,7 +341,7 @@ async function fetchHomeVideos() {
   const data = await youtubeAPI(`search?part=snippet&maxResults=10&q=${encodeURIComponent(randomQuery)}&type=video&videoCategoryId=10`);
   
   if (data && data.items) {
-    homeVideos = data.items;
+    homeVideos = data.items.filter(item => item.id.videoId);
     displayHomeVideos();
   }
 }
@@ -386,14 +352,13 @@ function displayHomeVideos() {
   
   let html = '';
   homeVideos.forEach(item => {
-    if (!item.id.videoId) return;
     const video = item.id.videoId;
     const title = item.snippet.title;
     const channel = item.snippet.channelTitle;
     const thumb = item.snippet.thumbnails.medium.url;
     
     html += `
-      <div class="video-card-horizontal" onclick="playVideo('${video}', '${escapeHtml(title)}', '${escapeHtml(channel)}', '${thumb}')">
+      <div class="video-card-horizontal" data-video-id="${video}" data-title="${escapeHtml(title)}" data-channel="${escapeHtml(channel)}" data-thumb="${thumb}">
         <img src="${thumb}" alt="${escapeHtml(title)}">
         <div class="video-info">
           <h4>${escapeHtml(title)}</h4>
@@ -403,6 +368,12 @@ function displayHomeVideos() {
     `;
   });
   container.innerHTML = html;
+  
+  container.querySelectorAll('.video-card-horizontal').forEach(card => {
+    card.addEventListener('click', () => {
+      playVideo(card.dataset.videoId, card.dataset.title, card.dataset.channel, card.dataset.thumb);
+    });
+  });
 }
 
 function displayLibraryPlaylists() {
@@ -410,7 +381,7 @@ function displayLibraryPlaylists() {
   if (!container) return;
   
   if (userPlaylists.length === 0) {
-    container.innerHTML = '<p class="empty-message">No playlists yet. Create one!</p>';
+    container.innerHTML = '<p class="empty-message">No playlists yet. Create one on YouTube!</p>';
     return;
   }
   
@@ -418,7 +389,7 @@ function displayLibraryPlaylists() {
   userPlaylists.forEach(playlist => {
     const thumb = playlist.snippet.thumbnails?.default?.url || '';
     html += `
-      <div class="library-playlist-card" onclick="openPlaylist('${playlist.id}', '${escapeHtml(playlist.snippet.title)}')">
+      <div class="library-playlist-card" data-playlist-id="${playlist.id}" data-playlist-name="${escapeHtml(playlist.snippet.title)}">
         <img src="${thumb}" alt="${escapeHtml(playlist.snippet.title)}">
         <div class="library-playlist-info">
           <h4>${escapeHtml(playlist.snippet.title)}</h4>
@@ -429,12 +400,21 @@ function displayLibraryPlaylists() {
   });
   html += '</div>';
   container.innerHTML = html;
+  
+  container.querySelectorAll('.library-playlist-card').forEach(card => {
+    card.addEventListener('click', () => {
+      openPlaylist(card.dataset.playlistId, card.dataset.playlistName);
+    });
+  });
 }
 
 async function openPlaylist(playlistId, playlistName) {
   currentPlaylistId = playlistId;
   const container = document.getElementById('youtubeContentArea');
   container.innerHTML = renderPlaylistContent(playlistId, playlistName);
+  
+  document.getElementById('backToLibraryBtn')?.addEventListener('click', switchToLibrary);
+  document.getElementById('playAllBtn')?.addEventListener('click', playAllInPlaylist);
   
   const data = await youtubeAPI(`playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}`);
   
@@ -447,7 +427,7 @@ async function openPlaylist(playlistId, playlistName) {
     data.items.forEach((item, index) => {
       const video = item.snippet;
       html += `
-        <div class="playlist-video-item" onclick="playVideo('${video.resourceId.videoId}', '${escapeHtml(video.title)}', '${escapeHtml(video.channelTitle)}', '${video.thumbnails.default.url}')">
+        <div class="playlist-video-item" data-video-id="${video.resourceId.videoId}" data-title="${escapeHtml(video.title)}" data-channel="${escapeHtml(video.channelTitle)}" data-thumb="${video.thumbnails.default.url}">
           <span class="video-index">${index + 1}</span>
           <img src="${video.thumbnails.default.url}" alt="">
           <div class="video-details">
@@ -458,6 +438,12 @@ async function openPlaylist(playlistId, playlistName) {
       `;
     });
     videosContainer.innerHTML = html;
+    
+    videosContainer.querySelectorAll('.playlist-video-item').forEach(item => {
+      item.addEventListener('click', () => {
+        playVideo(item.dataset.videoId, item.dataset.title, item.dataset.channel, item.dataset.thumb);
+      });
+    });
   }
 }
 
@@ -480,128 +466,8 @@ function playVideo(videoId, title, channel, thumb) {
     window.playPersistentVideo(videoId, title, channel, thumb);
   }
   
-  // Also play in local player if on music page
-  if (youtubePlayer && youtubePlayer.loadVideoById) {
-    youtubePlayer.loadVideoById(videoId);
-  }
+  showToast(`Now playing: ${title}`, false);
 }
-
-// ========================================
-// PERSISTENT PLAYER INIT
-// ========================================
-
-function initPersistentPlayer() {
-  if (window.persistentPlayer?.isInitialized) return;
-  
-  if (!window.YT) {
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    document.body.appendChild(tag);
-  }
-  
-  window.onYouTubeIframeAPIReady = function() {
-    if (!window.persistentPlayer) {
-      window.persistentPlayer = { isInitialized: true };
-    }
-    
-    window.persistentPlayer.player = new YT.Player('persistentYouTubePlayer', {
-      height: '1',
-      width: '1',
-      playerVars: { autoplay: 0, controls: 0 },
-      events: {
-        onReady: () => console.log('✅ Persistent Player Ready'),
-        onStateChange: onPersistentStateChange
-      }
-    });
-  };
-  
-  if (window.YT && window.YT.Player && !window.persistentPlayer?.player) {
-    window.persistentPlayer = window.persistentPlayer || { isInitialized: true };
-    window.persistentPlayer.player = new YT.Player('persistentYouTubePlayer', {
-      height: '1',
-      width: '1',
-      playerVars: { autoplay: 0, controls: 0 },
-      events: {
-        onReady: () => console.log('✅ Persistent Player Ready'),
-        onStateChange: onPersistentStateChange
-      }
-    });
-  }
-}
-
-function onPersistentStateChange(event) {
-  const isPlaying = event.data === YT.PlayerState.PLAYING;
-  if (window.persistentPlayer) {
-    window.persistentPlayer.isPlaying = isPlaying;
-  }
-  updateMiniPlayerState(isPlaying);
-}
-
-function updateMiniPlayerState(isPlaying) {
-  const btn = document.getElementById('miniPlayPauseBtn');
-  if (btn) {
-    btn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-  }
-}
-
-window.playPersistentVideo = function(videoId, title, channel, thumb) {
-  if (!window.persistentPlayer?.player) {
-    initPersistentPlayer();
-    setTimeout(() => window.playPersistentVideo(videoId, title, channel, thumb), 500);
-    return;
-  }
-  
-  window.persistentPlayer.player.loadVideoById(videoId);
-  
-  const miniPlayer = document.getElementById('miniMusicPlayer');
-  if (miniPlayer) {
-    document.getElementById('miniPlayerTitle').innerText = title || 'Now Playing';
-    document.getElementById('miniPlayerArtist').innerText = channel || '';
-    document.getElementById('miniPlayerThumb').src = thumb || '';
-    miniPlayer.style.display = 'block';
-  }
-  
-  localStorage.setItem('persistent_current_video', JSON.stringify({ id: videoId, title, channel, thumb }));
-};
-
-// ========================================
-// MINI PLAYER CONTROLS
-// ========================================
-
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('miniPlayPauseBtn')?.addEventListener('click', function() {
-    const player = window.persistentPlayer?.player;
-    if (!player) return;
-    
-    if (window.persistentPlayer.isPlaying) {
-      player.pauseVideo();
-    } else {
-      player.playVideo();
-    }
-  });
-  
-  document.getElementById('miniPlayerClose')?.addEventListener('click', function() {
-    const player = window.persistentPlayer?.player;
-    if (player) {
-      player.stopVideo();
-      player.clearVideo();
-    }
-    document.getElementById('miniMusicPlayer').style.display = 'none';
-    localStorage.removeItem('persistent_current_video');
-  });
-  
-  // Restore mini player state
-  const savedVideo = localStorage.getItem('persistent_current_video');
-  if (savedVideo) {
-    try {
-      const video = JSON.parse(savedVideo);
-      document.getElementById('miniPlayerTitle').innerText = video.title || 'Now Playing';
-      document.getElementById('miniPlayerArtist').innerText = video.channel || '';
-      document.getElementById('miniPlayerThumb').src = video.thumb || '';
-      document.getElementById('miniMusicPlayer').style.display = 'block';
-    } catch(e) {}
-  }
-});
 
 // ========================================
 // NAVIGATION
@@ -611,25 +477,37 @@ function switchToHome() {
   currentView = 'home';
   document.getElementById('youtubeContentArea').innerHTML = renderHomeContent();
   fetchHomeVideos();
-  updateActiveMenu();
+  updateActiveMenu('home');
+  attachCategoryListeners();
 }
 
 function switchToSearch() {
   currentView = 'search';
   document.getElementById('youtubeContentArea').innerHTML = renderSearchContent();
   setupSearchListeners();
-  updateActiveMenu();
+  updateActiveMenu('search');
 }
 
 function switchToLibrary() {
   currentView = 'library';
   document.getElementById('youtubeContentArea').innerHTML = renderLibraryContent();
   displayLibraryPlaylists();
-  updateActiveMenu();
+  updateActiveMenu('library');
 }
 
-function updateActiveMenu() {
+function updateActiveMenu(active) {
   document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+  document.getElementById(`menu${active.charAt(0).toUpperCase() + active.slice(1)}`)?.classList.add('active');
+}
+
+function attachCategoryListeners() {
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      fetchHomeVideos();
+    });
+  });
 }
 
 function setupSearchListeners() {
@@ -658,7 +536,7 @@ async function performSearch() {
       const thumb = item.snippet.thumbnails.medium.url;
       
       html += `
-        <div class="search-result-item" onclick="playVideo('${video}', '${escapeHtml(title)}', '${escapeHtml(channel)}', '${thumb}')">
+        <div class="search-result-item" data-video-id="${video}" data-title="${escapeHtml(title)}" data-channel="${escapeHtml(channel)}" data-thumb="${thumb}">
           <img src="${thumb}" alt="${escapeHtml(title)}">
           <div class="result-info">
             <h4>${escapeHtml(title)}</h4>
@@ -668,22 +546,13 @@ async function performSearch() {
       `;
     });
     container.innerHTML = html;
+    
+    container.querySelectorAll('.search-result-item').forEach(item => {
+      item.addEventListener('click', () => {
+        playVideo(item.dataset.videoId, item.dataset.title, item.dataset.channel, item.dataset.thumb);
+      });
+    });
   }
-}
-
-function filterByCategory(category) {
-  document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
-  event.target.classList.add('active');
-  fetchHomeVideos();
-}
-
-function switchLibraryTab(tab) {
-  document.querySelectorAll('.library-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
-function createNewPlaylist() {
-  showToast('Create playlist feature coming soon!', false);
 }
 
 function escapeHtml(str) {
@@ -691,4 +560,4 @@ function escapeHtml(str) {
   return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
 }
 
-console.log("✅ YouTube Music Loaded with Persistent Player");
+console.log("✅ YouTube Music Loaded");
