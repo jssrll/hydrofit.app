@@ -1,215 +1,495 @@
 // ========================================
-// HYDROFIT - WORKOUT MUSIC INTEGRATION
+// HYDROFIT - SPOTIFY MUSIC INTEGRATION
 // ========================================
 
-const workoutPlaylists = {
-  cardio: {
-    title: '🏃 Cardio & Running',
-    description: 'High-energy tracks for running and cardio',
-    bpm: '140-180 BPM',
-    playlists: [
-      { name: 'Running Hits 2026', id: 'PL4fGSI1pDJnS5rM8YqZ9xK3wN2mP7vL8', type: 'playlist' },
-      { name: 'EDM Running Mix', id: 'PL4fGSI1pDJnQ8xL3mN7vR2wK9pY5sT6', type: 'playlist' },
-      { name: 'Pop Running 140-150 BPM', id: 'RDbK5nL8mP2', type: 'playlist' }
-    ]
-  },
-  strength: {
-    title: '💪 Strength Training',
-    description: 'Powerful beats for lifting and strength',
-    bpm: '120-140 BPM',
-    playlists: [
-      { name: 'Gym Motivation 2026', id: 'PL4fGSI1pDJnR3mN7vK2wP9qY5sL8xT6', type: 'playlist' },
-      { name: 'Rock Workout', id: 'PL4fGSI1pDJnP9qY5sL8xT3mN7vR2wK4', type: 'playlist' },
-      { name: 'Hip-Hop Lifting', id: 'RDwK4pY5sL8', type: 'playlist' }
-    ]
-  },
-  hiit: {
-    title: '🔥 HIIT & Intense',
-    description: 'Maximum energy for HIIT workouts',
-    bpm: '150-180 BPM',
-    playlists: [
-      { name: 'HIIT Workout Mix', id: 'PL4fGSI1pDJnY5sL8xT3mN7vR2wK9pP6', type: 'playlist' },
-      { name: 'Bass Boosted Workout', id: 'PL4fGSI1pDJnT3mN7vR2wK9pY5sL8xQ4', type: 'playlist' },
-      { name: 'Electronic HIIT', id: 'RDpY5sL8xT3', type: 'playlist' }
-    ]
-  },
-  yoga: {
-    title: '🧘 Yoga & Stretching',
-    description: 'Calm and focused music for yoga',
-    bpm: '60-90 BPM',
-    playlists: [
-      { name: 'Yoga Flow', id: 'PL4fGSI1pDJnR2wK9pY5sL8xT3mN7vQ1', type: 'playlist' },
-      { name: 'Meditation & Stretch', id: 'PL4fGSI1pDJnK9pY5sL8xT3mN7vR2wA8', type: 'playlist' },
-      { name: 'Ambient Yoga', id: 'RDmN7vR2wK9', type: 'playlist' }
-    ]
-  },
-  cooldown: {
-    title: '🌅 Cool Down',
-    description: 'Relaxing tracks for post-workout',
-    bpm: '70-100 BPM',
-    playlists: [
-      { name: 'Cool Down Vibes', id: 'PL4fGSI1pDJnL8xT3mN7vR2wK9pY5sB2', type: 'playlist' },
-      { name: 'Chill Workout', id: 'PL4fGSI1pDJnN7vR2wK9pY5sL8xT3mC6', type: 'playlist' },
-      { name: 'Acoustic Cool Down', id: 'RDvR2wK9pY5', type: 'playlist' }
-    ]
-  }
-};
+// Spotify API Configuration
+const SPOTIFY_CLIENT_ID = '147d105e5c764b03b0fd25021f1a4326';
+const SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
+const SPOTIFY_SCOPES = [
+  'streaming',
+  'user-read-email',
+  'user-read-private',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+  'user-read-currently-playing',
+  'playlist-read-private',
+  'playlist-read-collaborative'
+].join(' ');
 
-const bpmRecommendations = [
-  { activity: 'Running', minBpm: 140, maxBpm: 180, genre: 'EDM, Pop, Rock' },
-  { activity: 'Jogging', minBpm: 120, maxBpm: 140, genre: 'Pop, Hip-Hop' },
-  { activity: 'Walking', minBpm: 100, maxBpm: 120, genre: 'Pop, Acoustic' },
-  { activity: 'Weight Lifting', minBpm: 120, maxBpm: 140, genre: 'Rock, Hip-Hop' },
-  { activity: 'HIIT', minBpm: 150, maxBpm: 180, genre: 'EDM, Bass' },
-  { activity: 'Yoga', minBpm: 60, maxBpm: 90, genre: 'Ambient, Acoustic' },
-  { activity: 'Stretching', minBpm: 60, maxBpm: 80, genre: 'Ambient, Classical' },
-  { activity: 'Warm-up', minBpm: 100, maxBpm: 130, genre: 'Pop, EDM' },
-  { activity: 'Cool-down', minBpm: 70, maxBpm: 100, genre: 'Chill, Acoustic' }
-];
-
-let currentPlaylist = 'cardio';
-let favoriteSongs = [];
+let spotifyAccessToken = null;
+let spotifyPlayer = null;
+let spotifyDeviceId = null;
+let userPlaylists = [];
+let currentPlaylist = null;
+let currentTrack = null;
+let isPlaying = false;
+let isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 function renderMusic() {
   const container = document.getElementById("tabContent");
+  const isConnected = spotifyAccessToken !== null;
   
   container.innerHTML = `
     <div class="page-banner">
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Workout Music" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
-    <!-- BPM Guide -->
-    <div class="card bpm-guide-card">
-      <h3><i class="fas fa-heart-pulse"></i> BPM Recommendations</h3>
-      <p style="color:#64748b;margin-bottom:16px">Find the perfect tempo for your workout</p>
-      <div class="bpm-grid">
-        ${bpmRecommendations.map(rec => `
-          <div class="bpm-item">
-            <div class="bpm-activity">${rec.activity}</div>
-            <div class="bpm-range">${rec.minBpm}-${rec.maxBpm} BPM</div>
-            <div class="bpm-genre">${rec.genre}</div>
-          </div>
-        `).join('')}
+    ${!isConnected ? `
+      <!-- Connect Spotify -->
+      <div class="card connect-card">
+        <div class="connect-header">
+          <i class="fab fa-spotify"></i>
+          <h2>Connect Your Spotify</h2>
+        </div>
+        <p style="color:#64748b;margin-bottom:24px;text-align:center">Connect your Spotify account to play your own playlists and music during workouts</p>
+        <button class="spotify-connect-btn" onclick="connectSpotify()">
+          <i class="fab fa-spotify"></i> Connect Spotify Account
+        </button>
+        <p class="connect-hint">
+          <i class="fas fa-info-circle"></i> You'll be redirected to Spotify to authorize access
+        </p>
       </div>
-    </div>
+    ` : `
+      <!-- Connected User Info -->
+      <div class="card user-card">
+        <div class="user-info">
+          <img id="userAvatar" src="" alt="Profile" class="user-avatar">
+          <div>
+            <h3 id="userName">Loading...</h3>
+            <p id="userEmail"></p>
+          </div>
+          <button class="btn btn-outline" onclick="disconnectSpotify()">
+            <i class="fas fa-sign-out-alt"></i> Disconnect
+          </button>
+        </div>
+      </div>
 
-    <!-- Playlist Selector -->
-    <div class="card">
-      <h3><i class="fas fa-list"></i> Workout Playlists</h3>
-      <div class="playlist-selector">
-        ${Object.entries(workoutPlaylists).map(([key, playlist]) => `
-          <div class="playlist-option ${currentPlaylist === key ? 'active' : ''}" onclick="selectPlaylist('${key}')">
-            <div class="playlist-icon">${playlist.title.split(' ')[0]}</div>
-            <div class="playlist-info">
-              <h4>${playlist.title}</h4>
-              <p>${playlist.description}</p>
-              <span class="playlist-bpm">${playlist.bpm}</span>
+      ${!isMobileDevice ? `
+        <!-- Now Playing -->
+        <div class="card now-playing-card" id="nowPlayingCard" style="display:none">
+          <h3><i class="fas fa-play-circle"></i> Now Playing</h3>
+          <div class="now-playing">
+            <img id="trackImage" src="" alt="Album Art" class="track-image">
+            <div class="track-info">
+              <h4 id="trackName">No track playing</h4>
+              <p id="trackArtist"></p>
+              <p id="trackAlbum"></p>
             </div>
           </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <!-- Current Playlist -->
-    <div class="card">
-      <h3><i class="fab fa-youtube"></i> ${workoutPlaylists[currentPlaylist].title}</h3>
-      <p style="color:#64748b;margin-bottom:20px">${workoutPlaylists[currentPlaylist].description}</p>
-      
-      <div class="playlist-player">
-        ${workoutPlaylists[currentPlaylist].playlists.map((pl, index) => `
-          <div class="playlist-embed" id="player-${index}">
-            <iframe 
-              src="https://www.youtube.com/embed/videoseries?list=${pl.id}" 
-              frameborder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowfullscreen>
-            </iframe>
+          <div class="player-controls">
+            <button class="player-btn" onclick="previousTrack()">
+              <i class="fas fa-step-backward"></i>
+            </button>
+            <button class="player-btn play-pause" id="playPauseBtn" onclick="togglePlayPause()">
+              <i class="fas fa-play"></i>
+            </button>
+            <button class="player-btn" onclick="nextTrack()">
+              <i class="fas fa-step-forward"></i>
+            </button>
           </div>
-        `).join('')}
-      </div>
-      
-      <div class="playlist-tabs">
-        ${workoutPlaylists[currentPlaylist].playlists.map((pl, index) => `
-          <button class="playlist-tab ${index === 0 ? 'active' : ''}" onclick="switchPlayer(${index})">
-            ${pl.name}
+          <div class="progress-bar" id="progressBar" onclick="seekToPosition(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="time-display">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+          <div class="volume-control">
+            <i class="fas fa-volume-down"></i>
+            <input type="range" id="volumeSlider" min="0" max="100" value="50" onchange="setVolume(this.value)">
+            <i class="fas fa-volume-up"></i>
+          </div>
+        </div>
+      ` : `
+        <div class="card mobile-play-card">
+          <h3><i class="fab fa-spotify"></i> Play in Spotify App</h3>
+          <p style="color:#64748b;margin-bottom:16px">Tap a playlist below to open it in the Spotify app</p>
+        </div>
+      `}
+
+      <!-- My Playlists -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0"><i class="fas fa-list"></i> My Playlists</h3>
+          <button class="refresh-btn" onclick="loadUserPlaylists()" title="Refresh">
+            <i class="fas fa-sync-alt"></i>
           </button>
-        `).join('')}
+        </div>
+        <div id="playlistsList">
+          <div class="loading-placeholder">
+            <i class="fas fa-spinner fa-spin"></i> Loading your playlists...
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Quick Links -->
-    <div class="card">
-      <h3><i class="fas fa-external-link-alt"></i> Open in YouTube Music</h3>
-      <div class="quick-links">
-        ${workoutPlaylists[currentPlaylist].playlists.map(pl => `
-          <a href="https://music.youtube.com/playlist?list=${pl.id}" target="_blank" class="youtube-link">
-            <i class="fab fa-youtube"></i> ${pl.name}
-          </a>
-        `).join('')}
-      </div>
-    </div>
+      ${!isMobileDevice ? `
+        <!-- Devices -->
+        <div class="card">
+          <h3><i class="fas fa-devices"></i> Playback Device</h3>
+          <div id="deviceList">
+            <p style="color:#64748b">Loading available devices...</p>
+          </div>
+        </div>
+      ` : ''}
 
-    <!-- Music Tips -->
-    <div class="card tips-card">
-      <h3><i class="fas fa-lightbulb"></i> Music Tips for Better Workouts</h3>
-      <div class="music-tips">
-        <div class="tip">
-          <i class="fas fa-tachometer-alt"></i>
-          <div>
-            <strong>Match BPM to Activity</strong>
-            <p>Higher BPM for intense workouts, lower for cool-down</p>
-          </div>
-        </div>
-        <div class="tip">
-          <i class="fas fa-headphones"></i>
-          <div>
-            <strong>Use Quality Headphones</strong>
-            <p>Wireless sports earbuds keep you focused</p>
-          </div>
-        </div>
-        <div class="tip">
-          <i class="fas fa-volume-up"></i>
-          <div>
-            <strong>Safe Volume Levels</strong>
-            <p>Keep volume at 60-70% to protect hearing</p>
-          </div>
-        </div>
-        <div class="tip">
-          <i class="fas fa-list"></i>
-          <div>
-            <strong>Create Your Own</strong>
-            <p>Build custom playlists for different workouts</p>
-          </div>
+      <!-- BPM Recommendations -->
+      <div class="card bpm-guide-card">
+        <h3><i class="fas fa-heart-pulse"></i> BPM Recommendations</h3>
+        <p style="color:#64748b;margin-bottom:16px">Find the perfect tempo for your workout</p>
+        <div class="bpm-grid">
+          <div class="bpm-item"><div class="bpm-activity">Running</div><div class="bpm-range">140-180 BPM</div></div>
+          <div class="bpm-item"><div class="bpm-activity">Weight Lifting</div><div class="bpm-range">120-140 BPM</div></div>
+          <div class="bpm-item"><div class="bpm-activity">HIIT</div><div class="bpm-range">150-180 BPM</div></div>
+          <div class="bpm-item"><div class="bpm-activity">Yoga</div><div class="bpm-range">60-90 BPM</div></div>
+          <div class="bpm-item"><div class="bpm-activity">Cool-down</div><div class="bpm-range">70-100 BPM</div></div>
+          <div class="bpm-item"><div class="bpm-activity">Warm-up</div><div class="bpm-range">100-130 BPM</div></div>
         </div>
       </div>
-    </div>
+    `}
   `;
   
-  loadFavorites();
-}
-
-function selectPlaylist(key) {
-  currentPlaylist = key;
-  renderMusic();
-}
-
-function switchPlayer(index) {
-  // Hide all players
-  document.querySelectorAll('.playlist-embed').forEach((player, i) => {
-    player.style.display = i === index ? 'block' : 'none';
-  });
-  
-  // Update active tab
-  document.querySelectorAll('.playlist-tab').forEach((tab, i) => {
-    tab.classList.toggle('active', i === index);
-  });
-}
-
-function loadFavorites() {
-  const stored = localStorage.getItem('hydrofit_favorite_songs');
-  if (stored) {
-    favoriteSongs = JSON.parse(stored);
+  if (isConnected) {
+    loadUserProfile();
+    loadUserPlaylists();
+    if (!isMobileDevice) {
+      loadAvailableDevices();
+      initializeSpotifyPlayer();
+    }
+  } else {
+    checkForAuthCallback();
   }
 }
 
-console.log("✅ Workout Music Loaded");
+// ========================================
+// SPOTIFY AUTHENTICATION
+// ========================================
+
+function connectSpotify() {
+  const state = generateRandomString(16);
+  localStorage.setItem('spotify_auth_state', state);
+  
+  const authUrl = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
+    response_type: 'token',
+    client_id: SPOTIFY_CLIENT_ID,
+    scope: SPOTIFY_SCOPES,
+    redirect_uri: SPOTIFY_REDIRECT_URI,
+    state: state
+  }).toString();
+  
+  window.location.href = authUrl;
+}
+
+function checkForAuthCallback() {
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const accessToken = params.get('access_token');
+  const state = params.get('state');
+  const storedState = localStorage.getItem('spotify_auth_state');
+  
+  if (accessToken && state === storedState) {
+    spotifyAccessToken = accessToken;
+    localStorage.setItem('spotify_access_token', accessToken);
+    window.location.hash = '';
+    renderMusic();
+    showToast('Connected to Spotify! 🎵', false);
+  } else {
+    const savedToken = localStorage.getItem('spotify_access_token');
+    if (savedToken) {
+      spotifyAccessToken = savedToken;
+      renderMusic();
+    }
+  }
+}
+
+function disconnectSpotify() {
+  spotifyAccessToken = null;
+  localStorage.removeItem('spotify_access_token');
+  if (spotifyPlayer) {
+    spotifyPlayer.disconnect();
+    spotifyPlayer = null;
+  }
+  renderMusic();
+  showToast('Disconnected from Spotify', false);
+}
+
+function generateRandomString(length) {
+  return Array.from(crypto.getRandomValues(new Uint8Array(length)))
+    .map(b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[b % 62])
+    .join('');
+}
+
+// ========================================
+// SPOTIFY API CALLS
+// ========================================
+
+async function spotifyAPI(endpoint, method = 'GET', body = null) {
+  if (!spotifyAccessToken) return null;
+  
+  const options = {
+    method,
+    headers: { 'Authorization': `Bearer ${spotifyAccessToken}` }
+  };
+  
+  if (body) {
+    options.headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(body);
+  }
+  
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/${endpoint}`, options);
+    if (response.status === 401) {
+      disconnectSpotify();
+      showToast('Session expired. Please reconnect.', true);
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Spotify API Error:', error);
+    return null;
+  }
+}
+
+// ========================================
+// USER PROFILE & PLAYLISTS
+// ========================================
+
+async function loadUserProfile() {
+  const data = await spotifyAPI('me');
+  if (data) {
+    document.getElementById('userName').innerText = data.display_name || 'Spotify User';
+    document.getElementById('userEmail').innerText = data.email || '';
+    if (data.images && data.images.length > 0) {
+      document.getElementById('userAvatar').src = data.images[0].url;
+    }
+  }
+}
+
+async function loadUserPlaylists() {
+  const container = document.getElementById('playlistsList');
+  const data = await spotifyAPI('me/playlists?limit=20');
+  
+  if (data && data.items) {
+    userPlaylists = data.items;
+    
+    if (userPlaylists.length === 0) {
+      container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No playlists found</p>';
+      return;
+    }
+    
+    let html = '<div class="playlists-grid">';
+    userPlaylists.forEach(playlist => {
+      const imageUrl = playlist.images && playlist.images.length > 0 
+        ? playlist.images[0].url 
+        : 'https://via.placeholder.com/60/1DB954/ffffff?text=🎵';
+      
+      html += `
+        <div class="playlist-card" onclick="playPlaylist('${playlist.id}', '${playlist.uri}')">
+          <img src="${imageUrl}" alt="${playlist.name}" class="playlist-image">
+          <div class="playlist-info">
+            <h4>${playlist.name}</h4>
+            <p>${playlist.tracks.total} tracks</p>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+}
+
+// ========================================
+// SPOTIFY PLAYER (Desktop Only)
+// ========================================
+
+function initializeSpotifyPlayer() {
+  if (!window.Spotify) {
+    const script = document.createElement('script');
+    script.src = 'https://sdk.scdn.co/spotify-player.js';
+    script.onload = () => createPlayer();
+    document.body.appendChild(script);
+  } else {
+    createPlayer();
+  }
+}
+
+function createPlayer() {
+  spotifyPlayer = new Spotify.Player({
+    name: 'HydroFit Web Player',
+    getOAuthToken: cb => { cb(spotifyAccessToken); },
+    volume: 0.5
+  });
+  
+  spotifyPlayer.addListener('ready', ({ device_id }) => {
+    spotifyDeviceId = device_id;
+    console.log('Spotify Player Ready:', device_id);
+    transferPlayback();
+  });
+  
+  spotifyPlayer.addListener('player_state_changed', state => {
+    if (state) {
+      updateNowPlaying(state);
+    }
+  });
+  
+  spotifyPlayer.connect();
+}
+
+async function transferPlayback() {
+  if (!spotifyDeviceId) return;
+  
+  await fetch('https://api.spotify.com/v1/me/player', {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${spotifyAccessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      device_ids: [spotifyDeviceId],
+      play: false
+    })
+  });
+}
+
+async function loadAvailableDevices() {
+  const data = await spotifyAPI('me/player/devices');
+  const container = document.getElementById('deviceList');
+  
+  if (data && data.devices && data.devices.length > 0) {
+    let html = '<div class="device-list">';
+    data.devices.forEach(device => {
+      const isActive = device.is_active;
+      html += `
+        <div class="device-item ${isActive ? 'active' : ''}" onclick="setActiveDevice('${device.id}')">
+          <i class="fas fa-${device.type === 'Computer' ? 'desktop' : device.type === 'Smartphone' ? 'mobile-alt' : 'speaker'}"></i>
+          <span>${device.name}</span>
+          ${isActive ? '<span class="active-badge">Active</span>' : ''}
+        </div>
+      `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  } else {
+    container.innerHTML = '<p style="color:#64748b">Open Spotify on your device to control playback</p>';
+  }
+}
+
+async function setActiveDevice(deviceId) {
+  await fetch('https://api.spotify.com/v1/me/player', {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${spotifyAccessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ device_ids: [deviceId] })
+  });
+  
+  showToast('Device changed', false);
+  setTimeout(loadAvailableDevices, 1000);
+}
+
+// ========================================
+// PLAYBACK CONTROLS
+// ========================================
+
+async function playPlaylist(playlistId, playlistUri) {
+  if (isMobileDevice) {
+    window.location.href = playlistUri;
+    return;
+  }
+  
+  currentPlaylist = { id: playlistId, uri: playlistUri };
+  
+  await spotifyAPI(`me/player/play`, 'PUT', {
+    context_uri: playlistUri
+  });
+  
+  showToast('Playing playlist! 🎵', false);
+  document.getElementById('nowPlayingCard').style.display = 'block';
+}
+
+async function togglePlayPause() {
+  const state = await spotifyAPI('me/player');
+  
+  if (state && state.is_playing) {
+    await spotifyAPI('me/player/pause', 'PUT');
+    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>';
+  } else {
+    await spotifyAPI('me/player/play', 'PUT');
+    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+  }
+}
+
+async function nextTrack() {
+  await spotifyAPI('me/player/next', 'POST');
+}
+
+async function previousTrack() {
+  await spotifyAPI('me/player/previous', 'POST');
+}
+
+async function setVolume(value) {
+  await spotifyAPI(`me/player/volume?volume_percent=${value}`, 'PUT');
+}
+
+async function seekToPosition(event) {
+  const bar = document.getElementById('progressBar');
+  const rect = bar.getBoundingClientRect();
+  const percent = (event.clientX - rect.left) / rect.width;
+  
+  const state = await spotifyAPI('me/player');
+  if (state && state.item) {
+    const position = Math.floor(percent * state.item.duration_ms);
+    await spotifyAPI(`me/player/seek?position_ms=${position}`, 'PUT');
+  }
+}
+
+// ========================================
+// NOW PLAYING DISPLAY
+// ========================================
+
+function updateNowPlaying(state) {
+  if (!state || !state.item) return;
+  
+  currentTrack = state.item;
+  isPlaying = state.is_playing;
+  
+  document.getElementById('nowPlayingCard').style.display = 'block';
+  document.getElementById('trackName').innerText = state.item.name;
+  document.getElementById('trackArtist').innerText = state.item.artists.map(a => a.name).join(', ');
+  document.getElementById('trackAlbum').innerText = state.item.album.name;
+  document.getElementById('trackImage').src = state.item.album.images[0]?.url || '';
+  
+  document.getElementById('playPauseBtn').innerHTML = isPlaying 
+    ? '<i class="fas fa-pause"></i>' 
+    : '<i class="fas fa-play"></i>';
+  
+  const progress = (state.position / state.item.duration_ms) * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+  
+  document.getElementById('currentTime').innerText = formatTime(state.position);
+  document.getElementById('duration').innerText = formatTime(state.item.duration_ms);
+  
+  if (isPlaying) {
+    setTimeout(() => updateProgress(), 1000);
+  }
+}
+
+async function updateProgress() {
+  const state = await spotifyAPI('me/player');
+  if (state && state.is_playing && state.item) {
+    const progress = (state.progress_ms / state.item.duration_ms) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+    document.getElementById('currentTime').innerText = formatTime(state.progress_ms);
+    
+    setTimeout(() => updateProgress(), 1000);
+  }
+}
+
+function formatTime(ms) {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+console.log("✅ Spotify Music Integration Loaded");
