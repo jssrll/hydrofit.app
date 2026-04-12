@@ -2,12 +2,11 @@
 // HYDROFIT - YOUTUBE MUSIC WITH USER LOGIN
 // ========================================
 
-const YOUTUBE_CLIENT_ID = '147d105e5c764b03b0fd25021f1a4326'; // Use your Google Client ID
-const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_API_KEY';
+const YOUTUBE_CLIENT_ID = '803381828579-kd6rlss822btd0in3h3t18ojaju0prue.apps.googleusercontent.com';
+const YOUTUBE_API_KEY = 'AIzaSyDfwNI1zui-llJimzpWQ_Fsvv1cdkcXv0U';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = [
   'https://www.googleapis.com/auth/youtube.readonly',
-  'https://www.googleapis.com/auth/youtube',
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email'
 ].join(' ');
@@ -123,16 +122,6 @@ function renderMusic() {
         </div>
       </div>
 
-      <!-- Search YouTube -->
-      <div class="card search-card">
-        <h3><i class="fas fa-search"></i> Search YouTube Music</h3>
-        <div class="search-bar">
-          <input type="text" id="searchInput" class="form-control" placeholder="Search for songs...">
-          <button class="btn" id="searchBtn"><i class="fas fa-search"></i> Search</button>
-        </div>
-        <div id="searchResults"></div>
-      </div>
-
       <!-- BPM Recommendations -->
       <div class="card bpm-guide-card">
         <h3><i class="fas fa-heart-pulse"></i> BPM Recommendations</h3>
@@ -153,10 +142,10 @@ function renderMusic() {
   } else {
     document.getElementById('disconnectBtn')?.addEventListener('click', disconnectYouTube);
     document.getElementById('refreshPlaylistsBtn')?.addEventListener('click', fetchUserPlaylists);
-    document.getElementById('searchBtn')?.addEventListener('click', searchYouTube);
-    document.getElementById('searchInput')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') searchYouTube();
-    });
+    document.getElementById('prevBtn')?.addEventListener('click', previousTrack);
+    document.getElementById('playPauseBtn')?.addEventListener('click', togglePlayPause);
+    document.getElementById('nextBtn')?.addEventListener('click', nextTrack);
+    document.getElementById('volumeSlider')?.addEventListener('input', (e) => setVolume(e.target.value));
     
     // Load data
     fetchUserProfile();
@@ -175,8 +164,7 @@ function connectYouTube() {
     redirect_uri: REDIRECT_URI,
     response_type: 'token',
     scope: SCOPES,
-    include_granted_scopes: 'true',
-    state: 'youtube-auth'
+    include_granted_scopes: 'true'
   }).toString();
   
   window.location.href = authUrl;
@@ -196,21 +184,20 @@ function disconnectYouTube() {
 // API CALLS
 // ========================================
 
-async function youtubeAPI(endpoint, method = 'GET', body = null) {
+async function youtubeAPI(endpoint, method = 'GET') {
   if (!accessToken) return null;
   
-  const options = {
-    method,
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    }
-  };
-  
-  if (body) options.body = JSON.stringify(body);
-  
   try {
-    const response = await fetch(`https://www.googleapis.com/youtube/v3/${endpoint}`, options);
+    const separator = endpoint.includes('?') ? '&' : '?';
+    const url = `https://www.googleapis.com/youtube/v3/${endpoint}${separator}key=${YOUTUBE_API_KEY}`;
+    
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
     if (response.status === 401) {
       disconnectYouTube();
@@ -252,7 +239,7 @@ async function fetchUserProfile() {
 
 async function fetchUserPlaylists() {
   const container = document.getElementById('playlistsList');
-  container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading your playlists...</div>';
+  container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
   
   const data = await youtubeAPI('playlists?part=snippet,contentDetails&mine=true&maxResults=25');
   
@@ -260,7 +247,7 @@ async function fetchUserPlaylists() {
     userPlaylists = data.items;
     
     if (userPlaylists.length === 0) {
-      container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No playlists found. Create one on YouTube!</p>';
+      container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No playlists found</p>';
       return;
     }
     
@@ -285,88 +272,17 @@ async function fetchUserPlaylists() {
     document.querySelectorAll('.playlist-card').forEach(card => {
       card.addEventListener('click', () => loadPlaylistVideos(card.dataset.playlistId));
     });
-  } else {
-    container.innerHTML = '<p style="color:#d63031;text-align:center;padding:20px">Failed to load playlists</p>';
   }
 }
 
 async function loadPlaylistVideos(playlistId) {
   const data = await youtubeAPI(`playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}`);
   
-  if (data && data.items) {
-    const videos = data.items.map(item => ({
-      id: item.snippet.resourceId.videoId,
-      title: item.snippet.title,
-      channel: item.snippet.channelTitle,
-      thumbnail: item.snippet.thumbnails?.default?.url
-    }));
-    
-    displaySearchResults(videos);
-    showToast(`Loaded ${videos.length} videos`, false);
+  if (data && data.items && data.items.length > 0) {
+    const firstVideo = data.items[0];
+    playVideo(firstVideo.snippet.resourceId.videoId, firstVideo.snippet.title);
+    showToast('Playing playlist! 🎵', false);
   }
-}
-
-// ========================================
-// SEARCH
-// ========================================
-
-async function searchYouTube() {
-  const query = document.getElementById('searchInput').value.trim();
-  if (!query) {
-    showToast('Enter a search term', true);
-    return;
-  }
-  
-  const container = document.getElementById('searchResults');
-  container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
-  
-  const data = await youtubeAPI(`search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10`);
-  
-  if (data && data.items) {
-    const videos = data.items.map(item => ({
-      id: item.id.videoId,
-      title: item.snippet.title,
-      channel: item.snippet.channelTitle,
-      thumbnail: item.snippet.thumbnails?.default?.url
-    }));
-    
-    displaySearchResults(videos);
-  } else {
-    container.innerHTML = '<p style="color:#d63031;text-align:center;padding:20px">Search failed</p>';
-  }
-}
-
-function displaySearchResults(videos) {
-  const container = document.getElementById('searchResults');
-  
-  if (videos.length === 0) {
-    container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No results found</p>';
-    return;
-  }
-  
-  let html = '<div class="video-grid">';
-  videos.forEach(video => {
-    html += `
-      <div class="video-card" data-video-id="${video.id}" data-video-title="${escapeHtml(video.title)}">
-        <img src="${video.thumbnail}" class="video-thumbnail" onerror="this.src='https://via.placeholder.com/120/FF0000/ffffff?text=🎵'">
-        <div class="video-details">
-          <h4>${escapeHtml(video.title)}</h4>
-          <p>${escapeHtml(video.channel)}</p>
-        </div>
-        <button class="add-to-playlist-btn" onclick="event.stopPropagation(); addToMyPlaylist('${video.id}', '${escapeHtml(video.title)}')">
-          <i class="fas fa-plus"></i>
-        </button>
-      </div>
-    `;
-  });
-  html += '</div>';
-  container.innerHTML = html;
-  
-  document.querySelectorAll('.video-card').forEach(card => {
-    card.addEventListener('click', () => {
-      playVideo(card.dataset.videoId, card.dataset.videoTitle);
-    });
-  });
 }
 
 // ========================================
@@ -405,9 +321,10 @@ function createPlayer() {
 
 function onPlayerStateChange(event) {
   isPlaying = event.data === YT.PlayerState.PLAYING;
-  document.getElementById('playPauseBtn').innerHTML = isPlaying 
-    ? '<i class="fas fa-pause"></i>' 
-    : '<i class="fas fa-play"></i>';
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  if (playPauseBtn) {
+    playPauseBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+  }
   
   if (isPlaying) {
     document.getElementById('nowPlayingCard').style.display = 'block';
@@ -446,81 +363,9 @@ function setVolume(value) {
   if (youtubePlayer) youtubePlayer.setVolume(value);
 }
 
-// ========================================
-// MY PLAYLIST (Local Storage)
-// ========================================
-
-function addToMyPlaylist(videoId, title) {
-  let myPlaylist = JSON.parse(localStorage.getItem('hydrofit_my_playlist') || '[]');
-  
-  if (myPlaylist.find(v => v.id === videoId)) {
-    showToast('Already in your playlist', true);
-    return;
-  }
-  
-  myPlaylist.push({ id: videoId, title: title, added: new Date().toISOString() });
-  localStorage.setItem('hydrofit_my_playlist', JSON.stringify(myPlaylist));
-  showToast('Added to My Playlist! 💚', false);
-}
-
-function displayMyPlaylist() {
-  const myPlaylist = JSON.parse(localStorage.getItem('hydrofit_my_playlist') || '[]');
-  
-  if (myPlaylist.length === 0) {
-    document.getElementById('searchResults').innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Your playlist is empty. Search and add songs!</p>';
-    return;
-  }
-  
-  let html = '<div class="video-grid">';
-  myPlaylist.reverse().forEach(video => {
-    html += `
-      <div class="video-card" data-video-id="${video.id}" data-video-title="${escapeHtml(video.title)}">
-        <img src="https://img.youtube.com/vi/${video.id}/default.jpg" class="video-thumbnail">
-        <div class="video-details">
-          <h4>${escapeHtml(video.title)}</h4>
-          <p>Added ${new Date(video.added).toLocaleDateString()}</p>
-        </div>
-        <button class="remove-from-playlist-btn" onclick="event.stopPropagation(); removeFromMyPlaylist('${video.id}')">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-    `;
-  });
-  html += '</div>';
-  document.getElementById('searchResults').innerHTML = html;
-  
-  document.querySelectorAll('.video-card').forEach(card => {
-    card.addEventListener('click', () => {
-      playVideo(card.dataset.videoId, card.dataset.videoTitle);
-    });
-  });
-}
-
-function removeFromMyPlaylist(videoId) {
-  let myPlaylist = JSON.parse(localStorage.getItem('hydrofit_my_playlist') || '[]');
-  myPlaylist = myPlaylist.filter(v => v.id !== videoId);
-  localStorage.setItem('hydrofit_my_playlist', JSON.stringify(myPlaylist));
-  displayMyPlaylist();
-  showToast('Removed from playlist', false);
-}
-
-function switchView(view) {
-  currentView = view;
-  
-  if (view === 'mylist') {
-    setTimeout(() => displayMyPlaylist(), 100);
-  } else if (view === 'search') {
-    setTimeout(() => {
-      document.getElementById('searchResults').innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Search for music to get started!</p>';
-    }, 100);
-  }
-  
-  renderMusic();
-}
-
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
 }
 
-console.log("✅ YouTube Music with Login Loaded");
+console.log("✅ YouTube Music Loaded");
