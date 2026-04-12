@@ -13,6 +13,11 @@ const FITNESS_CONTEXT = `You are HydroFit AI, a friendly fitness assistant for s
 Keep responses short (2-3 sentences max), encouraging, and helpful.
 Focus on: exercise form, workout tips, nutrition, recovery, and motivation.`;
 
+// Make functions globally available
+window.sendGeminiMessage = sendGeminiMessage;
+window.clearGeminiChat = clearGeminiChat;
+window.useSuggestion = useSuggestion;
+
 function renderGeminiAI() {
   const container = document.getElementById("tabContent");
   
@@ -38,16 +43,16 @@ function renderGeminiAI() {
           <h3>Hello! I'm your HydroFit AI Assistant</h3>
           <p>I can help you with workout tips, exercise form, nutrition advice, and more!</p>
           <div class="suggestion-chips">
-            <span class="suggestion-chip" data-query="What are the best exercises for abs?">
+            <span class="suggestion-chip" onclick="window.useSuggestion('What are the best exercises for abs?')">
               <i class="fas fa-dumbbell"></i> Best ab exercises?
             </span>
-            <span class="suggestion-chip" data-query="How do I do proper push-ups?">
+            <span class="suggestion-chip" onclick="window.useSuggestion('How do I do proper push-ups?')">
               <i class="fas fa-question-circle"></i> Proper push-up form?
             </span>
-            <span class="suggestion-chip" data-query="What should I eat after a workout?">
+            <span class="suggestion-chip" onclick="window.useSuggestion('What should I eat after a workout?')">
               <i class="fas fa-apple-alt"></i> Post-workout nutrition?
             </span>
-            <span class="suggestion-chip" data-query="Create a simple 3-day beginner workout plan">
+            <span class="suggestion-chip" onclick="window.useSuggestion('Create a simple 3-day beginner workout plan')">
               <i class="fas fa-calendar"></i> Beginner workout plan
             </span>
           </div>
@@ -61,14 +66,15 @@ function renderGeminiAI() {
             id="geminiInput" 
             placeholder="Ask me anything about fitness..."
             rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendGeminiMessage();}"
           ></textarea>
-          <button class="send-btn" id="sendMessageBtn">
+          <button class="send-btn" onclick="window.sendGeminiMessage()">
             <i class="fas fa-paper-plane"></i>
           </button>
         </div>
         <div class="input-footer">
           <span><i class="fas fa-shield-alt"></i> AI responses, use with discretion</span>
-          <button class="clear-chat-btn" id="clearChatBtn">
+          <button class="clear-chat-btn" onclick="window.clearGeminiChat()">
             <i class="fas fa-trash-alt"></i> Clear Chat
           </button>
         </div>
@@ -76,58 +82,30 @@ function renderGeminiAI() {
     </div>
   `;
   
-  // Use setTimeout to ensure DOM is fully rendered
+  // Auto-resize textarea
   setTimeout(() => {
-    setupEventListeners();
+    const input = document.getElementById('geminiInput');
+    if (input) {
+      input.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+    }
     loadChatHistory();
   }, 100);
 }
 
-function setupEventListeners() {
+function useSuggestion(text) {
   const input = document.getElementById('geminiInput');
-  const sendBtn = document.getElementById('sendMessageBtn');
-  const clearBtn = document.getElementById('clearChatBtn');
-  
   if (input) {
-    input.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-    });
-    
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
+    input.value = text;
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   }
-  
-  if (sendBtn) {
-    sendBtn.addEventListener('click', sendMessage);
-  }
-  
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function() {
-      if (confirm('Clear conversation?')) {
-        chatHistory = [];
-        localStorage.removeItem('hydrofit_gemini_chat');
-        document.getElementById('chatMessages').innerHTML = '';
-        document.getElementById('geminiWelcome').style.display = 'block';
-        showToast('Chat cleared', false);
-      }
-    });
-  }
-  
-  document.querySelectorAll('.suggestion-chip').forEach(chip => {
-    chip.addEventListener('click', function() {
-      const query = this.getAttribute('data-query');
-      document.getElementById('geminiInput').value = query;
-      sendMessage();
-    });
-  });
+  sendGeminiMessage();
 }
 
-async function sendMessage() {
+async function sendGeminiMessage() {
   const input = document.getElementById('geminiInput');
   if (!input) return;
   
@@ -272,6 +250,21 @@ function removeTypingIndicator() {
 function scrollToBottom() {
   const area = document.getElementById('geminiChatArea');
   if (area) area.scrollTop = area.scrollHeight;
+}
+
+function clearGeminiChat() {
+  if (!confirm('Clear conversation?')) return;
+  
+  chatHistory = [];
+  localStorage.removeItem('hydrofit_gemini_chat');
+  
+  const container = document.getElementById('chatMessages');
+  if (container) container.innerHTML = '';
+  
+  const welcome = document.getElementById('geminiWelcome');
+  if (welcome) welcome.style.display = 'block';
+  
+  showToast('Chat cleared', false);
 }
 
 function loadChatHistory() {
