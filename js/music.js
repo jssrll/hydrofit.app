@@ -1,5 +1,5 @@
 // ========================================
-// HYDROFIT - YOUTUBE MUSIC WITH USER LOGIN
+// HYDROFIT - YOUTUBE MUSIC FULL INTERFACE
 // ========================================
 
 const YOUTUBE_CLIENT_ID = '803381828579-kd6rlss822btd0in3h3t18ojaju0prue.apps.googleusercontent.com';
@@ -7,6 +7,8 @@ const YOUTUBE_API_KEY = 'AIzaSyDfwNI1zui-llJimzpWQ_Fsvv1cdkcXv0U';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = [
   'https://www.googleapis.com/auth/youtube.readonly',
+  'https://www.googleapis.com/auth/youtube',
+  'https://www.googleapis.com/auth/youtube.force-ssl',
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email'
 ].join(' ');
@@ -17,6 +19,11 @@ let userPlaylists = [];
 let youtubePlayer = null;
 let currentVideo = null;
 let isPlaying = false;
+let currentView = 'home';
+let searchResults = [];
+let homeVideos = [];
+let currentPlaylistVideos = [];
+let currentPlaylistId = null;
 
 // Check for saved token
 (function init() {
@@ -28,7 +35,6 @@ let isPlaying = false;
     console.log('✅ Token loaded from storage');
   }
   
-  // Check URL for token
   const hash = window.location.hash.substring(1);
   const params = new URLSearchParams(hash);
   const urlToken = params.get('access_token');
@@ -71,69 +77,73 @@ function renderMusic() {
         </p>
       </div>
     ` : `
-      <!-- Connected User Info -->
-      <div class="card user-card">
-        <div class="user-info">
-          <img id="userAvatar" src="" alt="Profile" class="user-avatar">
-          <div>
-            <h3 id="userName">Loading profile...</h3>
-            <p id="userEmail"></p>
+      <!-- YouTube Music Interface -->
+      <div class="youtube-music-container">
+        <!-- Sidebar -->
+        <div class="youtube-sidebar">
+          <div class="sidebar-menu">
+            <div class="menu-item ${currentView === 'home' ? 'active' : ''}" onclick="switchToHome()">
+              <i class="fas fa-home"></i>
+              <span>Home</span>
+            </div>
+            <div class="menu-item ${currentView === 'search' ? 'active' : ''}" onclick="switchToSearch()">
+              <i class="fas fa-search"></i>
+              <span>Search</span>
+            </div>
+            <div class="menu-item ${currentView === 'library' ? 'active' : ''}" onclick="switchToLibrary()">
+              <i class="fas fa-bookmark"></i>
+              <span>Library</span>
+            </div>
           </div>
-          <button class="btn btn-outline" id="disconnectBtn">
-            <i class="fas fa-sign-out-alt"></i> Disconnect
-          </button>
-        </div>
-      </div>
-
-      <!-- Now Playing -->
-      <div class="card now-playing-card" id="nowPlayingCard" style="display:none">
-        <h3><i class="fas fa-play-circle"></i> Now Playing</h3>
-        <div class="video-container">
-          <div id="youtubePlayer"></div>
-        </div>
-        <div class="now-playing-info">
-          <h4 id="videoTitle">No video playing</h4>
-          <p id="videoChannel"></p>
-        </div>
-        <div class="player-controls">
-          <button class="player-btn" id="prevBtn"><i class="fas fa-step-backward"></i></button>
-          <button class="player-btn play-pause" id="playPauseBtn"><i class="fas fa-play"></i></button>
-          <button class="player-btn" id="nextBtn"><i class="fas fa-step-forward"></i></button>
-        </div>
-        <div class="volume-control">
-          <i class="fas fa-volume-down"></i>
-          <input type="range" id="volumeSlider" min="0" max="100" value="50">
-          <i class="fas fa-volume-up"></i>
-        </div>
-      </div>
-
-      <!-- My YouTube Playlists -->
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="margin:0"><i class="fab fa-youtube"></i> My Playlists</h3>
-          <button class="refresh-btn" id="refreshPlaylistsBtn">
-            <i class="fas fa-sync-alt"></i>
-          </button>
-        </div>
-        <div id="playlistsList">
-          <div class="loading-placeholder">
-            <i class="fas fa-spinner fa-spin"></i> Loading your playlists...
+          
+          <div class="sidebar-playlists">
+            <h4><i class="fas fa-list"></i> Your Playlists</h4>
+            <div id="sidebarPlaylistsList"></div>
+          </div>
+          
+          <div class="sidebar-footer">
+            <div class="user-info-mini" id="sidebarUserInfo">
+              <img id="sidebarAvatar" src="" alt="Profile">
+              <span id="sidebarName">Loading...</span>
+            </div>
+            <button class="disconnect-btn" id="disconnectBtn">
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
           </div>
         </div>
-      </div>
-
-      <!-- BPM Recommendations -->
-      <div class="card bpm-guide-card">
-        <h3><i class="fas fa-heart-pulse"></i> BPM Recommendations</h3>
-        <div class="bpm-grid">
-          <div class="bpm-item"><div class="bpm-activity">Running</div><div class="bpm-range">140-180 BPM</div></div>
-          <div class="bpm-item"><div class="bpm-activity">Weight Lifting</div><div class="bpm-range">120-140 BPM</div></div>
-          <div class="bpm-item"><div class="bpm-activity">HIIT</div><div class="bpm-range">150-180 BPM</div></div>
-          <div class="bpm-item"><div class="bpm-activity">Yoga</div><div class="bpm-range">60-90 BPM</div></div>
-          <div class="bpm-item"><div class="bpm-activity">Cool-down</div><div class="bpm-range">70-100 BPM</div></div>
-          <div class="bpm-item"><div class="bpm-activity">Warm-up</div><div class="bpm-range">100-130 BPM</div></div>
+        
+        <!-- Main Content -->
+        <div class="youtube-main">
+          <!-- Now Playing Bar (Bottom) -->
+          <div class="now-playing-bar" id="nowPlayingBar" style="display:none">
+            <div class="now-playing-left">
+              <img id="nowPlayingThumb" src="" alt="Thumbnail">
+              <div class="now-playing-info">
+                <h4 id="nowPlayingTitle">No video playing</h4>
+                <p id="nowPlayingChannel"></p>
+              </div>
+            </div>
+            <div class="now-playing-center">
+              <button class="player-btn-small" id="prevBtn"><i class="fas fa-step-backward"></i></button>
+              <button class="player-btn-small play-pause-small" id="playPauseBtn"><i class="fas fa-play"></i></button>
+              <button class="player-btn-small" id="nextBtn"><i class="fas fa-step-forward"></i></button>
+            </div>
+            <div class="now-playing-right">
+              <i class="fas fa-volume-down"></i>
+              <input type="range" id="volumeSlider" min="0" max="100" value="50">
+              <i class="fas fa-volume-up"></i>
+            </div>
+          </div>
+          
+          <!-- Content Area -->
+          <div id="youtubeContentArea">
+            ${renderHomeContent()}
+          </div>
         </div>
       </div>
+      
+      <!-- Hidden YouTube Player -->
+      <div id="youtubePlayer" style="display:none"></div>
     `}
   `;
   
@@ -141,17 +151,111 @@ function renderMusic() {
     document.getElementById('youtubeConnectBtn')?.addEventListener('click', connectYouTube);
   } else {
     document.getElementById('disconnectBtn')?.addEventListener('click', disconnectYouTube);
-    document.getElementById('refreshPlaylistsBtn')?.addEventListener('click', fetchUserPlaylists);
     document.getElementById('prevBtn')?.addEventListener('click', previousTrack);
     document.getElementById('playPauseBtn')?.addEventListener('click', togglePlayPause);
     document.getElementById('nextBtn')?.addEventListener('click', nextTrack);
     document.getElementById('volumeSlider')?.addEventListener('input', (e) => setVolume(e.target.value));
     
-    // Load data
     fetchUserProfile();
     fetchUserPlaylists();
+    fetchHomeVideos();
     initializeYouTubePlayer();
   }
+}
+
+function renderHomeContent() {
+  return `
+    <div class="home-content">
+      <div class="content-section">
+        <h2><i class="fas fa-fire"></i> Trending Workout Music</h2>
+        <div id="homeVideosList" class="video-grid-horizontal">
+          <div class="loading-placeholder">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
+          </div>
+        </div>
+      </div>
+      
+      <div class="content-section">
+        <h2><i class="fas fa-dumbbell"></i> Recommended for You</h2>
+        <div class="category-chips">
+          <span class="chip active" onclick="filterByCategory('all')">All</span>
+          <span class="chip" onclick="filterByCategory('cardio')">Cardio</span>
+          <span class="chip" onclick="filterByCategory('strength')">Strength</span>
+          <span class="chip" onclick="filterByCategory('hiit')">HIIT</span>
+          <span class="chip" onclick="filterByCategory('yoga')">Yoga</span>
+        </div>
+        <div id="recommendedList" class="video-grid-vertical"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSearchContent() {
+  return `
+    <div class="search-content">
+      <div class="search-header">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search for songs, artists, or playlists...">
+        </div>
+        <button class="btn" id="searchBtn"><i class="fas fa-search"></i> Search</button>
+      </div>
+      
+      <div class="search-filters">
+        <span class="filter-chip active" data-type="video">Videos</span>
+        <span class="filter-chip" data-type="playlist">Playlists</span>
+      </div>
+      
+      <div id="searchResults" class="search-results-grid"></div>
+    </div>
+  `;
+}
+
+function renderLibraryContent() {
+  return `
+    <div class="library-content">
+      <div class="library-header">
+        <h2><i class="fas fa-bookmark"></i> Your Library</h2>
+        <button class="btn-outline" onclick="createNewPlaylist()">
+          <i class="fas fa-plus"></i> New Playlist
+        </button>
+      </div>
+      
+      <div class="library-tabs">
+        <span class="library-tab active" onclick="switchLibraryTab('playlists')">Playlists</span>
+        <span class="library-tab" onclick="switchLibraryTab('liked')">Liked Videos</span>
+        <span class="library-tab" onclick="switchLibraryTab('history')">History</span>
+      </div>
+      
+      <div id="libraryContent" class="library-playlists-grid"></div>
+    </div>
+  `;
+}
+
+function renderPlaylistContent(playlistId, playlistName) {
+  return `
+    <div class="playlist-content">
+      <div class="playlist-header">
+        <button class="back-btn" onclick="switchToLibrary()">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <div class="playlist-header-info">
+          <div class="playlist-cover">
+            <i class="fas fa-music"></i>
+          </div>
+          <div>
+            <h2>${escapeHtml(playlistName)}</h2>
+            <p id="playlistVideoCount"></p>
+          </div>
+        </div>
+        <button class="btn" onclick="playAllInPlaylist()">
+          <i class="fas fa-play"></i> Play All
+        </button>
+      </div>
+      
+      <div id="playlistVideosList" class="playlist-videos-list"></div>
+    </div>
+  `;
 }
 
 // ========================================
@@ -172,7 +276,6 @@ function connectYouTube() {
 
 function disconnectYouTube() {
   accessToken = null;
-  userProfile = null;
   localStorage.removeItem('youtube_access_token');
   localStorage.removeItem('youtube_token_expiry');
   if (youtubePlayer) youtubePlayer.destroy();
@@ -225,63 +328,150 @@ async function fetchUserProfile() {
   
   if (data) {
     userProfile = data;
-    document.getElementById('userName').innerText = data.name || 'YouTube User';
-    document.getElementById('userEmail').innerText = data.email || '';
+    document.getElementById('sidebarName').innerText = data.name?.split(' ')[0] || 'User';
     if (data.picture) {
-      document.getElementById('userAvatar').src = data.picture;
+      document.getElementById('sidebarAvatar').src = data.picture;
     }
   }
 }
 
-// ========================================
-// USER PLAYLISTS
-// ========================================
-
 async function fetchUserPlaylists() {
-  const container = document.getElementById('playlistsList');
-  container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
-  
   const data = await youtubeAPI('playlists?part=snippet,contentDetails&mine=true&maxResults=25');
   
   if (data && data.items) {
     userPlaylists = data.items;
-    
-    if (userPlaylists.length === 0) {
-      container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No playlists found</p>';
-      return;
+    updateSidebarPlaylists();
+    if (currentView === 'library') {
+      displayLibraryPlaylists();
     }
-    
-    let html = '<div class="playlists-grid">';
-    userPlaylists.forEach(playlist => {
-      const thumb = playlist.snippet.thumbnails?.default?.url || 
-                   'https://via.placeholder.com/60/FF0000/ffffff?text=🎵';
-      
-      html += `
-        <div class="playlist-card" data-playlist-id="${playlist.id}">
-          <img src="${thumb}" class="playlist-image">
-          <div class="playlist-info">
-            <h4>${escapeHtml(playlist.snippet.title)}</h4>
-            <p>${playlist.contentDetails.itemCount} videos</p>
-          </div>
-        </div>
-      `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
-    
-    document.querySelectorAll('.playlist-card').forEach(card => {
-      card.addEventListener('click', () => loadPlaylistVideos(card.dataset.playlistId));
-    });
   }
 }
 
-async function loadPlaylistVideos(playlistId) {
+function updateSidebarPlaylists() {
+  const container = document.getElementById('sidebarPlaylistsList');
+  if (!container) return;
+  
+  if (userPlaylists.length === 0) {
+    container.innerHTML = '<p class="sidebar-empty">No playlists yet</p>';
+    return;
+  }
+  
+  let html = '';
+  userPlaylists.slice(0, 5).forEach(playlist => {
+    html += `
+      <div class="sidebar-playlist-item" onclick="openPlaylist('${playlist.id}', '${escapeHtml(playlist.snippet.title)}')">
+        <i class="fas fa-list-ul"></i>
+        <span>${escapeHtml(playlist.snippet.title)}</span>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+async function fetchHomeVideos() {
+  // Search for workout music
+  const queries = ['workout music 2024', 'gym motivation', 'running playlist'];
+  const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+  
+  const data = await youtubeAPI(`search?part=snippet&maxResults=10&q=${encodeURIComponent(randomQuery)}&type=video&videoCategoryId=10`);
+  
+  if (data && data.items) {
+    homeVideos = data.items;
+    displayHomeVideos();
+  }
+}
+
+function displayHomeVideos() {
+  const container = document.getElementById('homeVideosList');
+  if (!container) return;
+  
+  let html = '';
+  homeVideos.forEach(item => {
+    const video = item.id.videoId;
+    const title = item.snippet.title;
+    const channel = item.snippet.channelTitle;
+    const thumb = item.snippet.thumbnails.medium.url;
+    
+    html += `
+      <div class="video-card-horizontal" onclick="playVideo('${video}', '${escapeHtml(title)}', '${escapeHtml(channel)}', '${thumb}')">
+        <img src="${thumb}" alt="${escapeHtml(title)}">
+        <div class="video-info">
+          <h4>${escapeHtml(title)}</h4>
+          <p>${escapeHtml(channel)}</p>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function displayLibraryPlaylists() {
+  const container = document.getElementById('libraryContent');
+  if (!container) return;
+  
+  if (userPlaylists.length === 0) {
+    container.innerHTML = '<p class="empty-message">No playlists yet. Create one!</p>';
+    return;
+  }
+  
+  let html = '<div class="library-grid">';
+  userPlaylists.forEach(playlist => {
+    const thumb = playlist.snippet.thumbnails?.default?.url || '';
+    html += `
+      <div class="library-playlist-card" onclick="openPlaylist('${playlist.id}', '${escapeHtml(playlist.snippet.title)}')">
+        <img src="${thumb}" alt="${escapeHtml(playlist.snippet.title)}">
+        <div class="library-playlist-info">
+          <h4>${escapeHtml(playlist.snippet.title)}</h4>
+          <p>${playlist.contentDetails.itemCount} videos</p>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function openPlaylist(playlistId, playlistName) {
+  currentPlaylistId = playlistId;
+  const container = document.getElementById('youtubeContentArea');
+  container.innerHTML = renderPlaylistContent(playlistId, playlistName);
+  
   const data = await youtubeAPI(`playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}`);
   
-  if (data && data.items && data.items.length > 0) {
-    const firstVideo = data.items[0];
-    playVideo(firstVideo.snippet.resourceId.videoId, firstVideo.snippet.title);
-    showToast('Playing playlist! 🎵', false);
+  if (data && data.items) {
+    currentPlaylistVideos = data.items;
+    document.getElementById('playlistVideoCount').innerText = `${data.items.length} videos`;
+    
+    const videosContainer = document.getElementById('playlistVideosList');
+    let html = '';
+    data.items.forEach((item, index) => {
+      const video = item.snippet;
+      html += `
+        <div class="playlist-video-item" onclick="playPlaylistVideo('${video.resourceId.videoId}', '${escapeHtml(video.title)}', '${escapeHtml(video.channelTitle)}', '${video.thumbnails.default.url}')">
+          <span class="video-index">${index + 1}</span>
+          <img src="${video.thumbnails.default.url}" alt="">
+          <div class="video-details">
+            <h4>${escapeHtml(video.title)}</h4>
+            <p>${escapeHtml(video.channelTitle)}</p>
+          </div>
+          <button class="add-to-queue-btn" onclick="event.stopPropagation(); addToQueue('${video.resourceId.videoId}')">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      `;
+    });
+    videosContainer.innerHTML = html;
+  }
+}
+
+function playPlaylistVideo(videoId, title, channel, thumb) {
+  playVideo(videoId, title, channel, thumb);
+}
+
+function playAllInPlaylist() {
+  if (currentPlaylistVideos.length > 0) {
+    const first = currentPlaylistVideos[0].snippet;
+    playVideo(first.resourceId.videoId, first.title, first.channelTitle, first.thumbnails.default.url);
   }
 }
 
@@ -304,13 +494,11 @@ function createPlayer() {
   if (youtubePlayer) youtubePlayer.destroy();
   
   youtubePlayer = new YT.Player('youtubePlayer', {
-    height: '100%',
-    width: '100%',
+    height: '0',
+    width: '0',
     playerVars: {
       autoplay: 0,
-      controls: 0,
-      modestbranding: 1,
-      rel: 0
+      controls: 0
     },
     events: {
       onReady: () => console.log('✅ Player Ready'),
@@ -325,20 +513,19 @@ function onPlayerStateChange(event) {
   if (playPauseBtn) {
     playPauseBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
   }
-  
-  if (isPlaying) {
-    document.getElementById('nowPlayingCard').style.display = 'block';
-  }
 }
 
-function playVideo(videoId, title) {
-  currentVideo = { id: videoId, title: title };
+function playVideo(videoId, title, channel, thumb) {
+  currentVideo = { id: videoId, title, channel, thumb };
   
   if (youtubePlayer) {
     youtubePlayer.loadVideoById(videoId);
-    document.getElementById('videoTitle').innerText = title;
-    document.getElementById('nowPlayingCard').style.display = 'block';
   }
+  
+  document.getElementById('nowPlayingBar').style.display = 'flex';
+  document.getElementById('nowPlayingThumb').src = thumb;
+  document.getElementById('nowPlayingTitle').innerText = title;
+  document.getElementById('nowPlayingChannel').innerText = channel;
 }
 
 function togglePlayPause() {
@@ -363,9 +550,105 @@ function setVolume(value) {
   if (youtubePlayer) youtubePlayer.setVolume(value);
 }
 
+// ========================================
+// NAVIGATION
+// ========================================
+
+function switchToHome() {
+  currentView = 'home';
+  document.getElementById('youtubeContentArea').innerHTML = renderHomeContent();
+  fetchHomeVideos();
+  updateActiveMenu();
+}
+
+function switchToSearch() {
+  currentView = 'search';
+  document.getElementById('youtubeContentArea').innerHTML = renderSearchContent();
+  setupSearchListeners();
+  updateActiveMenu();
+}
+
+function switchToLibrary() {
+  currentView = 'library';
+  document.getElementById('youtubeContentArea').innerHTML = renderLibraryContent();
+  displayLibraryPlaylists();
+  updateActiveMenu();
+}
+
+function updateActiveMenu() {
+  document.querySelectorAll('.menu-item').forEach(item => {
+    item.classList.remove('active');
+  });
+}
+
+function setupSearchListeners() {
+  document.getElementById('searchBtn')?.addEventListener('click', performSearch);
+  document.getElementById('searchInput')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch();
+  });
+}
+
+async function performSearch() {
+  const query = document.getElementById('searchInput')?.value.trim();
+  if (!query) return;
+  
+  const container = document.getElementById('searchResults');
+  container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
+  
+  const data = await youtubeAPI(`search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video`);
+  
+  if (data && data.items) {
+    let html = '';
+    data.items.forEach(item => {
+      if (!item.id.videoId) return;
+      const video = item.id.videoId;
+      const title = item.snippet.title;
+      const channel = item.snippet.channelTitle;
+      const thumb = item.snippet.thumbnails.medium.url;
+      
+      html += `
+        <div class="search-result-item" onclick="playVideo('${video}', '${escapeHtml(title)}', '${escapeHtml(channel)}', '${thumb}')">
+          <img src="${thumb}" alt="${escapeHtml(title)}">
+          <div class="result-info">
+            <h4>${escapeHtml(title)}</h4>
+            <p>${escapeHtml(channel)}</p>
+          </div>
+          <button class="add-btn" onclick="event.stopPropagation(); addToPlaylist('${video}', '${escapeHtml(title)}')">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+}
+
+function addToPlaylist(videoId, title) {
+  showToast('Added to queue', false);
+}
+
+function createNewPlaylist() {
+  showToast('Create playlist feature coming soon!', false);
+}
+
+function filterByCategory(category) {
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  fetchHomeVideos();
+}
+
+function switchLibraryTab(tab) {
+  document.querySelectorAll('.library-tab').forEach(t => {
+    t.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
 }
 
-console.log("✅ YouTube Music Loaded");
+console.log("✅ YouTube Music Full Interface Loaded");
