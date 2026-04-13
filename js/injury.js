@@ -433,7 +433,7 @@ function renderInjuryGuide() {
   
   container.innerHTML = `
     <div class="page-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Injury Prevention Guide" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Orange%20and%20Black%20Bold%20Start%20Training%20Today%20Banner%20Landscape.png" alt="Injury Prevention Guide" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
     <!-- Exercise Selector -->

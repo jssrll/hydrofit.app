@@ -32,7 +32,7 @@ function renderHeartRate() {
   
   container.innerHTML = `
     <div class="page-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Heart Rate Logger" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Grey%20and%20White%20Modern%20Gym%20Fitness%20Presentation.png" alt="Heart Rate Logger" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
     <!-- Heart Rate Input -->

@@ -57,7 +57,7 @@ function playRingSound() {
 function renderTimer() {
   const container = document.getElementById("tabContent");
   container.innerHTML = `
-    <div class="timer-banner"><img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Timer Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)"></div>
+    <div class="timer-banner"><img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20and%20White%20Modern%20Geometric%20Fitness%20Presentation.png" alt="Timer Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)"></div>
     <div class="card"><h3><i class="fas fa-clock"></i> Exercise Timer</h3><p style="color:#64748b;margin-bottom:20px">Focus on timing and intervals</p>
       <div class="timer-mode-selector">
         <button class="timer-mode-btn ${timerMode==='stopwatch'?'active':''}" onclick="setTimerMode('stopwatch')"><i class="fas fa-stopwatch"></i> Stopwatch</button>

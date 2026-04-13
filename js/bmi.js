@@ -22,7 +22,7 @@ function renderBMI() {
   
   container.innerHTML = `
     <div class="bmi-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="BMI Tracker Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20Purple%20Modern%20GYM%20Fitness%20Presentation%20.png" alt="BMI Tracker Banner" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
     <!-- BMI Calculator -->

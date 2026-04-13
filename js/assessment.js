@@ -11,7 +11,7 @@ function renderAssignment() {
   
   container.innerHTML = `
     <div class="assessment-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Fitness Assessment Banner" style="width: 100%; border-radius: 20px; box-shadow: var(--shadow);">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Gold%20and%20Black%20Geometric%20Modern%20Gym%20Presentation%20Template.png" alt="Fitness Assessment Banner" style="width: 100%; border-radius: 20px; box-shadow: var(--shadow);">
     </div>
     <div class="card">
       <h3><i class="fas fa-plus-circle"></i> New Assessment</h3>

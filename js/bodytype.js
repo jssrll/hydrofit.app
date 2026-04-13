@@ -14,7 +14,7 @@ function renderBodyType() {
   
   container.innerHTML = `
     <div class="page-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Body Type Identifier" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/gym%20(Banner%20(Landscape)).png" alt="Body Type Identifier" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
     <!-- Introduction -->
