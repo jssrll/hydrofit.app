@@ -1,62 +1,59 @@
 // ========================================
-// HYDROFIT - GOOGLE FIT STEP COUNTER
+// HYDROFIT - STEP COUNTER (API + MOTION SENSOR)
 // ========================================
 
 let stepHistory = [];
 let dailyGoal = 10000;
-let isGoogleFitConnected = false;
-let googleFitToken = null;
+let stepCount = 0;
+let isTracking = false;
+let motionPermission = false;
+let useGoogleFit = false;
 
+// Motion detection variables
+let lastAcceleration = { x: 0, y: 0, z: 0 };
+const STEP_THRESHOLD = 1.2;
+const MIN_STEP_INTERVAL = 250;
+let lastStepTime = 0;
+let motionListener = null;
+
+// Google Fit Config
 const GOOGLE_FIT_CONFIG = {
   clientId: '803381828579-n65i55mqbm3uf2lba8kbfu0f8spsn3d6.apps.googleusercontent.com',
-  scope: 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read',
+  scope: 'https://www.googleapis.com/auth/fitness.activity.read',
   discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/fitness/v1/rest']
 };
 
 function renderStepCounter() {
   const container = document.getElementById("tabContent");
   
-  // Check if already connected
-  const savedToken = localStorage.getItem('google_fit_token');
-  if (savedToken) {
-    googleFitToken = savedToken;
-    isGoogleFitConnected = true;
-  }
+  // Check if Google API is available
+  const googleApiAvailable = typeof gapi !== 'undefined';
   
   container.innerHTML = `
     <div class="page-banner">
       <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Step Counter" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
-    ${!isGoogleFitConnected ? `
-      <!-- Connect Google Fit -->
-      <div class="card connect-card">
-        <div class="connect-header">
-          <i class="fab fa-google"></i>
-          <h2>Connect Google Fit</h2>
-        </div>
-        <p style="color:#64748b;margin-bottom:24px;text-align:center">
-          Connect your Google Fit account to automatically sync your step data
-        </p>
-        <button class="google-fit-btn" onclick="connectGoogleFit()">
-          <i class="fab fa-google"></i> Connect Google Fit
+    <!-- Connection Options -->
+    <div class="card">
+      <h3><i class="fas fa-link"></i> Step Tracking Method</h3>
+      <div class="tracking-options">
+        ${googleApiAvailable ? `
+          <button class="tracking-option-btn" onclick="tryGoogleFit()">
+            <i class="fab fa-google"></i> Connect Google Fit
+          </button>
+        ` : ''}
+        <button class="tracking-option-btn" onclick="useDeviceMotion()">
+          <i class="fas fa-mobile-alt"></i> Use Device Sensor
+        </button>
+        <button class="tracking-option-btn" onclick="manualAddSteps()">
+          <i class="fas fa-keyboard"></i> Manual Entry
         </button>
       </div>
-    ` : `
-      <!-- Connected Status -->
-      <div class="card connected-card">
-        <div class="connected-header">
-          <i class="fab fa-google" style="color:#4285f4"></i>
-          <div>
-            <h3>Google Fit Connected</h3>
-            <p>Your step data syncs automatically</p>
-          </div>
-        </div>
-        <button class="btn btn-outline" onclick="syncFromGoogleFit()" style="margin-top:16px">
-          <i class="fas fa-sync-alt"></i> Sync Now
-        </button>
-      </div>
-    `}
+      <p style="color:#64748b;font-size:0.85rem;margin-top:16px;text-align:center">
+        ${useGoogleFit ? '✓ Connected to Google Fit' : motionPermission ? '✓ Using device motion sensor' : 'Select a tracking method above'}
+      </p>
+    </div>
 
     <!-- Daily Step Goal -->
     <div class="card">
@@ -69,7 +66,15 @@ function renderStepCounter() {
 
     <!-- Today's Steps -->
     <div class="card steps-today-card">
-      <h3><i class="fas fa-shoe-prints"></i> Today's Steps</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0"><i class="fas fa-shoe-prints"></i> Today's Steps</h3>
+        ${motionPermission ? `
+          <button class="tracking-toggle ${isTracking ? 'active' : ''}" onclick="toggleTracking()">
+            <i class="fas ${isTracking ? 'fa-pause' : 'fa-play'}"></i> 
+            ${isTracking ? 'Stop' : 'Start'} Tracking
+          </button>
+        ` : ''}
+      </div>
       <div class="steps-progress">
         <div class="progress-circle-container">
           <svg viewBox="0 0 100 100" class="step-circle">
@@ -77,29 +82,34 @@ function renderStepCounter() {
             <circle cx="50" cy="50" r="45" class="circle-fill" id="stepCircle"/>
           </svg>
           <div class="circle-content">
-            <span class="current-steps" id="currentSteps">0</span>
+            <span class="current-steps" id="currentSteps">${stepCount.toLocaleString()}</span>
             <span class="goal-steps">/ ${dailyGoal.toLocaleString()}</span>
           </div>
         </div>
         <div class="steps-stats">
           <div class="stat-item">
             <span class="stat-label">Distance</span>
-            <span class="stat-value" id="todayDistance">0 km</span>
+            <span class="stat-value" id="todayDistance">${(stepCount * 0.000762).toFixed(2)} km</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Calories</span>
-            <span class="stat-value" id="todayCalories">0</span>
+            <span class="stat-value" id="todayCalories">${Math.round(stepCount * 0.04)}</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Active Minutes</span>
-            <span class="stat-value" id="todayActiveMinutes">0</span>
+            <span class="stat-value" id="todayActiveMinutes">${Math.round(stepCount / 100)}</span>
           </div>
         </div>
       </div>
       
-      <button class="btn btn-outline" onclick="manualAddSteps()" style="width:100%;margin-top:16px">
-        <i class="fas fa-plus"></i> Add Steps Manually
-      </button>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-outline" onclick="manualAddSteps()" style="flex:1">
+          <i class="fas fa-plus"></i> Add Steps
+        </button>
+        <button class="btn btn-outline" onclick="saveCurrentSteps()" style="flex:1">
+          <i class="fas fa-save"></i> Save Progress
+        </button>
+      </div>
     </div>
 
     <!-- Step History Chart -->
@@ -129,10 +139,10 @@ function renderStepCounter() {
           <h3>Add Steps Manually</h3>
         </div>
         <div class="modal-body">
-          <input type="number" id="manualSteps" class="modal-input" placeholder="Number of steps">
-          <input type="number" id="manualDistance" class="modal-input" placeholder="Distance (km)">
-          <input type="number" id="manualCalories" class="modal-input" placeholder="Calories burned">
-          <input type="number" id="manualActiveMinutes" class="modal-input" placeholder="Active minutes">
+          <input type="number" id="manualSteps" class="modal-input" placeholder="Number of steps" value="0">
+          <p style="color:#64748b;font-size:0.85rem;margin:8px 0">
+            <i class="fas fa-info-circle"></i> Distance and calories will be calculated automatically
+          </p>
           <button class="modal-btn" onclick="saveManualSteps()">Save</button>
           <button class="modal-btn btn-outline" onclick="closeManualModal()">Cancel</button>
         </div>
@@ -143,60 +153,68 @@ function renderStepCounter() {
   loadDailyGoal();
   loadTodaySteps();
   loadStepHistory();
+  updateStepDisplay();
 }
 
-function connectGoogleFit() {
-  // Initialize Google API client
-  gapi.load('client:auth2', async () => {
-    try {
-      await gapi.client.init({
-        clientId: GOOGLE_FIT_CONFIG.clientId,
-        scope: GOOGLE_FIT_CONFIG.scope,
-        discoveryDocs: GOOGLE_FIT_CONFIG.discoveryDocs
-      });
-      
-      const authInstance = gapi.auth2.getAuthInstance();
-      const user = await authInstance.signIn();
-      
-      googleFitToken = user.getAuthResponse().access_token;
-      isGoogleFitConnected = true;
-      localStorage.setItem('google_fit_token', googleFitToken);
-      
-      showToast('Connected to Google Fit! 🎉', false);
-      renderStepCounter();
-      syncFromGoogleFit();
-      
-    } catch (error) {
-      console.error('Google Fit connection error:', error);
-      showToast('Failed to connect to Google Fit', true);
-    }
-  });
+// ========================================
+// TRACKING METHODS
+// ========================================
+
+async function tryGoogleFit() {
+  showToast('Connecting to Google Fit...', false);
+  
+  // Load Google API if not already loaded
+  if (typeof gapi === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://apis.google.com/js/api.js';
+    script.onload = () => initGoogleFit();
+    script.onerror = () => {
+      showToast('Google Fit unavailable, using device sensor', false);
+      useDeviceMotion();
+    };
+    document.head.appendChild(script);
+  } else {
+    initGoogleFit();
+  }
+}
+
+async function initGoogleFit() {
+  try {
+    await gapi.load('client:auth2');
+    await gapi.client.init(GOOGLE_FIT_CONFIG);
+    
+    const authInstance = gapi.auth2.getAuthInstance();
+    const user = await authInstance.signIn();
+    
+    const token = user.getAuthResponse().access_token;
+    localStorage.setItem('google_fit_token', token);
+    
+    useGoogleFit = true;
+    showToast('Connected to Google Fit!', false);
+    
+    await syncFromGoogleFit();
+    renderStepCounter();
+  } catch (error) {
+    console.log('Google Fit error:', error);
+    showToast('Falling back to device sensor', false);
+    useDeviceMotion();
+  }
 }
 
 async function syncFromGoogleFit() {
-  if (!googleFitToken) {
-    const savedToken = localStorage.getItem('google_fit_token');
-    if (savedToken) {
-      googleFitToken = savedToken;
-      isGoogleFitConnected = true;
-    } else {
-      showToast('Please connect to Google Fit first', true);
-      return;
-    }
-  }
+  const token = localStorage.getItem('google_fit_token');
+  if (!token) return;
   
-  showToast('Syncing from Google Fit...', false);
+  showToast('Syncing steps...', false);
   
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const endTime = new Date();
     
-    // Get steps data
-    const stepsResponse = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+    const response = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${googleFitToken}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -206,15 +224,15 @@ async function syncFromGoogleFit() {
         }],
         bucketByTime: { durationMillis: 86400000 },
         startTimeMillis: today.getTime(),
-        endTimeMillis: endTime.getTime()
+        endTimeMillis: new Date().getTime()
       })
     });
     
-    const stepsData = await stepsResponse.json();
+    const data = await response.json();
     let steps = 0;
     
-    if (stepsData.bucket) {
-      stepsData.bucket.forEach(bucket => {
+    if (data.bucket) {
+      data.bucket.forEach(bucket => {
         bucket.dataset.forEach(dataset => {
           dataset.point.forEach(point => {
             point.value.forEach(val => { steps += val.intVal || 0; });
@@ -223,62 +241,148 @@ async function syncFromGoogleFit() {
       });
     }
     
-    // Calculate distance (rough estimate: steps * 0.762m per step)
-    const distance = (steps * 0.000762).toFixed(2);
-    
-    // Calculate calories (rough estimate: steps * 0.04)
-    const calories = Math.round(steps * 0.04);
-    
-    // Get active minutes
-    const activeResponse = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${googleFitToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        aggregateBy: [{
-          dataTypeName: 'com.google.active_minutes'
-        }],
-        bucketByTime: { durationMillis: 86400000 },
-        startTimeMillis: today.getTime(),
-        endTimeMillis: endTime.getTime()
-      })
-    });
-    
-    const activeData = await activeResponse.json();
-    let activeMinutes = 0;
-    
-    if (activeData.bucket) {
-      activeData.bucket.forEach(bucket => {
-        bucket.dataset.forEach(dataset => {
-          dataset.point.forEach(point => {
-            point.value.forEach(val => { activeMinutes += val.intVal || 0; });
-          });
-        });
-      });
-    }
-    
-    // Save to sheets
-    const result = await callAPI('saveStepData', {
-      schoolId: window.currentUser.schoolId,
-      date: today.toISOString().split('T')[0],
-      steps: steps,
-      distance: distance,
-      calories: calories,
-      activeMinutes: activeMinutes
-    });
-    
-    if (result.success) {
-      showToast(`Synced ${steps.toLocaleString()} steps! 🎉`, false);
-      loadTodaySteps();
-      loadStepHistory();
-    }
-    
+    stepCount = steps;
+    await saveStepData(steps);
+    updateStepDisplay();
+    showToast(`Synced ${steps.toLocaleString()} steps!`, false);
   } catch (error) {
-    console.error('Sync error:', error);
-    showToast('Failed to sync from Google Fit', true);
+    console.log('Sync error:', error);
+    useDeviceMotion();
   }
+}
+
+function useDeviceMotion() {
+  motionPermission = true;
+  useGoogleFit = false;
+  showToast('Using device motion sensor', false);
+  renderStepCounter();
+  requestMotionPermission();
+}
+
+function requestMotionPermission() {
+  if (typeof DeviceMotionEvent !== 'undefined') {
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      // iOS
+      DeviceMotionEvent.requestPermission()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            startMotionTracking();
+          } else {
+            showToast('Motion permission denied', true);
+          }
+        })
+        .catch(console.error);
+    } else {
+      // Android/Desktop
+      startMotionTracking();
+    }
+  } else {
+    showToast('Device motion not supported', true);
+  }
+}
+
+function startMotionTracking() {
+  if (motionListener) {
+    window.removeEventListener('devicemotion', motionListener);
+  }
+  
+  motionListener = (event) => {
+    if (!isTracking) return;
+    
+    const acc = event.accelerationIncludingGravity;
+    if (!acc) return;
+    
+    const now = Date.now();
+    if (now - lastStepTime < MIN_STEP_INTERVAL) return;
+    
+    const magnitude = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+    const deltaX = Math.abs(acc.x - lastAcceleration.x);
+    const deltaY = Math.abs(acc.y - lastAcceleration.y);
+    const deltaZ = Math.abs(acc.z - lastAcceleration.z);
+    const delta = deltaX + deltaY + deltaZ;
+    
+    if (delta > STEP_THRESHOLD && magnitude > 10 && magnitude < 14) {
+      stepCount++;
+      lastStepTime = now;
+      updateStepDisplay();
+    }
+    
+    lastAcceleration = { x: acc.x, y: acc.y, z: acc.z };
+  };
+  
+  window.addEventListener('devicemotion', motionListener);
+  isTracking = true;
+  showToast('Step tracking started!', false);
+}
+
+function toggleTracking() {
+  if (isTracking) {
+    isTracking = false;
+    showToast('Tracking paused', false);
+  } else {
+    if (!motionListener) {
+      requestMotionPermission();
+    } else {
+      isTracking = true;
+      showToast('Tracking resumed', false);
+    }
+  }
+  renderStepCounter();
+}
+
+// ========================================
+// STEP DATA MANAGEMENT
+// ========================================
+
+function updateStepDisplay() {
+  const stepsEl = document.getElementById('currentSteps');
+  const distanceEl = document.getElementById('todayDistance');
+  const caloriesEl = document.getElementById('todayCalories');
+  const minutesEl = document.getElementById('todayActiveMinutes');
+  
+  if (stepsEl) {
+    stepsEl.innerText = stepCount.toLocaleString();
+    distanceEl.innerText = (stepCount * 0.000762).toFixed(2) + ' km';
+    caloriesEl.innerText = Math.round(stepCount * 0.04).toLocaleString();
+    minutesEl.innerText = Math.round(stepCount / 100).toLocaleString();
+    
+    // Update progress circle
+    const percent = Math.min(100, (stepCount / dailyGoal) * 100);
+    const circle = document.getElementById('stepCircle');
+    if (circle) {
+      const circumference = 2 * Math.PI * 45;
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDasharray = `${circumference} ${circumference}`;
+      circle.style.strokeDashoffset = offset;
+      circle.style.stroke = stepCount >= dailyGoal ? '#00b894' : '#00b4d8';
+    }
+  }
+}
+
+async function saveCurrentSteps() {
+  if (stepCount === 0) {
+    showToast('No steps to save', true);
+    return;
+  }
+  
+  await saveStepData(stepCount);
+  showToast('Steps saved!', false);
+  loadStepHistory();
+}
+
+async function saveStepData(steps) {
+  const distance = (steps * 0.000762).toFixed(2);
+  const calories = Math.round(steps * 0.04);
+  const activeMinutes = Math.round(steps / 100);
+  
+  return await callAPI('saveStepData', {
+    schoolId: window.currentUser.schoolId,
+    date: new Date().toISOString().split('T')[0],
+    steps: steps,
+    distance: distance,
+    calories: calories,
+    activeMinutes: activeMinutes
+  });
 }
 
 async function loadTodaySteps() {
@@ -288,27 +392,8 @@ async function loadTodaySteps() {
   });
   
   if (result.success && result.data) {
-    const data = result.data;
-    document.getElementById('currentSteps').innerText = data.steps.toLocaleString();
-    document.getElementById('todayDistance').innerText = `${data.distance} km`;
-    document.getElementById('todayCalories').innerText = data.calories.toLocaleString();
-    document.getElementById('todayActiveMinutes').innerText = `${data.activeMinutes} min`;
-    
-    // Update progress circle
-    const percent = Math.min(100, (data.steps / dailyGoal) * 100);
-    const circle = document.getElementById('stepCircle');
-    if (circle) {
-      const circumference = 2 * Math.PI * 45;
-      const offset = circumference - (percent / 100) * circumference;
-      circle.style.strokeDasharray = `${circumference} ${circumference}`;
-      circle.style.strokeDashoffset = offset;
-      circle.style.stroke = data.steps >= dailyGoal ? '#00b894' : '#00b4d8';
-    }
-  } else {
-    document.getElementById('currentSteps').innerText = '0';
-    document.getElementById('todayDistance').innerText = '0 km';
-    document.getElementById('todayCalories').innerText = '0';
-    document.getElementById('todayActiveMinutes').innerText = '0 min';
+    stepCount = result.data.steps || 0;
+    updateStepDisplay();
   }
 }
 
@@ -319,7 +404,7 @@ async function loadStepHistory() {
   });
   
   if (result.success) {
-    stepHistory = result.history;
+    stepHistory = result.history || [];
     displayStepHistory();
     drawStepChart();
   }
@@ -327,9 +412,10 @@ async function loadStepHistory() {
 
 function displayStepHistory() {
   const container = document.getElementById('stepHistoryList');
+  if (!container) return;
   
-  if (stepHistory.length === 0) {
-    container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No step data yet</p>';
+  if (!stepHistory || stepHistory.length === 0) {
+    container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No step data yet. Start walking!</p>';
     return;
   }
   
@@ -365,7 +451,7 @@ function displayStepHistory() {
 
 function drawStepChart() {
   const canvas = document.getElementById('stepChart');
-  if (!canvas) return;
+  if (!canvas || !stepHistory || stepHistory.length === 0) return;
   
   const ctx = canvas.getContext('2d');
   const container = canvas.parentElement;
@@ -383,21 +469,12 @@ function drawStepChart() {
   
   ctx.clearRect(0, 0, width, height);
   
-  if (stepHistory.length === 0) {
-    ctx.font = '500 14px Inter, sans-serif';
-    ctx.fillStyle = '#64748b';
-    ctx.textAlign = 'center';
-    ctx.fillText('No step data available', width/2, height/2);
-    return;
-  }
-  
   const chartData = [...stepHistory].reverse();
-  
   const padding = { top: 30, right: 20, bottom: 40, left: 50 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   
-  const maxSteps = Math.max(dailyGoal, ...chartData.map(d => d.steps));
+  const maxSteps = Math.max(dailyGoal, ...chartData.map(d => d.steps || 0));
   
   // Draw goal line
   const goalY = padding.top + chartHeight - (dailyGoal / maxSteps) * chartHeight;
@@ -414,11 +491,12 @@ function drawStepChart() {
   const barWidth = (chartWidth / chartData.length) * 0.7;
   
   chartData.forEach((d, i) => {
+    const steps = d.steps || 0;
     const x = padding.left + (i / chartData.length) * chartWidth + (chartWidth / chartData.length - barWidth) / 2;
-    const barHeight = (d.steps / maxSteps) * chartHeight;
+    const barHeight = (steps / maxSteps) * chartHeight;
     const y = padding.top + chartHeight - barHeight;
     
-    ctx.fillStyle = d.steps >= dailyGoal ? '#00b894' : '#00b4d8';
+    ctx.fillStyle = steps >= dailyGoal ? '#00b894' : '#00b4d8';
     ctx.fillRect(x, y, barWidth, barHeight);
     
     // Date label
@@ -429,9 +507,11 @@ function drawStepChart() {
     ctx.fillText(date.toLocaleDateString('en-US', { weekday: 'short' }), x + barWidth / 2, height - 20);
     
     // Value label
-    ctx.font = 'bold 9px Inter, sans-serif';
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillText(d.steps.toLocaleString(), x + barWidth / 2, y - 5);
+    if (steps > 0) {
+      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillText(steps.toLocaleString(), x + barWidth / 2, y - 5);
+    }
   });
 }
 
@@ -440,8 +520,7 @@ function setStepGoal() {
   if (newGoal && newGoal >= 1000) {
     dailyGoal = newGoal;
     localStorage.setItem('hydrofit_step_goal', dailyGoal);
-    document.querySelector('.goal-steps').innerText = `/ ${dailyGoal.toLocaleString()}`;
-    loadTodaySteps();
+    updateStepDisplay();
     displayStepHistory();
     showToast(`Daily goal set to ${dailyGoal.toLocaleString()} steps!`, false);
   }
@@ -463,31 +542,30 @@ function closeManualModal() {
 }
 
 async function saveManualSteps() {
-  const steps = parseInt(document.getElementById('manualSteps').value);
-  const distance = parseFloat(document.getElementById('manualDistance').value) || (steps * 0.000762).toFixed(2);
-  const calories = parseInt(document.getElementById('manualCalories').value) || Math.round(steps * 0.04);
-  const activeMinutes = parseInt(document.getElementById('manualActiveMinutes').value) || 0;
+  const steps = parseInt(document.getElementById('manualSteps').value) || 0;
   
-  if (!steps) {
+  if (steps <= 0) {
     showToast('Please enter steps', true);
     return;
   }
   
-  const result = await callAPI('saveStepData', {
-    schoolId: window.currentUser.schoolId,
-    date: new Date().toISOString().split('T')[0],
-    steps: steps,
-    distance: distance,
-    calories: calories,
-    activeMinutes: activeMinutes
-  });
+  stepCount += steps;
+  updateStepDisplay();
   
-  if (result.success) {
-    showToast('Steps saved! 🎉', false);
-    closeManualModal();
-    loadTodaySteps();
-    loadStepHistory();
-  }
+  await saveStepData(stepCount);
+  showToast(`Added ${steps.toLocaleString()} steps!`, false);
+  closeManualModal();
+  loadStepHistory();
 }
 
-console.log("✅ Step Counter Loaded");
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  if (motionListener) {
+    window.removeEventListener('devicemotion', motionListener);
+  }
+  if (stepCount > 0) {
+    saveStepData(stepCount);
+  }
+});
+
+console.log("✅ Step Counter Loaded - API + Motion Sensor Fallback");
