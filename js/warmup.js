@@ -93,7 +93,7 @@ function renderWarmup() {
   
   container.innerHTML = `
     <div class="page-banner">
-      <img src="https://ik.imagekit.io/0sf7uub8b/HydroFit/Black%20White%20Simple%20Fitness%20Tracker%20Banner.png?updatedAt=1775723329394" alt="Warm-up Generator" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
+      <img src="https://ik.imagekit.io/0sf7uub8b/Orange%20Black%20and%20White%20Neon%20Gradient%20Geometric%20Shape%20Modern%20Bold%20Running%20Club%20Sport%20Presentation.png" alt="Warm-up Generator" style="width:100%;border-radius:20px;box-shadow:var(--shadow)">
     </div>
 
     <!-- Activity Selector -->
